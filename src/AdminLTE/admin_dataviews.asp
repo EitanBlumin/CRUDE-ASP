@@ -131,6 +131,12 @@ END IF
                 <h4><i class="icon fa fa-check"></i> Success!</h4>
                 Item has been successfully deleted.
               </div>
+       <% CASE "notfound" %>
+              <div class="alert alert-error alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                <h4><i class="icon fa fa-exclamation-triangle"></i> Error!</h4>
+                Provided View ID was not found.
+              </div>
     <% END SELECT %>
 <div class="row">
     <div class="col col-sm-12">
