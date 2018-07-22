@@ -5,6 +5,27 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "CrudePortalDB", "CrudePortalDB\CrudePortalDB.sqlproj", "{247CA1A3-3B86-46C9-B470-AA4940A41511}"
 EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "AdminLTE", "AdminLTE\", "{48035B1C-40E1-4212-B5D2-5586A6B26F8A}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_54103"
+		Debug.AspNetCompiler.PhysicalPath = "AdminLTE\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_54103\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_54103"
+		Release.AspNetCompiler.PhysicalPath = "AdminLTE\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_54103\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "54103"
+		SlnRelativePath = "AdminLTE\"
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,6 +38,10 @@ Global
 		{247CA1A3-3B86-46C9-B470-AA4940A41511}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{247CA1A3-3B86-46C9-B470-AA4940A41511}.Release|Any CPU.Build.0 = Release|Any CPU
 		{247CA1A3-3B86-46C9-B470-AA4940A41511}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{48035B1C-40E1-4212-B5D2-5586A6B26F8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48035B1C-40E1-4212-B5D2-5586A6B26F8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48035B1C-40E1-4212-B5D2-5586A6B26F8A}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{48035B1C-40E1-4212-B5D2-5586A6B26F8A}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
