@@ -8,14 +8,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
     <ProjectGuid>{247ca1a3-3b86-46c9-b470-aa4940a41511}</ProjectGuid>
-    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql100DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootPath>
     </RootPath>
     <RootNamespace>CrudePortalDB</RootNamespace>
     <AssemblyName>CrudePortalDB</AssemblyName>
-    <ModelCollation>1033, CI</ModelCollation>
-    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <ModelCollation>1037,CI</ModelCollation>
+    <DefaultFileStructure>BySchemaType</DefaultFileStructure>
     <DeployToDatabase>True</DeployToDatabase>
     <TargetFrameworkVersion>v3.0</TargetFrameworkVersion>
     <TargetLanguage>CS</TargetLanguage>
@@ -23,6 +23,19 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
+    <GenerateCreateScript>True</GenerateCreateScript>
+    <DefaultCollation>Hebrew_CI_AS</DefaultCollation>
+    <AutoUpdateStatisticsAsynchronously>True</AutoUpdateStatisticsAsynchronously>
+    <Recovery>SIMPLE</Recovery>
+    <PageVerify>CHECKSUM</PageVerify>
+    <ReadCommittedSnapshot>True</ReadCommittedSnapshot>
+    <AllowSnapshotIsolation>True</AllowSnapshotIsolation>
+    <DatabaseChaining>True</DatabaseChaining>
+    <Trustworthy>True</Trustworthy>
+    <IsBrokerPriorityHonored>True</IsBrokerPriorityHonored>
+    <ServiceBrokerOption>NewBroker</ServiceBrokerOption>
+    <IncludeSchemaNameInFileName>True</IncludeSchemaNameInFileName>
+    <DefaultFilegroup>PRIMARY</DefaultFilegroup>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -57,5 +70,24 @@
   <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
     <Folder Include="Properties" />
+    <Folder Include="Tables\" />
+    <Folder Include="Views\" />
+    <Folder Include="Security\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="Tables\portal.DataView.sql" />
+    <Build Include="Tables\portal.DataViewAction.sql" />
+    <Build Include="Tables\portal.DataViewChart.sql" />
+    <Build Include="Tables\portal.DataViewField.sql" />
+    <Build Include="Views\portal.DataViewFieldFlags.sql" />
+    <Build Include="Views\portal.DataViewUriStyles.sql" />
+    <Build Include="Views\portal.DataViewFlags.sql" />
+    <Build Include="Views\portal.DataViewFieldTypes.sql" />
+    <Build Include="Views\portal.DataViewChartTypes.sql" />
+    <Build Include="Security\portal.sql" />
+    <Build Include="Tables\portal.Navigation.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <RefactorLog Include="CrudePortalDB.refactorlog" />
   </ItemGroup>
 </Project>
