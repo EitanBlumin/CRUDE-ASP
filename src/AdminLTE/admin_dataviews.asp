@@ -24,7 +24,7 @@ Dim strDescription, strOrderBy, nFlags
     
 strMode = Request("mode")
 nItemID = Request("ItemID")
-IF NOT IsNumeric(nItemID) THEN nItem = ""
+IF NOT IsNumeric(nItemID) THEN nItemID = ""
 strTitle = Request("Title")
 strMainTable = Request("MainTable")
 strPrimaryKey = Request("PrimaryKey")

@@ -73,6 +73,8 @@
     <Folder Include="Tables\" />
     <Folder Include="Views\" />
     <Folder Include="Security\" />
+    <Folder Include="Stored Procedures\" />
+    <Folder Include="Scripts" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Tables\portal.DataView.sql" />
@@ -86,8 +88,18 @@
     <Build Include="Views\portal.DataViewChartTypes.sql" />
     <Build Include="Security\portal.sql" />
     <Build Include="Tables\portal.Navigation.sql" />
+    <Build Include="Security\CrudeLogin.sql" />
+    <Build Include="Security\RoleMemberships.sql" />
+    <Build Include="Stored Procedures\portal.AutoInitDataViewFields.sql" />
+    <Build Include="Stored Procedures\dbo.usp_Generate_Merge_For_Table.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="CrudePortalDB.refactorlog" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CrudePortalDB.local.publish.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
   </ItemGroup>
 </Project>

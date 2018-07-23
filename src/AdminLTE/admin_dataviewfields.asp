@@ -25,9 +25,9 @@ Dim strLinkedTableTitleField, strLinkedTableAddition, strLinkedTableValueField, 
     
 strMode = Request("mode")
 nItemID = Request("ItemID")
-IF NOT IsNumeric(nItemID) THEN nItem = ""
+IF NOT IsNumeric(nItemID) THEN nItemID = ""
 nViewID = Request("ViewID")
-IF NOT IsNumeric(nViewID) THEN nItem = ""
+IF NOT IsNumeric(nViewID) THEN nItemID = ""
 
     
 IF nViewID <> "" AND IsNumeric(nViewID) THEN
@@ -96,12 +96,16 @@ IF Request.Form("FieldLabel") <> "" THEN
 	END IF
 	
 	Response.Redirect(constPageScriptName & "?ViewID=" & nViewID & "&MSG=" & strMode)
+    
+ELSEIF strMode = "autoinit" THEN
+		
+	adoConn.Execute "EXEC portal.AutoInitDataViewFields @ViewID = " & nViewID & ";"
+	
+	Response.Redirect(constPageScriptName & "?ViewID=" & nViewID & "&MSG=autoinit")
 
 ELSEIF strMode = "delete" AND nItemID <> "" THEN
 		
-	adoConn.Open
 	adoConn.Execute "DELETE FROM portal.DataViewField WHERE FieldID = " & nItemID
-	adoConn.Close
 	
 	Response.Redirect(constPageScriptName & "?ViewID=" & nViewID & "&MSG=delete")
 END IF
@@ -300,8 +304,10 @@ END IF
         
 <table class="table table-hover">
 <tr>
-    <th>ID</th>
+    <th>Ordinal</th>
     <th>Title</th>
+    <th>Source Column</th>
+    <th>Type</th>
     <th>Properties</th>
     <th>Actions</th>
 </tr>
@@ -310,13 +316,18 @@ Set rsItems = Server.CreateObject("ADODB.Recordset")
 strSQL = "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID & " ORDER BY FieldOrder ASC"
 rsItems.Open strSQL, adoConn
 
+IF rsItems.EOF THEN %>
+    <tr><td align="center" colspan="6">No fields were set for this data view.<br /><a href="<%= constPageScriptName %>?ViewID=<%= nViewID %>&mode=autoinit" class="btn btn-primary">Click here to auto-create based on table schema</a>.</td></tr><%
+END IF 
 WHILE NOT rsItems.EOF
 
 %><tr>
-    <td><%= rsItems("FieldID") %></td>
+    <td><%= rsItems("FieldOrder") %></td>
     <td><%= rsItems("FieldLabel") %></td>
+    <td><%= rsItems("FieldSource") %></td>
+    <td><%= rsItems("FieldType") %></td>
     <td>
-        <% FOR nIndex = 1 TO UBound(arrDataViewFlags, 2)
+        <% FOR nIndex = 1 TO UBound(arrDataViewFieldFlags, 2)
             IF (rsItems("FieldFlags") AND arrDataViewFieldFlags(dvffValue, nIndex)) THEN %>
         <b title="<%= arrDataViewFieldFlags(dvffLabel, nIndex) %>"><i class="<%= arrDataViewFieldFlags(dvffGlyph, nIndex) %>"></i></b>
         &nbsp;
@@ -324,7 +335,7 @@ WHILE NOT rsItems.EOF
             NEXT %>
     </td>
     <td>
-        <a title="Edit" class="btn btn-primary" href="<%= constPageScriptName %>?mode=edit&ViewID=<%= nViewID %>ItemID=<%= rsItems("FieldID") %>"><i class="fa fa-edit"></i> Edit</a>
+        <a title="Edit" class="btn btn-primary" href="<%= constPageScriptName %>?mode=edit&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="fa fa-edit"></i> Edit</a>
         &nbsp;
         <a title="Delete" class="btn btn-primary" href="<%= constPageScriptName %>?mode=delete&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="fa fa-trash-o"></i> Delete</a>
     </td>
