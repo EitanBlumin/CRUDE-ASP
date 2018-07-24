@@ -62,5 +62,8 @@ toastr.options = {
             toastr.success('Sorting has been updated.', '<h3>Success!</h3>')
        <% CASE "notfound" %>
             toastr.error('Provided item ID was not found.', '<h3>Error!</h3>')
-    <% END SELECT %>
+    <% END SELECT
+    IF strError <> "" THEN %>
+            toastr.error('<%= strError %>', '<h3>Error!</h3>')
+    <% END IF %>
 </script>

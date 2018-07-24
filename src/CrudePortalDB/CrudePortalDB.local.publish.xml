@@ -8,5 +8,17 @@
     <ProfileVersionNumber>1</ProfileVersionNumber>
     <BlockOnPossibleDataLoss>False</BlockOnPossibleDataLoss>
     <DropObjectsNotInSource>True</DropObjectsNotInSource>
+    <DoNotDropDatabaseRoles>True</DoNotDropDatabaseRoles>
+    <DoNotDropDatabaseScopedCredentials>True</DoNotDropDatabaseScopedCredentials>
+    <DoNotDropEventNotifications>True</DoNotDropEventNotifications>
+    <DoNotDropEventSessions>True</DoNotDropEventSessions>
+    <DoNotDropLogins>True</DoNotDropLogins>
+    <DoNotDropLinkedServers>True</DoNotDropLinkedServers>
+    <DoNotDropLinkedServerLogins>True</DoNotDropLinkedServerLogins>
+    <DoNotDropPermissions>True</DoNotDropPermissions>
+    <DoNotDropRoleMembership>True</DoNotDropRoleMembership>
+    <DoNotDropServerRoles>True</DoNotDropServerRoles>
+    <DoNotDropServerRoleMembership>True</DoNotDropServerRoleMembership>
+    <DoNotDropUsers>True</DoNotDropUsers>
   </PropertyGroup>
 </Project>

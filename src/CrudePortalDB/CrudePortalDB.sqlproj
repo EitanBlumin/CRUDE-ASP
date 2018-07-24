@@ -75,6 +75,7 @@
     <Folder Include="Security\" />
     <Folder Include="Stored Procedures\" />
     <Folder Include="Scripts" />
+    <Folder Include="Functions" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Tables\portal.DataView.sql" />
@@ -93,6 +94,7 @@
     <Build Include="Stored Procedures\portal.AutoInitDataViewFields.sql" />
     <Build Include="Stored Procedures\dbo.usp_Generate_Merge_For_Table.sql" />
     <Build Include="Stored Procedures\portal.GetDataViewContents.sql" />
+    <Build Include="Functions\portal.FormatValueForJson.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="CrudePortalDB.refactorlog" />

@@ -81,7 +81,7 @@ IF strMode = "dataviewcontents" AND Request("ViewID") <> "" AND IsNumeric(Reques
 	
     SET cmdStoredProc = Nothing
     
-    Response.Write "{ ""items"": " & strJsonOutput & " }"
+    Response.Write "{ ""data"": " & strJsonOutput & " }"
 END IF
 
 Set rsItems = Nothing
