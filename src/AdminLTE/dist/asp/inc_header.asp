@@ -160,10 +160,12 @@
               </li>
             </ul>
           </li>
+<% IF Right(Request.ServerVariables("SCRIPT_NAME"), Len("/dataview.asp")) = "/dataview.asp" THEN %>
           <!-- Control Sidebar Toggle Button -->
           <li>
-            <a href="#" data-toggle="control-sidebar"><i class="fas fa-cogs"></i></a>
+            <a href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>" title="Edit this Data View"><i class="fas fa-cogs"></i></a>
           </li>
+<% END IF %>
         </ul>
       </div>
     </nav>
