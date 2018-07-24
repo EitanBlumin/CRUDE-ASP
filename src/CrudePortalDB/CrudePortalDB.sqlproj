@@ -88,8 +88,8 @@
     <Build Include="Views\portal.DataViewChartTypes.sql" />
     <Build Include="Security\portal.sql" />
     <Build Include="Tables\portal.Navigation.sql" />
-    <Build Include="Security\CrudeLogin.sql" />
-    <Build Include="Security\RoleMemberships.sql" />
+    <None Include="Security\CrudeLogin.sql" />
+    <None Include="Security\RoleMemberships.sql" />
     <Build Include="Stored Procedures\portal.AutoInitDataViewFields.sql" />
     <Build Include="Stored Procedures\dbo.usp_Generate_Merge_For_Table.sql" />
   </ItemGroup>
