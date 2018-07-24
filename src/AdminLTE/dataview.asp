@@ -148,9 +148,6 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
 
 <!-- REQUIRED JS SCRIPTS -->
 <!--#include file="dist/asp/inc_footer_jscripts.asp" -->
-<!-- DataTables -->
-<script src="bower_components/datatables.net/js/jquery.dataTables.min.js"></script>
-<script src="bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
 
 <!-- AdminLTE App -->
 <script src="dist/js/adminlte.min.js"></script>
@@ -160,7 +157,6 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
      user experience. -->
 <!-- page script -->
 <script>
-$(document).ready(function() {
     $('#DataViewMainTable').DataTable( {
       "ajax": "ajax_dataview.asp?mode=dataviewcontents&ViewID=<%= nViewID %>",
         "columnDefs": [
@@ -172,13 +168,17 @@ $(document).ready(function() {
         END IF
      NEXT %> ],
                 "visible": false
+            },
+            {
+                "targets": [ <%= UBound(arrViewFields, 2) + 2 %> ],
+                "searchable": false,
+                "orderable": false
             }
         ],
         template: function(row, index, datatable) {
         alert("clicked on " + row.ItemId);
         }
     } );
-} );
 </script>
 </body>
 </html>

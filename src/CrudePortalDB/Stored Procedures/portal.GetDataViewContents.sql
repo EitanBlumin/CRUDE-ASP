@@ -17,9 +17,9 @@ WHERE ViewID = @ViewID
 ORDER BY FieldOrder ASC
 
 SET @CMD = @CMD + N', "'''
-+ CASE WHEN @Flags & 1 > 0 THEN N'+ portal.FormatValueForJson(N''&nbsp;<a href="dataview.asp?ViewID=' + CONVERT(nvarchar(max), @VIewID) + N'&mode=edit&ItemID='' + CONVERT(nvarchar(max), ' + @PK + N') + N''" title="Edit"><i class="fas fa-edit"></i></a>'')' ELSE N'' END
-+ CASE WHEN @Flags & 8 > 0 THEN N'+ portal.FormatValueForJson(N''&nbsp;<a href="dataview.asp?ViewID=' + CONVERT(nvarchar(max), @VIewID) + N'&mode=clone&ItemID='' + CONVERT(nvarchar(max), ' + @PK + N') + N''" title="Clone"><i class="far fa-clone"></i></a>'')' ELSE N'' END
-+ CASE WHEN @Flags & 4 > 0 THEN N'+ portal.FormatValueForJson(N''&nbsp;<a href="dataview.asp?ViewID=' + CONVERT(nvarchar(max), @VIewID) + N'&mode=delete&ItemID='' + CONVERT(nvarchar(max), ' + @PK + N') + N''" title="Delete"><i class="far fa-trash-alt"></i></a>'')' ELSE N'' END
++ CASE WHEN @Flags & 1 > 0 THEN N'+ portal.FormatValueForJson(N''&nbsp;<a class="btn btn-primary btn-sm" role="button" href="dataview.asp?ViewID=' + CONVERT(nvarchar(max), @VIewID) + N'&mode=edit&ItemID='' + CONVERT(nvarchar(max), ' + @PK + N') + N''" title="Edit"><i class="fas fa-edit"></i></a>'')' ELSE N'' END
++ CASE WHEN @Flags & 8 > 0 THEN N'+ portal.FormatValueForJson(N''&nbsp;<a class="btn btn-primary btn-sm" role="button" href="dataview.asp?ViewID=' + CONVERT(nvarchar(max), @VIewID) + N'&mode=clone&ItemID='' + CONVERT(nvarchar(max), ' + @PK + N') + N''" title="Clone"><i class="far fa-clone"></i></a>'')' ELSE N'' END
++ CASE WHEN @Flags & 4 > 0 THEN N'+ portal.FormatValueForJson(N''&nbsp;<a class="btn btn-primary btn-sm" role="button" href="dataview.asp?ViewID=' + CONVERT(nvarchar(max), @VIewID) + N'&mode=delete&ItemID='' + CONVERT(nvarchar(max), ' + @PK + N') + N''" title="Delete"><i class="far fa-trash-alt"></i></a>'')' ELSE N'' END
 + N'+ N''" ]'', N'''') FROM ' + @TableName
 
 DECLARE @Json NVARCHAR(MAX)
