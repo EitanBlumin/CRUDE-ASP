@@ -112,32 +112,6 @@ END IF
     <!-- Main content -->
     <section class="content container-fluid">
 
-    <% SELECT CASE Request("MSG")
-        CASE "edit" %>
-              <div class="alert alert-success alert-dismissible">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                <h4><i class="icon fa fa-check"></i> Success!</h4>
-                Item has been successfully updated.
-              </div>
-       <% CASE "add" %>
-              <div class="alert alert-success alert-dismissible">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                <h4><i class="icon fa fa-check"></i> Success!</h4>
-                Item has been successfully added.
-              </div>
-       <% CASE "delete" %>
-              <div class="alert alert-success alert-dismissible">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                <h4><i class="icon fa fa-check"></i> Success!</h4>
-                Item has been successfully deleted.
-              </div>
-       <% CASE "notfound" %>
-              <div class="alert alert-error alert-dismissible">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                <h4><i class="icon fa fa-exclamation-triangle"></i> Error!</h4>
-                Provided View ID was not found.
-              </div>
-    <% END SELECT %>
 <div class="row">
     <div class="col col-sm-12">
         <a class="btn btn-primary" role="button" href="<%= constPageScriptName %>?mode=add"><i class="fa fa-plus-square"></i> Add</a>
@@ -178,10 +152,16 @@ END IF
         <% IF strMode = "edit" AND nItemID <> "" THEN Response.Write "Edit" ELSE Response.Write "Add" %> Data View
 
     </h3><% IF strMode = "edit" AND nItemID <> "" Then %>
+    
+    <!-- tools box -->
+    <div class="pull-right box-tools">
+    <a role="button" href="admin_dataviewfields.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fa fa-bars"></i> Manage Fields</a>
     &nbsp;
-    <a href="admin_dataviewfields.asp?ViewID=<%= nItemID %>" class="btn btn-primary pull-right"><i class="fa fa-bars"></i> Manage Fields</a>
+    <a role="button" href="dataview.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fa fa-eye"></i> Open View</a>
     &nbsp;
-    <a href="dataview.asp?ViewID=<%= nItemID %>" class="btn btn-primary pull-right"><i class="fa fa-eye"></i> Open View</a>
+    <a role="button" class="btn btn-primary btn-sm" title="Cancel" href="<%= constPageScriptName %>"><i class="fa fa-times"></i></a>
+    </div>
+    <!-- /. tools -->
     <% END IF %>
 </div>
 <form class="form-horizontal" action="<%= constPageScriptName %>" method="post">

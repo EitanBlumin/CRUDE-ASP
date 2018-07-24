@@ -95,17 +95,47 @@ IF Request.Form("FieldLabel") <> "" THEN
 		adoConn.Execute strSQL
 	END IF
 	
+	adoConn.Close
+	SET adoConn = Nothing
+	
 	Response.Redirect(constPageScriptName & "?ViewID=" & nViewID & "&MSG=" & strMode)
     
+ELSEIF strMode = "sortFields" THEN
+	strSQL = "SELECT FieldID, FieldOrder FROM portal.DataViewField WHERE ViewID = " & nViewID
+    SET rsItems = Server.CreateObject("ADODB.Recordset")
+    rsItems.Open strSQL, adoConn
+
+    WHILE NOT rsItems.EOF
+		IF Request.Form("sort_" & rsItems("FieldID")) <> "" AND IsNumeric(Request.Form("sort_" & rsItems("FieldID"))) THEN
+			adoConn.Execute "UPDATE portal.DataViewField SET FieldOrder = " & Request("sort_" & rsItems("FieldID")) & _
+							" WHERE FieldID = " & rsItems("FieldID")
+        END IF
+
+        rsItems.MoveNext
+    WEND
+    rsItems.Close
+    SET rsItems = Nothing
+
+	adoConn.Close
+	SET adoConn = Nothing
+	
+	Response.Redirect(constPageScriptName & "?ViewID=" & nViewID & "&MSG=sorted")
+
 ELSEIF strMode = "autoinit" THEN
 		
 	adoConn.Execute "EXEC portal.AutoInitDataViewFields @ViewID = " & nViewID & ";"
+	
+	adoConn.Close
+	SET adoConn = Nothing
 	
 	Response.Redirect(constPageScriptName & "?ViewID=" & nViewID & "&MSG=autoinit")
 
 ELSEIF strMode = "delete" AND nItemID <> "" THEN
 		
 	adoConn.Execute "DELETE FROM portal.DataViewField WHERE FieldID = " & nItemID
+	
+	adoConn.Close
+	SET adoConn = Nothing
 	
 	Response.Redirect(constPageScriptName & "?ViewID=" & nViewID & "&MSG=delete")
 END IF
@@ -139,26 +169,6 @@ END IF
     <!-- Main content -->
     <section class="content container-fluid">
 
-    <% SELECT CASE Request("MSG")
-        CASE "edit" %>
-              <div class="alert alert-success alert-dismissible">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                <h4><i class="icon fa fa-check"></i> Success!</h4>
-                Item has been successfully updated.
-              </div>
-       <% CASE "add" %>
-              <div class="alert alert-success alert-dismissible">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                <h4><i class="icon fa fa-check"></i> Success!</h4>
-                Item has been successfully added.
-              </div>
-       <% CASE "delete" %>
-              <div class="alert alert-success alert-dismissible">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                <h4><i class="icon fa fa-check"></i> Success!</h4>
-                Item has been successfully deleted.
-              </div>
-    <% END SELECT %>
 <div class="row">
     <div class="col col-sm-12">
         <a class="btn btn-primary" role="button" href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"><i class="fa fa-arrow-left"></i> Back to Data View</a>
@@ -203,6 +213,11 @@ END IF
         <% IF strMode = "edit" AND nItemID <> "" THEN Response.Write "Edit" ELSE Response.Write "Add" %> Data View Field
 
     </h3>
+    <!-- tools box -->
+    <div class="pull-right box-tools">
+    <a role="button" class="btn btn-primary btn-sm" title="Cancel" href="<%= constPageScriptName %>?ViewID=<%= nViewID %>"><i class="fa fa-times"></i></a>
+    </div>
+    <!-- /. tools -->
 </div>
 <form class="form-horizontal" action="<%= constPageScriptName %>" method="post">
     <div class="panel-body">
@@ -273,10 +288,10 @@ END IF
         <label for="inputFlags" class="col-sm-3 control-label">Properties</label>
         
         <div class="col-sm-9">
-        <% FOR nIndex = 0 TO UBound(arrDataViewFlags, 2) %>
+        <% FOR nIndex = 0 TO UBound(arrDataViewFieldFlags, 2) %>
         <div class="checkbox">
             <label>
-            <input type="checkbox" name="FieldFlags" value="<%= arrDataViewFlags(dvfValue, nIndex) %>" <% IF (arrDataViewFlags(dvfValue, nIndex) AND nFlags) > 0 THEN Response.Write "checked" %> /> <%= arrDataViewFlags(dvfLabel, nIndex) %>
+            <input type="checkbox" name="FieldFlags" value="<%= arrDataViewFieldFlags(dvffValue, nIndex) %>" <% IF (arrDataViewFieldFlags(dvffValue, nIndex) AND nFlags) > 0 THEN Response.Write "checked" %> /> <%= arrDataViewFieldFlags(dvffLabel, nIndex) %>
             </label>
         </div>
         <% NEXT %>
@@ -302,30 +317,43 @@ END IF
 </div>
         <!-- Items List -->
         
+<form name="frmFieldSorting" action="<%= constPageScriptName %>?ViewID=<%= nViewID %>" method="post">
 <table class="table table-hover">
 <tr>
-    <th>Ordinal</th>
+    <th><button type="submit" class="btn btn-primary">Sort</button></th>
     <th>Title</th>
     <th>Source Column</th>
     <th>Type</th>
     <th>Properties</th>
     <th>Actions</th>
 </tr>
+<tbody>
 <%
 Set rsItems = Server.CreateObject("ADODB.Recordset")
 strSQL = "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID & " ORDER BY FieldOrder ASC"
 rsItems.Open strSQL, adoConn
 
+Dim arrRows, nTotalRows
+nTotalRows = 0
+
 IF rsItems.EOF THEN %>
-    <tr><td align="center" colspan="6">No fields were set for this data view.<br /><a href="<%= constPageScriptName %>?ViewID=<%= nViewID %>&mode=autoinit" class="btn btn-primary">Click here to auto-create based on table schema</a>.</td></tr><%
+    <tr><td align="center" colspan="6">No fields were set for this data view.<br /><a href="<%= constPageScriptName %>?ViewID=<%= nViewID %>&mode=autoinit" class="btn btn-primary">Click here to auto-create fields based on table schema</a>.</td></tr><%
+ELSE
+    arrRows = rsItems.GetRows()
+    nTotalRows = UBound(arrRows, 2)
+    rsItems.MoveFirst
 END IF 
+
 WHILE NOT rsItems.EOF
 
 %><tr>
-    <td><%= rsItems("FieldOrder") %></td>
-    <td><%= rsItems("FieldLabel") %></td>
+    <td><select class="form-control" name="sort_<%= rsItems("FieldID") %>"><% FOR nIndex = 0 TO nTotalRows %>
+        <option value="<%= nIndex + 1 %>" <% IF nIndex + 1 = rsItems("FieldOrder") THEN Response.Write "selected" %>><%= nIndex + 1 %></option>
+        <% NEXT %>
+        </select></td>
+    <th><%= rsItems("FieldLabel") %></th>
     <td><%= rsItems("FieldSource") %></td>
-    <td><%= rsItems("FieldType") %></td>
+    <td><%= arrDataViewFieldTypes(dvftLabel,rsItems("FieldType") - 1) %></td>
     <td>
         <% FOR nIndex = 1 TO UBound(arrDataViewFieldFlags, 2)
             IF (rsItems("FieldFlags") AND arrDataViewFieldFlags(dvffValue, nIndex)) THEN %>
@@ -343,7 +371,10 @@ WHILE NOT rsItems.EOF
     <% 
     rsItems.MoveNext
 WEND %>
+</tbody>
 </table>
+<input type="hidden" name="mode" value="sortFields" />
+</form>
 
     </section>
     <!-- /.content -->

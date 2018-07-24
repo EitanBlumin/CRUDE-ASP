@@ -34,6 +34,22 @@ rsItems.Open strSQL, adoConn
 arrDataViewFieldFlags = rsItems.GetRows()
 
 rsItems.Close
+
+'==============================
+' Data View Field Types
+'==============================
+
+Dim arrDataViewFieldTypes
+Const dvftValue = 0
+Const dvftLabel = 1
+Const dvftWrappers = 2
+
+strSQL = "SELECT * FROM portal.DataViewFieldTypes ORDER BY TypeValue ASC"
+rsItems.Open strSQL, adoConn
+
+arrDataViewFieldTypes = rsItems.GetRows()
+
+rsItems.Close
     
 '==============================
 ' Uri Link Styles
