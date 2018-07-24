@@ -92,6 +92,7 @@
     <None Include="Security\RoleMemberships.sql" />
     <Build Include="Stored Procedures\portal.AutoInitDataViewFields.sql" />
     <Build Include="Stored Procedures\dbo.usp_Generate_Merge_For_Table.sql" />
+    <Build Include="Stored Procedures\portal.GetDataViewContents.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="CrudePortalDB.refactorlog" />
