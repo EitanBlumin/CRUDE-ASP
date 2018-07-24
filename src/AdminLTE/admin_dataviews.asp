@@ -113,12 +113,6 @@ END IF
     <section class="content container-fluid">
 
 <div class="row">
-    <div class="col col-sm-12">
-        <a class="btn btn-primary" role="button" href="<%= constPageScriptName %>?mode=add"><i class="fa fa-plus-square"></i> Add</a>
-    </div>
-</div>
-
-<div class="row">
 <%
 SET rsItems = Server.CreateObject("ADODB.Recordset")
 
@@ -157,7 +151,7 @@ END IF
     <div class="pull-right box-tools">
     <a role="button" href="admin_dataviewfields.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fa fa-bars"></i> Manage Fields</a>
     &nbsp;
-    <a role="button" href="dataview.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fa fa-eye"></i> Open View</a>
+    <a role="button" href="dataview.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fa fa-eye"></i> Open Data View</a>
     &nbsp;
     <a role="button" class="btn btn-primary btn-sm" title="Cancel" href="<%= constPageScriptName %>"><i class="fa fa-times"></i></a>
     </div>
@@ -245,6 +239,13 @@ END IF
 <!-- /.update-insert-form -->
 <% END IF %>
 </div>
+        
+<div class="row">
+    <div class="col col-sm-12">
+        <a class="btn btn-primary" role="button" href="<%= constPageScriptName %>?mode=add"><i class="fa fa-plus-square"></i> Add Data View</a>
+    </div>
+</div>
+
         <!-- Items List -->
         
 <table class="table table-hover">

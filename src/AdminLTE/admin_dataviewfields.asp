@@ -21,7 +21,8 @@ Dim strSQL, rsItems, nItemID, strMode, nCount, nIndex
 adoConn.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
 Dim strFieldLabel, strFieldSource, strDataViewTitle, nViewID, strDefaultValue, strUriPath, strLinkedTable, strLinkedTableGroupField
-Dim strLinkedTableTitleField, strLinkedTableAddition, strLinkedTableValueField, nFlags
+Dim strLinkedTableTitleField, strLinkedTableAddition, strLinkedTableValueField, nFlags, nFieldType, nOrdering
+Dim nUriStyle, nMaxLength, nWidth, nHeight
     
 strMode = Request("mode")
 nItemID = Request("ItemID")
@@ -45,13 +46,23 @@ IF nViewID = "" OR NOT IsNumeric(nViewID) THEN Response.Redirect("admin_dataview
 constPageTitle = constPageTitle & " for " & strDataViewTitle
 strFieldLabel = Request("FieldLabel")
 strFieldSource = Request("FieldSource")
+nFieldType = Request("FieldType")
+IF nFieldType = "" OR NOT IsNumeric(nFieldType) THEN nFieldType = 1
 strDefaultValue = Request("DefaultValue")
 strUriPath = Request("UriPath")
+nUriStyle = Request("UriStyle")
+IF nUriStyle = "" OR NOT IsNumeric(nUriStyle) THEN nUriStyle = 1
 strLinkedTable = Request("LinkedTable")
 strLinkedTableGroupField = Request("LinkedTableGroupField")
 strLinkedTableTitleField = Request("LinkedTableTitleField")
 strLinkedTableValueField = Request("LinkedTableValueField")
 strLinkedTableAddition = Request("LinkedTableAddition")
+nMaxLength = Request("MaxLength")
+IF nMaxLength = "" OR NOT IsNumeric(nMaxLength) THEN nMaxLength = 100
+nWidth = Request("Width")
+IF nWidth = "" OR NOT IsNumeric(nWidth) THEN nWidth = 0
+nHeight = Request("Height")
+IF nHeight = "" OR NOT IsNumeric(nHeight) THEN nHeight = 0
 nFlags = 0
 
 For nIndex = 1 TO Request.Form("FieldFlags").Count
@@ -61,31 +72,53 @@ Next
 IF Request.Form("FieldLabel") <> "" THEN
 	
 	IF strMode = "add" THEN
-		strSQL = "INSERT INTO portal.DataViewField(ViewID, [FieldLabel], [FieldSource], [DefaultValue], [UriPath], [LinkedTable], [LinkedTableGroupField], LinkedTableTitleField, [LinkedTableValueField], [LinkedTableAddition], [Flags]) VALUES(" & _
+		strSQL = "SELECT TOP 1 FieldOrder FROM portal.DataViewField WHERE ViewID = " & nViewID & " ORDER BY FieldOrder DESC"
+        SET rsItems = Server.CreateObject("ADODB.Recordset")
+		rsItems.Open strSQL, adoConn
+		IF NOT rsItems.EOF THEN
+			nOrdering = rsItems("FieldOrder") + 1
+		Else
+			nOrdering = 1
+		END IF
+		rsItems.Close
+        SET rsItems = Nothing
+
+		strSQL = "INSERT INTO portal.DataViewField(ViewID, [FieldLabel], [FieldSource], [FieldType], [FieldOrder], [DefaultValue], [UriPath], [UriStyle], [LinkedTable], [LinkedTableGroupField], LinkedTableTitleField, [LinkedTableValueField], [LinkedTableAddition], [FieldFlags], [MaxLength], [Width], [Height]) VALUES(" & _
 				  CStr(CInt(nViewID)) & _
 				 ",'" & Replace(strFieldLabel,"'","''") & "'" & _
 				 ",'" & Replace(strFieldSource,"'","''") & "'" & _
+				 "," & CStr(CInt(nFieldType)) & _
+				 "," & CStr(CInt(nOrdering)) & _
 				 ",'" & Replace(strDefaultValue,"'","''") & "'" & _
 				 ",'" & Replace(strUriPath, "'", "''") & "'" & _
+				 "," & CStr(CInt(nUriStyle)) & _
 				 ",'" & Replace(strLinkedTable, "'", "''") & "'" & _
 				 ",'" & Replace(strLinkedTableGroupField, "'", "''") & "'" & _
 				 ",'" & Replace(strLinkedTableTitleField,"'","''") & "'" & _
 				 ",'" & Replace(strLinkedTableValueField,"'","''") & "'" & _
 				 ",'" & Replace(strLinkedTableAddition,"'","''") & "'" & _
 				 "," & CStr(CInt(nFlags)) & _
+				 "," & CStr(CInt(nMaxLength)) & _
+				 "," & CStr(CInt(nWidth)) & _
+				 "," & CStr(CInt(nHeight)) & _
                  ");"
 	ELSEIF strMode ="edit" AND nItemID <> "" THEN
 		strSQL = "UPDATE portal.DataViewField SET " & _
 				 "FieldLabel = '" & Replace(strFieldLabel,"'","''") & "'" & _
 				 ", FieldSource = '" & Replace(strFieldSource,"'","''") & "'" & _
+				 ", FieldType = " & CStr(CInt(nFieldType)) & _
 				 ", DefaultValue = '" & Replace(strDefaultValue,"'","''") & "'" & _
                  ", UriPath = '" & Replace(strUriPath, "'", "''") & "'" & _
+				 ", UriStyle = " & CStr(CInt(nUriStyle)) & _
                  ", LinkedTable = '" & Replace(strLinkedTable, "'", "''") & "'" & _
                  ", LinkedTableGroupField = '" & Replace(strLinkedTableGroupField, "'", "''") & "'" & _
 				 ", LinkedTableTitleField = '" & Replace(strLinkedTableTitleField,"'","''") & "'" & _
 				 ", LinkedTableValueField = '" & Replace(strLinkedTableValueField,"'","''") & "'" & _
 				 ", LinkedTableAddition = '" & Replace(strLinkedTableAddition,"'","''") & "'" & _
-				 ", Flags = " & CStr(CInt(nFlags)) & _
+				 ", FieldFlags = " & CStr(CInt(nFlags)) & _
+				 ", MaxLength = " & CStr(CInt(nMaxLength)) & _
+				 ", Width = " & CStr(CInt(nWidth)) & _
+				 ", Height = " & CStr(CInt(nHeight)) & _
 	 			 " WHERE FieldID = " & nItemID
 	ELSE
 		strSQL = ""
@@ -160,7 +193,7 @@ END IF
 
       <ol class="breadcrumb">
         <li><a href="default.asp"><i class="fa fa-dashboard"></i> Home</a></li>
-        <li><a href="admin_dataviewfields.asp?mode=edit&ItemID=<%= nViewID %>"> <%= strDataViewTitle %></a></li>
+        <li><a href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"> <%= strDataViewTitle %></a></li>
         <li class="active"><%= constPageTitle %></li>
       </ol>
 
@@ -171,9 +204,9 @@ END IF
 
 <div class="row">
     <div class="col col-sm-12">
-        <a class="btn btn-primary" role="button" href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"><i class="fa fa-arrow-left"></i> Back to Data View</a>
+        <a class="btn btn-primary" role="button" href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"><i class="fa fa-arrow-left"></i> Edit Data View</a>
         &nbsp;
-        <a class="btn btn-primary" role="button" href="<%= constPageScriptName %>?mode=add&ViewID=<%= nViewID %>"><i class="fa fa-plus-square"></i> Add</a>
+        <a role="button" href="dataview.asp?ViewID=<%= nItemID %>" class="btn btn-primary"><i class="fa fa-eye"></i> Open Data View</a>
     </div>
 </div>
 
@@ -189,6 +222,7 @@ IF strMode = "edit" AND nItemID <> "" Then
 	IF NOT rsItems.EOF THEN
 		strFieldLabel = rsItems("FieldLabel")
 		strFieldSource = rsItems("FieldSource")
+        nFieldType = rsItems("FieldType")
 		strDefaultValue = rsItems("DefaultValue")
 		nFlags = rsItems("FieldFlags")
         strLinkedTable = rsItems("LinkedTable")
@@ -197,6 +231,10 @@ IF strMode = "edit" AND nItemID <> "" Then
 		strLinkedTableValueField = rsItems("LinkedTableValueField")
 		strLinkedTableAddition = rsItems("LinkedTableAddition")
         strUriPath = rsItems("UriPath")
+        nUriStyle = rsItems("UriStyle")
+        nMaxLength = rsItems("MaxLength")
+        nWidth = rsItems("Width")
+        nHeight = rsItems("Height")
 	END IF
 	rsItems.Close
 ELSE
@@ -207,6 +245,7 @@ END IF
 
 <!-- Update/Insert Form -->
 <div class="col-md-6">
+    <br />
 <div class="panel panel-primary">
 <div class="box-header with-border">
     <h3 class="box-title">
@@ -236,10 +275,58 @@ END IF
         </div>
     </div>
     <div class="form-group">
+        <label for="inputFieldType" class="col-sm-2 control-label">Field Type</label>
+
+        <div class="col-sm-10">
+            <select class="form-control" id="inputFieldType" name="FieldType">
+                <% FOR nIndex = 0 TO UBound(arrDataViewFieldTypes,2) %><option value="<%= arrDataViewFieldTypes(dvftValue, nIndex) %>" <% IF arrDataViewFieldTypes(dvftValue, nIndex) = nFieldType THEN Response.Write "selected" %>><%= arrDataViewFieldTypes(dvftLabel,nIndex) %></option>
+                <% NEXT %>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
         <label for="inputDefaultValue" class="col-sm-2 control-label">Default Value</label>
 
         <div class="col-sm-10">
         <input type="text" class="form-control" id="inputDefaultValue" placeholder="Default Value" name="DefaultValue" value="<%= strDefaultValue %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputMaxLength" class="col-sm-2 control-label">Max Length</label>
+
+        <div class="col-sm-10">
+        <input type="number" min="0" step="1" class="form-control" id="inputMaxLength" placeholder="Max Length" name="MaxLength" value="<%= nMaxLength %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputWidth" class="col-sm-2 control-label">Width</label>
+
+        <div class="col-sm-10">
+        <input type="number" min="0" step="1" class="form-control" id="inputWidth" placeholder="Width" name="Width" value="<%= nWidth %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputHeight" class="col-sm-2 control-label">Height</label>
+
+        <div class="col-sm-10">
+        <input type="number" min="0" step="1" class="form-control" id="inputHeight" placeholder="Height" name="Height" value="<%= nHeight %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputUriPath" class="col-sm-2 control-label">Link URI</label>
+
+        <div class="col-sm-10">
+        <input type="text" class="form-control" id="inputUriPath" placeholder="Link URI Path" name="UriPath" value="<%= strUriPath %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputUriStyle" class="col-sm-2 control-label">Link Style</label>
+
+        <div class="col-sm-10">
+            <select class="form-control" id="inputUriStyle" name="UriStyle">
+                <% FOR nIndex = 0 TO UBound(arrDataViewUriStyles,2) %><option value="<%= arrDataViewUriStyles(dvusValue, nIndex) %>" <% IF arrDataViewUriStyles(dvusValue, nIndex) = nUriStyle THEN Response.Write "selected" %>><%= arrDataViewUriStyles(dvusLabel,nIndex) %></option>
+                <% NEXT %>
+            </select>
         </div>
     </div>
     <div class="form-group">
@@ -278,13 +365,6 @@ END IF
         </div>
     </div>
     <div class="form-group">
-        <label for="inputUriPath" class="col-sm-3 control-label">Link URI</label>
-
-        <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputUriPath" placeholder="Link URI Path" name="UriPath" value="<%= strUriPath %>">
-        </div>
-    </div>
-    <div class="form-group">
         <label for="inputFlags" class="col-sm-3 control-label">Properties</label>
         
         <div class="col-sm-9">
@@ -318,9 +398,17 @@ END IF
         <!-- Items List -->
         
 <form name="frmFieldSorting" action="<%= constPageScriptName %>?ViewID=<%= nViewID %>" method="post">
+<div class="row">
+    <div class="col col-sm-12"><br />
+        <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-sort-amount-asc"></i> Update Sorting</button>
+        &nbsp;
+        <a class="btn btn-primary btn-sm" role="button" href="<%= constPageScriptName %>?mode=add&ViewID=<%= nViewID %>"><i class="fa fa-plus-square"></i> Add Field</a>
+    </div>
+</div>
+
 <table class="table table-hover">
 <tr>
-    <th><button type="submit" class="btn btn-primary">Sort</button></th>
+    <th>Order</th>
     <th>Title</th>
     <th>Source Column</th>
     <th>Type</th>
@@ -355,7 +443,7 @@ WHILE NOT rsItems.EOF
     <td><%= rsItems("FieldSource") %></td>
     <td><%= arrDataViewFieldTypes(dvftLabel,rsItems("FieldType") - 1) %></td>
     <td>
-        <% FOR nIndex = 1 TO UBound(arrDataViewFieldFlags, 2)
+        <% FOR nIndex = 0 TO UBound(arrDataViewFieldFlags, 2)
             IF (rsItems("FieldFlags") AND arrDataViewFieldFlags(dvffValue, nIndex)) THEN %>
         <b title="<%= arrDataViewFieldFlags(dvffLabel, nIndex) %>"><i class="<%= arrDataViewFieldFlags(dvffGlyph, nIndex) %>"></i></b>
         &nbsp;
