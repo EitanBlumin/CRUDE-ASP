@@ -103,7 +103,7 @@ END IF
       </h1>
 
       <ol class="breadcrumb">
-        <li><a href="default.asp"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
         <li class="active"><%= constPageTitle %></li>
       </ol>
 
@@ -149,11 +149,11 @@ END IF
     
     <!-- tools box -->
     <div class="pull-right box-tools">
-    <a role="button" href="admin_dataviewfields.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fa fa-bars"></i> Manage Fields</a>
+    <a role="button" href="admin_dataviewfields.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fas fa-bars"></i> Manage Fields</a>
     &nbsp;
-    <a role="button" href="dataview.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fa fa-eye"></i> Open Data View</a>
+    <a role="button" href="dataview.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fas fa-eye"></i> Open Data View</a>
     &nbsp;
-    <a role="button" class="btn btn-primary btn-sm" title="Cancel" href="<%= constPageScriptName %>"><i class="fa fa-times"></i></a>
+    <a role="button" class="btn btn-primary btn-sm" title="Cancel" href="<%= constPageScriptName %>"><i class="fas fa-times"></i></a>
     </div>
     <!-- /. tools -->
     <% END IF %>
@@ -216,7 +216,8 @@ END IF
         <% FOR nIndex = 0 TO UBound(arrDataViewFlags, 2) %>
         <div class="checkbox">
             <label>
-            <input type="checkbox" name="Flags" value="<%= arrDataViewFlags(dvfValue, nIndex) %>" <% IF (arrDataViewFlags(dvfValue, nIndex) AND nFlags) > 0 THEN Response.Write "checked" %> /> <%= arrDataViewFlags(dvfLabel, nIndex) %>
+            <input type="checkbox" name="Flags" value="<%= arrDataViewFlags(dvfValue, nIndex) %>" <% IF (arrDataViewFlags(dvfValue, nIndex) AND nFlags) > 0 THEN Response.Write "checked" %> /> 
+                <i class="<%= arrDataViewFlags(dvfGlyph, nIndex) %>"></i> <%= arrDataViewFlags(dvfLabel, nIndex) %>
             </label>
         </div>
         <% NEXT %>
@@ -242,7 +243,7 @@ END IF
         
 <div class="row">
     <div class="col col-sm-12">
-        <a class="btn btn-primary" role="button" href="<%= constPageScriptName %>?mode=add"><i class="fa fa-plus-square"></i> Add Data View</a>
+        <a class="btn btn-primary" role="button" href="<%= constPageScriptName %>?mode=add"><i class="fas fa-plus"></i> Add Data View</a>
     </div>
 </div>
 
@@ -274,11 +275,11 @@ WHILE NOT rsItems.EOF
             NEXT %>
     </td>
     <td>
-        <a title="Manage Fields" class="btn btn-primary" href="admin_dataviewfields.asp?ViewID=<%= rsItems("ViewID") %>"><i class="fa fa-bars"></i> Manage Fields</a>
+        <a title="Manage Fields" class="btn btn-primary" href="admin_dataviewfields.asp?ViewID=<%= rsItems("ViewID") %>"><i class="fas fa-bars"></i> Manage Fields</a>
         &nbsp;
-        <a title="Edit" class="btn btn-primary" href="<%= constPageScriptName %>?mode=edit&ItemID=<%= rsItems("ViewID") %>"><i class="fa fa-edit"></i> Edit</a>
+        <a title="Edit" class="btn btn-primary" href="<%= constPageScriptName %>?mode=edit&ItemID=<%= rsItems("ViewID") %>"><i class="fas fa-edit"></i> Edit</a>
         &nbsp;
-        <a title="Delete" class="btn btn-primary" href="<%= constPageScriptName %>?mode=delete&ItemID=<%= rsItems("ViewID") %>"><i class="fa fa-trash-o"></i> Delete</a>
+        <a title="Delete" class="btn btn-primary" href="<%= constPageScriptName %>?mode=delete&ItemID=<%= rsItems("ViewID") %>"><i class="far fa-trash-alt"></i> Delete</a>
     </td>
   </tr>
     <% 

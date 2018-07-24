@@ -25,7 +25,7 @@ Const constPageTitle = "500 Server Error"
       <h1><%= constPageTitle %></h1>
 
       <ol class="breadcrumb">
-        <li><a href="default.asp"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
         <li class="active"><%= constPageTitle %></li>
       </ol>
 
@@ -38,7 +38,7 @@ Const constPageTitle = "500 Server Error"
         <h2 class="headline text-red">500</h2>
 
         <div class="error-content">
-          <h3><i class="fa fa-warning text-red"></i> Oops! Something went wrong.</h3>
+          <h3><i class="fas fa-exclamation-triangle text-red"></i> Oops! Something went wrong.</h3>
 
           <p>
             We will work on fixing that right away.
@@ -50,7 +50,7 @@ Const constPageTitle = "500 Server Error"
               <input type="text" name="search" class="form-control" placeholder="Search">
 
               <div class="input-group-btn">
-                <button type="submit" name="submit" class="btn btn-danger btn-flat"><i class="fa fa-search"></i>
+                <button type="submit" name="submit" class="btn btn-danger btn-flat"><i class="fas fa-search"></i>
                 </button>
               </div>
             </div>

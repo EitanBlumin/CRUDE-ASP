@@ -36,7 +36,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
       <h1><%= constPageTitle %></h1>
 
       <ol class="breadcrumb">
-        <li><a href="default.asp"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
         <li class="active"><%= constPageTitle %></li>
       </ol>
 
@@ -49,7 +49,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
         <h2 class="headline text-yellow"> 404</h2>
 
         <div class="error-content">
-          <h3><i class="fa fa-warning text-yellow"></i> Oops! Page not found.</h3>
+          <h3><i class="fas fa-exclamation-triangle text-yellow"></i> Oops! Page not found.</h3>
 
           <p>
             We could not find the page you were looking for.
@@ -61,7 +61,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
               <input type="text" name="search" class="form-control" placeholder="Search">
 
               <div class="input-group-btn">
-                <button type="submit" name="submit" class="btn btn-warning btn-flat"><i class="fa fa-search"></i>
+                <button type="submit" name="submit" class="btn btn-warning btn-flat"><i class="fas fa-search"></i>
                 </button>
               </div>
             </div>
