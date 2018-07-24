@@ -3,7 +3,7 @@
   <footer class="main-footer">
     <!-- To the right -->
     <div class="pull-right hidden-xs">
-      Anything you want
+      Powered by <a href="https://adminlte.io/" target="_blank">AdminLTE</a>
     </div>
     <!-- Default to the left -->
     <strong>Copyright &copy; 2018 <a href="#">Eitan Blumin</a>.</strong> All rights reserved.
