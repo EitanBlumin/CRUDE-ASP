@@ -206,7 +206,7 @@ END IF
     <div class="col col-sm-12">
         <a class="btn btn-primary" role="button" href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"><i class="fa fa-arrow-left"></i> Edit Data View</a>
         &nbsp;
-        <a role="button" href="dataview.asp?ViewID=<%= nItemID %>" class="btn btn-primary"><i class="fa fa-eye"></i> Open Data View</a>
+        <a role="button" href="dataview.asp?ViewID=<%= nViewID %>" class="btn btn-primary"><i class="fa fa-eye"></i> Open Data View</a>
     </div>
 </div>
 
