@@ -84,7 +84,7 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
   <title><%= constPortalTitle %></title>
 <!--#include file="dist/asp/inc_meta.asp" -->
 </head>
-<body class="hold-transition skin-blue sidebar-mini fixed">
+<body class="hold-transition skin-blue sidebar-mini fixed" ng-app="CrudeApp" ng-controller="CrudeCtrl">
 <div class="wrapper">
 <!--#include file="dist/asp/inc_header.asp" -->
 
@@ -120,9 +120,9 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
 
 <div class="box">
 <div class="box-body">
-<table id="DataViewMainTable" class="table table-hover table-bordered table-striped">
+<table datatable="ng" id="DataViewMainTable" class="table table-hover table-bordered table-striped">
 <thead>
-<tr><th><%= strPrimaryKey %></th><%
+<tr><th>ID</th><%
     nColSpan = 1
 
     FOR nIndex = 0 TO UBound(arrViewFields, 2)
@@ -131,6 +131,18 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
      NEXT %><th>Actions</th>
 </tr>
 </thead>
+<tbody>
+    <tr ng-repeat="row in dataviewContents.data">
+        <td ng-bind="row._ItemID"></td><%
+    nColSpan = 1
+
+    FOR nIndex = 0 TO UBound(arrViewFields, 2)
+        nColSpan = nColSpan + 1 %>
+    <td ng-bind="row['<%= arrViewFields(2, nIndex) %>']"></td><%
+     NEXT %>
+        <td ng-bind-html="row._Actions | trust"></td>
+    </tr>
+</tbody>
 </table>
 </div>
 <!-- /.box-body -->
@@ -148,6 +160,9 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
 
 <!-- REQUIRED JS SCRIPTS -->
 <!--#include file="dist/asp/inc_footer_jscripts.asp" -->
+    <!-- Angular -->
+    <script src="bower_components/angular/angular.min.js"></script>
+    <script src="bower_components/angular-datatables/dist/angular-datatables.min.js"></script>
 
 <!-- AdminLTE App -->
 <script src="dist/js/adminlte.min.js"></script>
@@ -157,28 +172,115 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
      user experience. -->
 <!-- page script -->
 <script>
-    $('#DataViewMainTable').DataTable( {
-      "ajax": "ajax_dataview.asp?mode=dataviewcontents&ViewID=<%= nViewID %>",
-        "columnDefs": [
-            {
-                "targets": [ 0<%
-    FOR nIndex = 0 TO UBound(arrViewFields, 2)
-        IF (arrViewFields(5, nIndex) AND 8) = 0 THEN
-            Response.Write ", " & (nIndex + 1)
-        END IF
-     NEXT %> ],
-                "visible": false
-            },
-            {
-                "targets": [ <%= UBound(arrViewFields, 2) + 2 %> ],
-                "searchable": false,
-                "orderable": false
-            }
-        ],
-        template: function(row, index, datatable) {
-        alert("clicked on " + row.ItemId);
+var app = angular.module("CrudeApp", ['datatables']);
+app.filter("trust", ['$sce', function($sce) {
+  return function(htmlCode){
+    return $sce.trustAsHtml(htmlCode);
+  }
+}]);
+app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {   
+    $scope.getAjaxData = function () {
+
+      $http.get("ajax_dataview.asp?mode=dataviewcontents&ViewID=<%= nViewID %>")
+      .then(function(response) {
+            $scope.dataviewContents = response.data;
+            console.log("loaded ajax data. num of rows: " + $scope.dataviewContents.data.length);
+      }, function(response) {
+            alert("Something went wrong: " + response.status + " " + response.statusText);
+        });
+    }
+     
+    $scope.openedItems = {};
+    $scope.touchedItems = {};
+
+    $scope.secondsInterval = 3;
+
+    $scope.sortType     = 'Severity'; // set the default sort type
+    $scope.sortReverse  = true;  // set the default sort order
+    $scope.searchTerm   = '';     // set the default search/filter term
+
+    $scope.setSort = function(newSort) {
+        if ($scope.sortType == newSort) {
+            $scope.sortReverse = !$scope.sortReverse;
+        } else {
+            $scope.sortType = newSort;
         }
-    } );
+    }
+    
+    $scope.setTitle = function(newTitle) {
+        $window.document.title = newTitle;
+    }
+
+    $scope.startAutoRefresh = function () {
+      $scope.doAutoRefresh = true;
+        $scope.stop = $interval($scope.getAjaxData, $scope.secondsInterval * 1000);
+    }
+
+    $scope.stopAutoRefresh = function () {
+      $scope.doAutoRefresh = false;
+      $scope.stopInterval();
+    }
+
+    $scope.changeInterval = function () {
+      if ($scope.doAutoRefresh && $scope.secondsInterval > 0 && $scope.secondsInterval <= 99)
+        {
+            $scope.stopAutoRefresh();
+            $scope.startAutoRefresh();
+        }
+    }
+
+    $scope.toggleAutoRefresh = function () {
+      $scope.doAutoRefresh = !$scope.doAutoRefresh;
+        if ($scope.doAutoRefresh)
+        {
+           $scope.startAutoRefresh(); 
+        }
+    }
+    
+    $scope.stopInterval = function () {
+        if (angular.isDefined($scope.stop)) {
+            $interval.cancel($scope.stop);
+            $scope.stop = undefined;
+        }
+    };
+
+    $scope.$on('$destroy', function () {
+        // Make sure that the interval is destroyed too
+        $scope.stopInterval();
+    });
+    
+    $scope.doAutoRefresh = false;
+
+    $scope.toggleItem = function (obj) {
+        if ($scope.openedItems[obj]) {
+            $scope.openedItems[obj] = false
+        } else {
+            $scope.openedItems[obj] = true;
+        }
+        $scope.touchedItems[obj] = true;
+    }
+
+    $scope.initItemVisibility = function (obj, ishidden) {
+        if (!$scope.touchedItems[obj]) {
+            $scope.openedItems[obj] = !$scope.touchedItems[obj] && !ishidden && !$scope.openedItems[obj];
+        }
+    }
+
+    $scope.collapseAll = function () {
+        angular.forEach($scope.openedItems, function (value, key) {
+            $scope.openedItems[key] = false;
+            $scope.touchedItems[key] = true;
+        });
+    }
+    $scope.expandAll = function () {
+        angular.forEach($scope.openedItems, function (value, key) {
+            $scope.openedItems[key] = true;
+            $scope.touchedItems[key] = true;
+        });
+    }
+
+    $scope.getAjaxData();
+});
 </script>
 </body>
 </html>
