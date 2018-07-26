@@ -265,7 +265,7 @@ WHILE NOT rsItems.EOF
 
 %><tr>
     <td><%= rsItems("ViewID") %></td>
-    <td><%= rsItems("Title") %></td>
+    <td><a href="dataview.asp?ViewID=<%= rsItems("ViewID") %>"><%= rsItems("Title") %></a></td>
     <td>
         <% FOR nIndex = 1 TO UBound(arrDataViewFlags, 2)
             IF (rsItems("Flags") AND arrDataViewFlags(dvfValue, nIndex)) THEN %>
