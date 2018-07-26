@@ -447,13 +447,18 @@ END IF
             <a role="button" class="btn btn-default btn-sm" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></a>
             </span></h4>
         </div>
-        <div class="modal-body">
-            Are you sure you want to delete this item?
-        </div>
-        <div class="modal-footer">
-        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger" ng-click="doDelete(selectedRow._ItemID)">Delete</button>
-        </div>
+        <form action="<%= constPageScriptName & "?ViewID=" & nViewID %>" method="post">
+            <div class="modal-body">
+                Are you sure you want to delete this item?
+            </div>
+            <div class="modal-footer">
+            <input type="hidden" name="postback" value="true" />
+            <input type="hidden" name="ItemID" value="{{ selectedRow._ItemID }}" />
+            <input type="hidden" name="mode" value="delete" />
+            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger">Delete</button>
+            </div>
+        </form>
     </div>
     </div>
 </div>
