@@ -13,14 +13,23 @@ Using this project you can easily create "Data Views" which would serve as CRUD 
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you up and running on your local machine.
 
 ### Prerequisites
 
 The following features will need to be installed using "Turn Windows features on or off":
-- Internet Information Services > World Wide Web Services (IIS Management Console, IIS Management Scripts and Tools, IIS Management Service)
-- Internet Information Services > World Wide Web Services > Application Development Features (ASP, ISAPI Extensions, ISAPI Filters, Server-Side Includes)
-- Internet Information Services > World Wide Web Services > Common HTTP Features (everything)
+- Internet Information Services
+ - Web Management Tools
+   - IIS Management Console
+   - IIS Management Scripts and Tools
+   - IIS Management Service
+ - World Wide Web Services
+   - Application Development Features
+     - ASP
+	 - ISAPI Extensions
+	 - ISAPI Filters
+	 - Server-Side Includes
+   - Common HTTP Features (everything)
 
 You will need a Microsoft SQL Server database be installed.
 If you don't have a license already, you can download the Developer edition for free here:
