@@ -58,7 +58,7 @@ toastr.options = {
        <% CASE "add" %>
             toastr.success('Item was successfully added.', '<h3>Success!</h3>')
        <% CASE "delete" %>
-            toastr.success('Item was successfully deleted.', '<h3>Success!</h3>')
+            toastr.warning('Item was successfully deleted.', '<h3>Success!</h3>')
        <% CASE "autoinit" %>
             toastr.success('Items have been initialized.', '<h3>Success!</h3>')
        <% CASE "sorted" %>
@@ -67,6 +67,6 @@ toastr.options = {
             toastr.error('Provided item ID was not found.', '<h3>Error!</h3>')
     <% END SELECT
     IF strError <> "" THEN %>
-            toastr.error('<%= strError %>', '<h3>Error!</h3>')
+            toastr.error('<%= Replace(strError, "'", "`") %>', '<h3>Error!</h3>')
     <% END IF %>
 </script>

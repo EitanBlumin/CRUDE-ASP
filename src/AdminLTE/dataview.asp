@@ -19,8 +19,8 @@ Dim strSQL, rsItems, nItemID, strMode, nCount, nIndex
 adoConn.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
     
-Dim blnFound, blnRequiredFieldsFilled, strViewIDString
-Dim blnRTEEnabled, blnShowForm, blnShowList, blnAllowUpdate, blnAllowInsert, blnAllowDelete, blnAllowClone, blnAllowSearch, strOrderBy, strSearchFilter, strCurrFilter
+Dim blnFound, blnRequiredFieldsFilled, strViewIDString, strViewQueryString
+Dim blnRTEEnabled, blnShowForm, blnShowList, blnShowCharts, blnAllowUpdate, blnAllowInsert, blnAllowDelete, blnAllowClone, blnAllowSearch, strOrderBy, strSearchFilter, strCurrFilter
 Dim strLastOptGroup, blnOptGroupStarted
 Set rsItems = Server.CreateObject("ADODB.Recordset")
 
@@ -33,7 +33,7 @@ myRegEx.Global = True
 '[ConfigVars]
 ' Init Form Variables from DB. This will be deleted when generated as a seperate file.
 DIM nViewID, rsFields, arrViewFields, nColSpan
-DIM nFieldsNum, nViewFlags, strPageTitle, strPrimaryKey, strMainTableName, strScriptName, strDataViewDescription, strFilterBackLink
+DIM nFieldsNum, nViewFlags, strPageTitle, strPrimaryKey, strMainTableName, strDataViewDescription, strFilterBackLink
 Dim strFilterField, blnFilterRequired, cmdStoredProc, strViewProcedure, strModificationProcedure, strDeleteProcedure, varCurrFieldValue
 Dim paramPK, paramMode, paramFilter, paramOrderBy
 
@@ -41,11 +41,12 @@ strError = ""
 strSearchFilter = ""
 strPageTitle = "Data View"
 
+nItemID = Request("ItemID")
+IF NOT IsNumeric(nItemID) THEN nItemID = ""
 strMode = Request("mode")
 IF strMode = "" THEN strMode = "none"
 
 nViewID = Request("ViewID")
-strScriptName = "dataview.asp"
 
 IF nViewID <> "" AND IsNumeric(nViewID) THEN
 	strSQL = "SELECT * FROM portal.DataView WHERE ViewID = " & nViewID
@@ -53,6 +54,13 @@ IF nViewID <> "" AND IsNumeric(nViewID) THEN
 	IF NOT rsItems.EOF THEN
 		strPageTitle = rsItems("Title")
         strDataViewDescription = rsItems("ViewDescription")
+        strViewProcedure = rsItems("ViewProcedure")
+        strModificationProcedure = rsItems("ModificationProcedure")
+        strDeleteProcedure = rsItems("DeleteProcedure")
+        strMainTableName = rsItems("MainTable")
+        strOrderBy = rsItems("OrderBy")
+        strPrimaryKey = rsItems("PrimaryKey")
+        nViewFlags = rsItems("Flags")
 
 		SET rsFields = Server.CreateObject("ADODB.Recordset")
 		rsFields.Open "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID & " ORDER BY FieldOrder ASC", adoConStr
@@ -62,6 +70,15 @@ IF nViewID <> "" AND IsNumeric(nViewID) THEN
 		rsFields.Close
 		SET rsFields = Nothing
 		
+        blnAllowUpdate = CBool((nViewFlags AND 1) > 0)
+        blnAllowInsert = CBool((nViewFlags AND 2) > 0)
+        blnAllowDelete = CBool((nViewFlags AND 4) > 0)
+        blnAllowClone = CBool((nViewFlags AND 8) > 0)
+        blnShowForm = CBool((nViewFlags AND 16) > 0)
+        blnShowList = CBool((nViewFlags AND 32) > 0)
+        blnAllowSearch = CBool((nViewFlags AND 64) > 0)
+        blnRTEEnabled = CBool((nViewFlags AND 128) > 0)
+        blnShowCharts = CBool((nViewFlags AND 256) > 0)
 	ELSE
 		strError = "ViewID Not Found!"
 		nViewID = ""
@@ -72,6 +89,167 @@ ELSE
 END IF
 
 Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
+strViewQueryString = "&ViewID=" & nViewID
+IF strFilteredValue <> "" THEN strViewQueryString = strViewQueryString & "&" & strFilterField & nViewID & "=" & strFilteredValue
+
+'***************************
+' Data Manipulation Section
+'***************************
+IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate AND nItemID <> "")) AND Request.Form("postback") = "true" THEN
+	' If stored procedure
+    IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
+        strSQL = strModificationProcedure
+
+	    SET cmdStoredProc = Server.CreateObject("ADODB.Command")
+	    cmdStoredProc.ActiveConnection = adoConn
+	    cmdStoredProc.CommandText = strSQL
+	    cmdStoredProc.CommandType = adCmdStoredProc
+    
+        cmdStoredProc.Parameters.Refresh
+        ' Parameter 0 is the return value
+        ' Parameter 1 should be @Mode.
+        cmdStoredProc.Parameters(1).Value = strMode
+        
+        ' Parameter 2 should be the PK.
+        IF nItemID = "" THEN nItemID = Null
+        cmdStoredProc.Parameters(2).Value = nItemID
+
+    Else
+	    strSQL = "SELECT * FROM " & strMainTableName
+
+        IF strMode = "edit" THEN
+		    strSQL = strSQL & " WHERE " & strPrimaryKey & " = " & nItemID
+        ELSE
+		    strSQL = strSQL & " WHERE 1=2"
+        END IF
+        
+        rsItems.CursorLocation = adUseClient
+        rsItems.CursorType = adOpenKeyset
+        rsItems.LockType = adLockOptimistic
+        rsItems.Open strSQL, adoConn
+
+        IF strMode = "add" THEN
+            rsItems.AddNew
+        END IF
+
+        IF strMode = "edit" AND rsItems.EOF THEN
+            strError = "Item Not Found<br/>"
+        END IF
+    END IF
+
+    IF strError = "" THEN
+	
+    ON ERROR RESUME NEXT
+
+		FOR nIndex = 0 TO UBound(arrViewFields, 2) 'AND False
+			IF arrViewFields(dvfcFieldType, nIndex) <> 10 AND (arrViewFields(dvfcFieldFlags, nIndex) AND 4) = 0 THEN ' not "link" or read-only
+                
+                IF Request("inputField_" & nIndex) = "" AND (arrViewFields(dvfcFieldFlags, nIndex) AND 2) > 0 THEN
+                    strError = strError & "<b>" & arrViewFields(dvfcFieldLabel, nIndex) & "</b> is required but has not been filled.<br/>"
+                ELSE
+                    Select Case arrViewFields(dvfcFieldType, nIndex)
+                        Case 12, 1, 2, 6, 14 '"password", "text", "textarea", "multicombo", "rte"
+                            varCurrFieldValue = Request("inputField_" & nIndex)
+                        Case Else
+                            IF Len(Request("inputField_" & nIndex)) = 0 AND (arrViewFields(dvfcFieldFlags, nIndex) AND 2) = 0 THEN ' if empty and not required, enter NULL
+                                varCurrFieldValue = NULL
+                                'Response.Write "<!-- setting " & arrViewFields(dvfcFieldSource, nIndex) & " = NULL -->" & vbCrLf
+                            ELSE
+				                varCurrFieldValue = Request("inputField_" & nIndex)
+                                'Response.Write "<!-- " & arrViewFields(dvfcFieldSource, nIndex) & " is NOT NULL (" & Len(Request("inputField_" & nIndex)) & ", " & (arrViewFields(dvfcFieldFlags, nIndex) AND 2) & ") -->" & vbCrLf
+                            END IF
+                    End Select
+
+                    IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
+                        'Response.Write "Creating parameter for " & arrViewFields(dvfcFieldSource, nIndex) & " = " & rsItems(arrViewFields(dvfcFieldSource, nIndex)) & "<br/>" & vbCrlf
+
+                        cmdStoredProc.Parameters(nIndex + 3).Value = varCurrFieldValue
+                    ELSE
+                        'Response.Write "<!-- setting " & arrViewFields(dvfcFieldSource, nIndex) & " = """ & varCurrFieldValue & """ (isnull: " & IsNull(varCurrFieldValue) & ") ErrCount: " & adoConn.Errors.Count & " -->" & vbCrLf
+                        rsItems(arrViewFields(dvfcFieldSource, nIndex)) = varCurrFieldValue
+                    END IF
+                END IF
+			END IF
+		NEXT
+        
+        IF strError = "" THEN
+            IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
+	            cmdStoredProc.Execute
+	
+	            IF Err.Number <> 0 THEN
+		            strError = strError & Err.Description & "<br/>"
+	            END IF
+	
+	            SET cmdStoredProc = Nothing
+            ELSE
+                'strError = strError & "Attempting rs.Update<br/>"
+                'Response.Write "<!-- ErrCount before Update: " & adoConn.Errors.Count & " -->" & vbCrLf
+                rsItems.Update
+                'Response.Write "<!-- ErrCount after Update: " & adoConn.Errors.Count & " -->" & vbCrLf
+                rsItems.Close    
+                'Response.Write "<!-- ErrCount after Close: " & adoConn.Errors.Count & " -->" & vbCrLf
+            END IF
+        ELSE
+            rsItems.Close    
+        END IF
+
+	END IF
+
+    ON ERROR GOTO 0
+
+    ' check for errors
+    If adoConn.Errors.Count > 0 Then
+        DIM Err
+        strError = strError & " Error(s) while performing &quot;" & strMode & "&quot;:<br/>" 
+        For Each Err In adoConn.Errors
+			strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+        Next
+        strError = strError & "While trying to run:<br/><b>" & strSQL & "</b>"
+    End If
+	
+	IF strError = "" THEN 
+        adoConn.Close
+	    Response.Redirect(constPageScriptName & "?MSG=" & strMode & strViewQueryString)
+    END IF
+
+ELSEIF strMode = "delete" AND nItemID <> "" AND blnAllowDelete THEN
+	
+	' If stored procedure
+    IF NOT IsNull(strDeleteProcedure) AND strDeleteProcedure <> "" THEN
+        strSQL = strDeleteProcedure
+
+	    SET cmdStoredProc = Server.CreateObject("ADODB.Command")
+	    cmdStoredProc.ActiveConnection = adoConn
+	    cmdStoredProc.CommandText = strSQL
+	    cmdStoredProc.CommandType = adCmdStoredProc
+    
+        cmdStoredProc.Parameters.Refresh
+        ' Parameter 0 is the return value
+        ' Parameter 1 should be the PK.
+        IF nItemID = "" THEN nItemID = Null
+        cmdStoredProc.Parameters(1).Value = nItemID
+    
+        ON ERROR RESUME NEXT
+
+	    cmdStoredProc.Execute
+
+	    IF Err.Number <> 0 THEN
+		    strError = Err.Description
+	    END IF
+	
+	    SET cmdStoredProc = Nothing
+
+        ON ERROR GOTO 0
+    Else
+        strSQL = "DELETE FROM " & strMainTableName & " WHERE " & strPrimaryKey & " = " & nItemID
+	    adoConn.Execute strSQL
+    End If
+
+	IF strError = "" Then
+    	adoConn.Close
+        Response.Redirect(constPageScriptName & "?MSG=delete" & strViewQueryString)
+    End If
+END IF
 
 
 '***************
@@ -130,7 +308,7 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
             <a role="button" class="btn btn-default btn-sm" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></a>
             </span></h4>
         </div>
-        <form action="<%= constPageScriptName %>" method="post">
+        <form action="<%= constPageScriptName & "?ViewID=" & nViewID %>" method="post">
             <div class="modal-body"><%
                 Dim blnRequired
             FOR nIndex = 0 TO UBound(arrViewFields, 2)
@@ -228,7 +406,7 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
 			<%
 			Case 3, 4 '"int", "double"
 			%>
-			<input class="form-control form-control-sm" type="number" name="inputField_<%= nIndex %>" placeholder="<%= arrViewFields(dvfcFieldLabel, nIndex) %>" ng-model="selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']" size="<%= arrViewFields(dvfcWidth, nIndex) %>" maxlength="<%= arrViewFields(dvfcMaxLength, nIndex) %>"<% IF blnRequired THEN Response.Write(" required") %>>
+			<input class="form-control form-control-sm" type="number" name="inputField_<%= nIndex %>" placeholder="<%= arrViewFields(dvfcFieldLabel, nIndex) %>" value="{{ selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>'] }}" size="<%= arrViewFields(dvfcWidth, nIndex) %>" maxlength="<%= arrViewFields(dvfcMaxLength, nIndex) %>"<% IF blnRequired THEN Response.Write(" required") %>>
 			<%
 			Case 15 '"email"
 			%>
@@ -245,8 +423,9 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
              NEXT %>
             </div>
             <div class="modal-footer">
-            <input type="hidden" name="ItemID" ng-model="selectedRow._ItemID" />
-            <input type="hidden" name="mode" ng-model="selectedModalMode" />
+            <input type="hidden" name="postback" value="true" />
+            <input type="hidden" name="ItemID" value="{{ selectedRow._ItemID }}" />
+            <input type="hidden" name="mode" value="{{ selectedModalMode }}" />
             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
             <button type="submit" class="btn btn-success">Save changes</button>
             </div>
@@ -268,13 +447,18 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
             <a role="button" class="btn btn-default btn-sm" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></a>
             </span></h4>
         </div>
-        <div class="modal-body">
-            Are you sure you want to delete this item?
-        </div>
-        <div class="modal-footer">
-        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger" ng-click="doDelete(selectedRow._ItemID)">Delete</button>
-        </div>
+        <form action="<%= constPageScriptName & "?ViewID=" & nViewID %>" method="post">
+            <div class="modal-body">
+                Are you sure you want to delete this item?
+            </div>
+            <div class="modal-footer">
+            <input type="hidden" name="postback" value="true" />
+            <input type="hidden" name="ItemID" value="{{ selectedRow._ItemID }}" />
+            <input type="hidden" name="mode" value="delete" />
+            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger">Delete</button>
+            </div>
+        </form>
     </div>
     </div>
 </div>
