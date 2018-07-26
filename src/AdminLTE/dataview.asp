@@ -19,7 +19,7 @@ Dim strSQL, rsItems, nItemID, strMode, nCount, nIndex
 adoConn.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
     
-Dim blnFound, blnRequiredFieldsFilled, strViewIDString
+Dim blnFound, blnRequiredFieldsFilled, strViewIDString, strViewQueryString
 Dim blnRTEEnabled, blnShowForm, blnShowList, blnAllowUpdate, blnAllowInsert, blnAllowDelete, blnAllowClone, blnAllowSearch, strOrderBy, strSearchFilter, strCurrFilter
 Dim strLastOptGroup, blnOptGroupStarted
 Set rsItems = Server.CreateObject("ADODB.Recordset")
@@ -33,7 +33,7 @@ myRegEx.Global = True
 '[ConfigVars]
 ' Init Form Variables from DB. This will be deleted when generated as a seperate file.
 DIM nViewID, rsFields, arrViewFields, nColSpan
-DIM nFieldsNum, nViewFlags, strPageTitle, strPrimaryKey, strMainTableName, strScriptName, strDataViewDescription, strFilterBackLink
+DIM nFieldsNum, nViewFlags, strPageTitle, strPrimaryKey, strMainTableName, constPageScriptName, strDataViewDescription, strFilterBackLink
 Dim strFilterField, blnFilterRequired, cmdStoredProc, strViewProcedure, strModificationProcedure, strDeleteProcedure, varCurrFieldValue
 Dim paramPK, paramMode, paramFilter, paramOrderBy
 
@@ -45,7 +45,6 @@ strMode = Request("mode")
 IF strMode = "" THEN strMode = "none"
 
 nViewID = Request("ViewID")
-strScriptName = "dataview.asp"
 
 IF nViewID <> "" AND IsNumeric(nViewID) THEN
 	strSQL = "SELECT * FROM portal.DataView WHERE ViewID = " & nViewID
@@ -72,7 +71,8 @@ ELSE
 END IF
 
 Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
-    
+strViewQueryString = "&ViewID=" & nViewID
+IF strFilteredValue <> "" THEN strViewQueryString = strViewQueryString & "&" & strFilterField & nViewID & "=" & strFilteredValue
 
 '***************************
 ' Data Manipulation Section
@@ -87,15 +87,16 @@ IF ((strMode = "add" AND blnAllowInsert AND blnRequiredFieldsFilled) OR (strMode
 	    cmdStoredProc.ActiveConnection = adoConn
 	    cmdStoredProc.CommandText = strSQL
 	    cmdStoredProc.CommandType = adCmdStoredProc
-
-        SET paramMode = cmdStoredProc.CreateParameter("@Mode", adLongVarWChar, adParamInput, 10)
-        paramMode.Value = strMode
-	    cmdStoredProc.Parameters.Append paramMode
-	
-        SET paramPK = cmdStoredProc.CreateParameter("@" & strPrimaryKey, adBigInt, adParamInput)
+    
+        cmdStoredProc.Parameters.Refresh
+        ' Parameter 0 is the return value
+        ' Parameter 1 should be @Mode.
+        cmdStoredProc.Parameters(1).Value = strMode
+        
+        ' Parameter 2 should be the PK.
         IF nItemID = "" THEN nItemID = Null
-        paramPK.Value = nItemID
-	    cmdStoredProc.Parameters.Append paramPK
+        cmdStoredProc.Parameters(2).Value = nItemID
+
     Else
 	    strSQL = "SELECT * FROM " & strMainTableName
 
@@ -123,47 +124,29 @@ IF ((strMode = "add" AND blnAllowInsert AND blnRequiredFieldsFilled) OR (strMode
 	
     ON ERROR RESUME NEXT
 
-		FOR nIndex = 1 TO UBound(arrViewFields, 2)
-			IF arrViewFields(dvfcFieldType, nIndex) <> "link" AND NOT (arrViewFields(dvfcFieldFlags, nIndex) AND 4) > 0 THEN
+		FOR nIndex = 0 TO UBound(arrViewFields, 2)
+			IF arrViewFields(dvfcFieldType, nIndex) <> 10 AND NOT (arrViewFields(dvfcFieldFlags, nIndex) AND 4) > 0 THEN ' not "link" or read-only
                 
-                IF rsItems(arrViewFields(dvfcFieldLabel, nIndex)) = "" AND (arrViewFields(dvfcFieldFlags, nIndex) AND 4) > 0 THEN
-                    strError = GetWord("Not all required fields were filled")
+                IF Request("inputField_" & nIndex) = "" AND (arrViewFields(dvfcFieldFlags, nIndex) AND 2) > 0 THEN
+                    strError = strError = strError & "<b>" & arrViewFields(dvfcFieldLabel, nIndex) & "</b> is required but has not been filled.<br/>"
                 ELSE
                     Select Case arrViewFields(dvfcFieldType, nIndex)
-                        Case "password", "text", "textarea", "multicombo", "rte"
-                            varCurrFieldValue = rsItems(arrViewFields(dvfcFieldLabel, nIndex))
+                        Case 12, 1, 2, 6, 14 '"password", "text", "textarea", "multicombo", "rte"
+                            varCurrFieldValue = Request("inputField_" & nIndex)
                         Case Else
-                            IF rsItems(arrViewFields(dvfcFieldLabel, nIndex)) = "" AND NOT (arrViewFields(dvfcFieldFlags, nIndex) AND 4) = 0 THEN
+                            IF Request("inputField_" & nIndex) = "" AND NOT (arrViewFields(dvfcFieldFlags, nIndex) AND 2) = 0 THEN ' if empty and not required, enter NULL
                                 varCurrFieldValue = Null
                             ELSE
-				                varCurrFieldValue = rsItems(arrViewFields(dvfcFieldLabel, nIndex))
+				                varCurrFieldValue = Request("inputField_" & nIndex)
                             END IF
                     End Select
 
                     IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
-                        'Response.Write "Creating parameter for " & arrViewFields(nIndex,fName) & " = " & rsItems(arrViewFields(dvfcFieldLabel, nIndex)) & "<br/>" & vbCrlf
+                        'Response.Write "Creating parameter for " & arrViewFields(dvfcFieldSource, nIndex) & " = " & rsItems(arrViewFields(dvfcFieldSource, nIndex)) & "<br/>" & vbCrlf
 
-                        Select Case arrViewFields(dvfcFieldType, nIndex)
-                            Case "date"
-                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adDBDate, adParamInput)
-                            Case "datetime"
-                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adDBTimeStamp, adParamInput)
-                            Case "boolean"
-                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adBoolean, adParamInput)
-                            Case "int"
-                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adInteger, adParamInput)
-                            Case "double"
-                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adDouble, adParamInput)
-                            Case "combo"
-                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adLongVarChar, adParamInput, 4000)
-                            Case Else
-                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adLongVarWChar, adParamInput, 4000)
-                        End Select
-
-                        arrViewFields(nIndex,fProcParam).Value = varCurrFieldValue
-	                    cmdStoredProc.Parameters.Append arrViewFields(nIndex,fProcParam)
+                        cmdStoredProc.Parameters(nIndex + 3).Value = varCurrFieldValue
                     ELSE
-                        rsItems(arrViewFields(dvfcFieldLabel, nIndex)) = varCurrFieldValue
+                        rsItems(arrViewFields(dvfcFieldSource, nIndex)) = varCurrFieldValue
                     END IF
                 END IF
 			END IF
@@ -197,7 +180,7 @@ IF ((strMode = "add" AND blnAllowInsert AND blnRequiredFieldsFilled) OR (strMode
 	
     adoConn.Close
 	
-	IF strError = "" THEN Response.Redirect(strScriptName & "?MSG=" & strMode & strFormIDString)
+	IF strError = "" THEN Response.Redirect(constPageScriptName & "?MSG=" & strMode & strViewQueryString)
 
 ELSEIF strMode = "delete" AND nItemID <> "" AND blnAllowDelete THEN
 	
@@ -209,11 +192,12 @@ ELSEIF strMode = "delete" AND nItemID <> "" AND blnAllowDelete THEN
 	    cmdStoredProc.ActiveConnection = adoConn
 	    cmdStoredProc.CommandText = strSQL
 	    cmdStoredProc.CommandType = adCmdStoredProc
-
-        SET paramPK = cmdStoredProc.CreateParameter("@" & strPrimaryKey, adBigInt, adParamInput)
+    
+        cmdStoredProc.Parameters.Refresh
+        ' Parameter 0 is the return value
+        ' Parameter 1 should be the PK.
         IF nItemID = "" THEN nItemID = Null
-        paramPK.Value = nItemID
-	    cmdStoredProc.Parameters.Append paramPK
+        cmdStoredProc.Parameters(1).Value = nItemID
     
         ON ERROR RESUME NEXT
 
@@ -233,11 +217,8 @@ ELSEIF strMode = "delete" AND nItemID <> "" AND blnAllowDelete THEN
 
 	IF strError = "" Then
     	adoConn.Close
-        Response.Redirect(strScriptName & "?MSG=delete" & strFormIDString)
+        Response.Redirect(constPageScriptName & "?MSG=delete" & strViewQueryString)
     End If
-END IF
-ELSE
-    Response.Write "<!-- Error: " & strError & " -->"
 END IF
 
 
@@ -297,7 +278,7 @@ END IF
             <a role="button" class="btn btn-default btn-sm" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></a>
             </span></h4>
         </div>
-        <form action="<%= constPageScriptName %>" method="post">
+        <form action="<%= constPageScriptName & "?ViewID=" & nViewID %>" method="post">
             <div class="modal-body"><%
                 Dim blnRequired
             FOR nIndex = 0 TO UBound(arrViewFields, 2)
