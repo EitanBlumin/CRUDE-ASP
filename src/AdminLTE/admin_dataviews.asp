@@ -210,6 +210,13 @@ END IF
         </div>
     </div>
     <div class="form-group">
+        <label for="inputOrderBy" class="col-sm-3 control-label">Order By</label>
+
+        <div class="col-sm-9">
+        <input type="text" class="form-control" id="inputOrderBy" placeholder="Column1 ASC, Column2 DESC" name="OrderBy" value="<%= strOrderBy %>">
+        </div>
+    </div>
+    <div class="form-group">
         <label for="inputFlags" class="col-sm-3 control-label">Properties</label>
         
         <div class="col-sm-9">
