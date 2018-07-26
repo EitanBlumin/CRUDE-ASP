@@ -123,12 +123,12 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
     <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" ng-bind="selectedModalTitle">Data View Form</h4>
-            <div class="box-tools pull-right">
-            <a class="btn btn-primary btn-sm" role="button" href="javascript:void(0)" ng-click="dvDelete(selectedRow)" title="Delete" data-toggle="modal" data-target="#modal-delete"><i class="far fa-trash-alt"></i> Delete</a>
-            </div>
+        <h4 class="modal-title">{{ selectedModalTitle }}
+            <span class="box-tools pull-right">
+            <a class="btn btn-danger btn-sm" ng-show="selectedModalMode != 'add'" role="button" href="javascript:void(0)" ng-click="dvDelete(selectedRow)" aria-label="Delete" title="Delete" data-toggle="modal" data-target="#modal-delete"><i class="far fa-trash-alt"></i> Delete</a>
+                &nbsp;
+            <a role="button" class="btn btn-default btn-sm" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></a>
+            </span></h4>
         </div>
         <form action="<%= constPageScriptName %>" method="post">
             <div class="modal-body"><%
@@ -263,16 +263,17 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
     <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" ng-bind="deletingModalTitle">Deleting Item</h4>
+        <h4 class="modal-title">{{ deletingModalTitle }}
+            <span class="box-tools pull-right">
+            <a role="button" class="btn btn-default btn-sm" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></a>
+            </span></h4>
         </div>
         <div class="modal-body">
             Are you sure you want to delete this item?
         </div>
         <div class="modal-footer">
         <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" ng-click="doDelete(selectedRow._ItemID)">Delete</button>
+        <button type="button" class="btn btn-danger" ng-click="doDelete(selectedRow._ItemID)">Delete</button>
         </div>
     </div>
     </div>
@@ -282,9 +283,12 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
 
 <div class="box">
 <div class="box-body">
+<div class="box-header">
+ <a class="btn btn-primary btn-sm" role="button" href="javascript:void(0)" ng-click="dvAdd(null)" title="Add" data-toggle="modal" data-target="#modal-edit"><i class="fas fa-plus"></i> Add</a>
+</div>
 <table datatable="ng" id="DataViewMainTable" class="table table-hover table-bordered table-striped">
 <thead>
-<tr><th>ID</th><%
+<tr><%
     nColSpan = 1
 
     FOR nIndex = 0 TO UBound(arrViewFields, 2)
@@ -296,11 +300,15 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
 </tr>
 </thead>
 <tbody>
-    <tr ng-repeat="row in dataviewContents.data">
-        <td ng-bind="row._ItemID"></td><%
+    <tr ng-repeat="row in dataviewContents.data"><%
     FOR nIndex = 0 TO UBound(arrViewFields, 2)
-        IF (arrViewFields(dvfcFieldFlags,nIndex) AND 8) > 0 THEN  %>
-    <td ng-bind="row['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']"></td><%
+        IF (arrViewFields(dvfcFieldFlags,nIndex) AND 8) > 0 THEN
+        Select Case arrViewFields(dvfcFieldType,nIndex)
+			Case 5, 6 '"combo", "multicombo"
+			%><td ng-bind="row['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']"></td><%
+             Case Else
+			%><td ng-bind="row['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']"></td><%
+		End Select
         END IF
      NEXT %>
         <td>
