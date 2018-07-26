@@ -453,8 +453,8 @@ END IF
             FOR nIndex = 0 TO UBound(arrViewFields, 2)
                 IF (arrViewFields(dvfcFieldFlags,nIndex) AND 8) > 0 THEN %>
                 <div class="row">
-                    <div class="col col-md-5"><b><%= arrViewFields(dvfcFieldLabel, nIndex) %>:</b></div>
-                    <div class="col col-md-7">{{ selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>'] }}</div>
+                    <div class="col col-md-5 col-sm-3"><b><%= arrViewFields(dvfcFieldLabel, nIndex) %>:</b></div>
+                    <div class="col col-md-7 col-sm-9">{{ selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>'] }}</div>
                 </div>
                 <% END IF
             NEXT %>
