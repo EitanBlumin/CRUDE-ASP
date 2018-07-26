@@ -72,6 +72,173 @@ ELSE
 END IF
 
 Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
+    
+
+'***************************
+' Data Manipulation Section
+'***************************
+IF ((strMode = "add" AND blnAllowInsert AND blnRequiredFieldsFilled) OR (strMode = "edit" AND blnAllowUpdate AND nItemID <> "" AND blnRequiredFieldsFilled)) AND Request.Form("postback") = "true" THEN
+	
+	' If stored procedure
+    IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
+        strSQL = strModificationProcedure
+
+	    SET cmdStoredProc = Server.CreateObject("ADODB.Command")
+	    cmdStoredProc.ActiveConnection = adoConn
+	    cmdStoredProc.CommandText = strSQL
+	    cmdStoredProc.CommandType = adCmdStoredProc
+
+        SET paramMode = cmdStoredProc.CreateParameter("@Mode", adLongVarWChar, adParamInput, 10)
+        paramMode.Value = strMode
+	    cmdStoredProc.Parameters.Append paramMode
+	
+        SET paramPK = cmdStoredProc.CreateParameter("@" & strPrimaryKey, adBigInt, adParamInput)
+        IF nItemID = "" THEN nItemID = Null
+        paramPK.Value = nItemID
+	    cmdStoredProc.Parameters.Append paramPK
+    Else
+	    strSQL = "SELECT * FROM " & strMainTableName
+
+        IF strMode = "edit" THEN
+		    strSQL = strSQL & " WHERE " & strPrimaryKey & " = " & nItemID
+        ELSE
+		    strSQL = strSQL & " WHERE 1=2"
+        END IF
+    
+        rsItems.CursorLocation = adUseClient
+        rsItems.CursorType = adOpenKeyset
+        rsItems.LockType = adLockOptimistic
+        rsItems.Open strSQL, adoConn
+
+        IF strMode = "add" THEN
+            rsItems.AddNew
+        END IF
+
+        IF strMode = "edit" AND rsItems.EOF THEN
+            strError = GetWord("Item Not Found")
+        END IF
+    END IF
+
+    IF strError = "" THEN
+	
+    ON ERROR RESUME NEXT
+
+		FOR nIndex = 1 TO UBound(arrViewFields, 2)
+			IF arrViewFields(dvfcFieldType, nIndex) <> "link" AND NOT (arrViewFields(dvfcFieldFlags, nIndex) AND 4) > 0 THEN
+                
+                IF rsItems(arrViewFields(dvfcFieldLabel, nIndex)) = "" AND (arrViewFields(dvfcFieldFlags, nIndex) AND 4) > 0 THEN
+                    strError = GetWord("Not all required fields were filled")
+                ELSE
+                    Select Case arrViewFields(dvfcFieldType, nIndex)
+                        Case "password", "text", "textarea", "multicombo", "rte"
+                            varCurrFieldValue = rsItems(arrViewFields(dvfcFieldLabel, nIndex))
+                        Case Else
+                            IF rsItems(arrViewFields(dvfcFieldLabel, nIndex)) = "" AND NOT (arrViewFields(dvfcFieldFlags, nIndex) AND 4) = 0 THEN
+                                varCurrFieldValue = Null
+                            ELSE
+				                varCurrFieldValue = rsItems(arrViewFields(dvfcFieldLabel, nIndex))
+                            END IF
+                    End Select
+
+                    IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
+                        'Response.Write "Creating parameter for " & arrViewFields(nIndex,fName) & " = " & rsItems(arrViewFields(dvfcFieldLabel, nIndex)) & "<br/>" & vbCrlf
+
+                        Select Case arrViewFields(dvfcFieldType, nIndex)
+                            Case "date"
+                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adDBDate, adParamInput)
+                            Case "datetime"
+                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adDBTimeStamp, adParamInput)
+                            Case "boolean"
+                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adBoolean, adParamInput)
+                            Case "int"
+                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adInteger, adParamInput)
+                            Case "double"
+                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adDouble, adParamInput)
+                            Case "combo"
+                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adLongVarChar, adParamInput, 4000)
+                            Case Else
+                                SET arrViewFields(nIndex,fProcParam) = cmdStoredProc.CreateParameter("@p_" & nIndex, adLongVarWChar, adParamInput, 4000)
+                        End Select
+
+                        arrViewFields(nIndex,fProcParam).Value = varCurrFieldValue
+	                    cmdStoredProc.Parameters.Append arrViewFields(nIndex,fProcParam)
+                    ELSE
+                        rsItems(arrViewFields(dvfcFieldLabel, nIndex)) = varCurrFieldValue
+                    END IF
+                END IF
+			END IF
+		NEXT
+        
+        IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
+	        cmdStoredProc.Execute
+	
+	        IF Err.Number <> 0 THEN
+		        strError = Err.Description
+	        END IF
+	
+	        SET cmdStoredProc = Nothing
+        ELSE
+            rsItems.Update
+        END IF
+
+	END IF
+
+    ON ERROR GOTO 0
+
+    ' check for errors
+    If adoConn.Errors.Count > 0 Then
+        DIM Err
+        strError = strError & " Error(s) while performing '" & strMode & "':<br/>" 
+        For Each Err In adoConn.Errors
+			strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | " & Err.NativeError & "<br/>"
+        Next
+        strError = strError & "While trying to run:<br/><b>" & strSQL & "</b>"
+    End If
+	
+    adoConn.Close
+	
+	IF strError = "" THEN Response.Redirect(strScriptName & "?MSG=" & strMode & strFormIDString)
+
+ELSEIF strMode = "delete" AND nItemID <> "" AND blnAllowDelete THEN
+	
+	' If stored procedure
+    IF NOT IsNull(strDeleteProcedure) AND strDeleteProcedure <> "" THEN
+        strSQL = strDeleteProcedure
+
+	    SET cmdStoredProc = Server.CreateObject("ADODB.Command")
+	    cmdStoredProc.ActiveConnection = adoConn
+	    cmdStoredProc.CommandText = strSQL
+	    cmdStoredProc.CommandType = adCmdStoredProc
+
+        SET paramPK = cmdStoredProc.CreateParameter("@" & strPrimaryKey, adBigInt, adParamInput)
+        IF nItemID = "" THEN nItemID = Null
+        paramPK.Value = nItemID
+	    cmdStoredProc.Parameters.Append paramPK
+    
+        ON ERROR RESUME NEXT
+
+	    cmdStoredProc.Execute
+
+	    IF Err.Number <> 0 THEN
+		    strError = Err.Description
+	    END IF
+	
+	    SET cmdStoredProc = Nothing
+
+        ON ERROR GOTO 0
+    Else
+        strSQL = "DELETE FROM " & strMainTableName & " WHERE " & strPrimaryKey & " = " & nItemID
+	    adoConn.Execute strSQL
+    End If
+
+	IF strError = "" Then
+    	adoConn.Close
+        Response.Redirect(strScriptName & "?MSG=delete" & strFormIDString)
+    End If
+END IF
+ELSE
+    Response.Write "<!-- Error: " & strError & " -->"
+END IF
 
 
 '***************
