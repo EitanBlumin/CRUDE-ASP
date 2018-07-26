@@ -19,17 +19,17 @@ These instructions will get you up and running on your local machine.
 
 The following features will need to be installed using "Turn Windows features on or off":
 - Internet Information Services
- - Web Management Tools
-   - IIS Management Console
-   - IIS Management Scripts and Tools
-   - IIS Management Service
- - World Wide Web Services
-   - Application Development Features
-     - ASP
-	 - ISAPI Extensions
-	 - ISAPI Filters
-	 - Server-Side Includes
-   - Common HTTP Features (everything)
+  - Web Management Tools
+    - IIS Management Console
+    - IIS Management Scripts and Tools
+    - IIS Management Service
+  - World Wide Web Services
+    - Application Development Features
+      - ASP
+ 	 - ISAPI Extensions
+ 	 - ISAPI Filters
+ 	 - Server-Side Includes
+    - Common HTTP Features (everything)
 
 You will need a Microsoft SQL Server database be installed.
 If you don't have a license already, you can download the Developer edition for free here:
