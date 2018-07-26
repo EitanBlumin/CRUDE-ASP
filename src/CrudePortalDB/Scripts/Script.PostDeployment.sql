@@ -46,13 +46,13 @@ SET IDENTITY_INSERT [portal].[DataViewField] ON;
  
 MERGE INTO [portal].[DataViewField] AS trgt
 USING	(VALUES
-		(1,1,N'Label',N'NavLabel',1,11,4,N'',600,N'',1,N'',N'',N'',N'',N'',NULL,NULL),
-		(1,2,N'Parent Item',N'NavParentId',5,9,1,N'',4,N'',1,N'portal.Navigation',N'',N'NavLabel',N'NavId',N'',0,0),
-		(1,3,N'Sort Order',N'NavOrder',3,11,2,N'',4,N'',1,N'',N'',N'',N'',N'',NULL,NULL),
-		(1,4,N'Link URI',N'NavUri',1,1,6,N'',2000,N'',1,N'',N'',N'',N'',N'',NULL,NULL),
-		(1,5,N'Glyph Icon',N'NavGlyph',1,1,3,N'',200,N'',1,N'',N'',N'',N'',N'',NULL,NULL),
-		(1,6,N'Tooltip',N'NavTooltip',1,1,5,N'',600,N'',1,N'',N'',N'',N'',N'',NULL,NULL),
-		(1,7,N'Data View',N'ViewID',5,1,7,N'',4,N'',1,N'portal.DataView',N'',N'Title',N'ViewId',N'',NULL,NULL)
+		(1,1,N'Label',N'NavLabel',N'1',11,4,N'',600,N'',1,N'',N'',N'',N'',N'',NULL,NULL),
+		(1,2,N'Parent Item',N'NavParentId',N'5',9,1,N'',4,N'',1,N'portal.Navigation',N'',N'NavLabel',N'NavId',N' UNION ALL SELECT ''-- Root --'',NULL',0,0),
+		(1,3,N'Sort Order',N'NavOrder',N'3',11,2,N'',4,N'',1,N'',N'',N'',N'',N'',NULL,NULL),
+		(1,4,N'Link URI',N'NavUri',N'1',1,6,N'',2000,N'',1,N'',N'',N'',N'',N'',NULL,NULL),
+		(1,5,N'Glyph Icon',N'NavGlyph',N'1',1,3,N'',200,N'',1,N'',N'',N'',N'',N'',NULL,NULL),
+		(1,6,N'Tooltip',N'NavTooltip',N'1',1,5,N'',600,N'',1,N'',N'',N'',N'',N'',NULL,NULL),
+		(1,7,N'Data View',N'ViewID',N'5',1,7,N'',4,N'',1,N'portal.DataView',N'',N'Title',N'ViewId',N' UNION ALL SELECT ''-- None --'',NULL',0,0)
 		) AS src([ViewID],[FieldID],[FieldLabel],[FieldSource],[FieldType],[FieldFlags],[FieldOrder],[DefaultValue],[MaxLength],[UriPath],[UriStyle],[LinkedTable],[LinkedTableGroupField],[LinkedTableTitleField],[LinkedTableValueField],[LinkedTableAddition],[Width],[Height])
 ON
 	trgt.[ViewID] = src.[ViewID]

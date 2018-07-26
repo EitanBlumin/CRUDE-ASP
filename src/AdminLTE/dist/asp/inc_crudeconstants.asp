@@ -67,5 +67,27 @@ rsItems.Open strSQL, adoConn
 arrDataViewUriStyles = rsItems.GetRows()
 
 rsItems.Close
+    
+'==============================
+' Data View Field Columns
+'==============================
 
+Const dvfcViewID = 0
+Const dvfcFieldID = 1
+Const dvfcFieldLabel = 2
+Const dvfcFieldSource = 3
+Const dvfcFieldType = 4
+Const dvfcFieldFlags = 5
+Const dvfcFieldOrder = 6
+Const dvfcDefaultValue = 7
+Const dvfcMaxLength = 8
+Const dvfcUriPath = 9
+Const dvfcUriStyle = 10
+Const dvfcLinkedTable = 11
+Const dvfcLinkedTableGroupField = 12
+Const dvfcLinkedTableTitleField = 13
+Const dvfcLinkedTableValueField = 14
+Const dvfcLinkedTableAddition = 15
+Const dvfcWidth = 16
+Const dvfcHeight = 17
 %>

@@ -204,7 +204,7 @@ END IF
 
 <div class="row">
     <div class="col col-sm-12">
-        <a class="btn btn-primary" role="button" href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"><i class="fas fa-arrow-left"></i> Edit Data View</a>
+        <a class="btn btn-primary" role="button" href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"><i class="fas fa-edit"></i> Edit Data View</a>
         &nbsp;
         <a role="button" href="dataview.asp?ViewID=<%= nViewID %>" class="btn btn-primary"><i class="fas fa-eye"></i> Open Data View</a>
     </div>
@@ -279,7 +279,10 @@ END IF
 
         <div class="col-sm-10">
             <select class="form-control" id="inputFieldType" name="FieldType">
-                <% FOR nIndex = 0 TO UBound(arrDataViewFieldTypes,2) %><option value="<%= arrDataViewFieldTypes(dvftValue, nIndex) %>" <% IF arrDataViewFieldTypes(dvftValue, nIndex) = nFieldType THEN Response.Write "selected" %>><%= arrDataViewFieldTypes(dvftLabel,nIndex) %></option>
+                <% FOR nIndex = 0 TO UBound(arrDataViewFieldTypes,2) %>
+                <option value="<%= arrDataViewFieldTypes(dvftValue, nIndex) %>" <% IF CStr(arrDataViewFieldTypes(dvftValue, nIndex)) = CStr(nFieldType) THEN Response.Write "selected='selected'" %>>
+                    <%= arrDataViewFieldTypes(dvftLabel,nIndex) %>
+                </option>
                 <% NEXT %>
             </select>
         </div>
