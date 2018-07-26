@@ -35,7 +35,7 @@ myRegEx.Global = True
 DIM nViewID, rsFields, arrViewFields, nColSpan
 DIM nFieldsNum, nViewFlags, strPageTitle, strPrimaryKey, strMainTableName, strDataViewDescription, strFilterBackLink
 Dim strFilterField, blnFilterRequired, cmdStoredProc, strViewProcedure, strModificationProcedure, strDeleteProcedure, varCurrFieldValue
-Dim paramPK, paramMode, paramFilter, paramOrderBy
+Dim paramPK, paramMode, paramFilter, paramOrderBy, blnRequired
 
 strError = ""
 strSearchFilter = ""
@@ -310,7 +310,6 @@ END IF
         </div>
         <form action="<%= constPageScriptName & "?ViewID=" & nViewID %>" method="post">
             <div class="modal-body"><%
-                Dim blnRequired
             FOR nIndex = 0 TO UBound(arrViewFields, 2)
                 IF (arrViewFields(dvfcFieldFlags,nIndex) AND 1) > 0 THEN 
                     blnRequired = CBool((arrViewFields(dvfcFieldFlags, nIndex) AND 2) > 0)
@@ -442,14 +441,23 @@ END IF
     <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
         <div class="modal-header bg-primary">
-        <h4 class="modal-title">{{ deletingModalTitle }}
+        <h4 class="modal-title">Deleting Item
             <span class="box-tools pull-right">
             <a role="button" class="btn btn-default btn-sm" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></a>
             </span></h4>
         </div>
         <form action="<%= constPageScriptName & "?ViewID=" & nViewID %>" method="post">
             <div class="modal-body">
-                Are you sure you want to delete this item?
+                <p>Are you sure you want to delete this item?</p>
+                <%
+            FOR nIndex = 0 TO UBound(arrViewFields, 2)
+                IF (arrViewFields(dvfcFieldFlags,nIndex) AND 8) > 0 THEN %>
+                <div class="row">
+                    <div class="col col-md-5"><b><%= arrViewFields(dvfcFieldLabel, nIndex) %>:</b></div>
+                    <div class="col col-md-7">{{ selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>'] }}</div>
+                </div>
+                <% END IF
+            NEXT %>
             </div>
             <div class="modal-footer">
             <input type="hidden" name="postback" value="true" />
