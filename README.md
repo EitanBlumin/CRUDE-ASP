@@ -26,9 +26,9 @@ The following features will need to be installed using "Turn Windows features on
   - World Wide Web Services
     - Application Development Features
       - ASP
- 	 - ISAPI Extensions
- 	 - ISAPI Filters
- 	 - Server-Side Includes
+ 	  - ISAPI Extensions
+ 	  - ISAPI Filters
+ 	  - Server-Side Includes
     - Common HTTP Features (everything)
 
 You will need a Microsoft SQL Server database be installed.
