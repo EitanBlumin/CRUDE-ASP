@@ -11,6 +11,9 @@ CRUDE:
 This project aims to implement an easy-to-use platform to create CRUDE websites using the most-available free technologies (bootstrap, fontawesome, angular, classic ASP...).
 Using this project you can easily create "Data Views" which would serve as CRUD interfaces where you can manipulate data from a SQL Server database, and to also execute custom database commands (such as stored procedures).
 
+Please see the Wiki for more info:
+https://github.com/EitanBlumin/CRUDE-ASP/wiki
+
 ## Getting Started
 
 These instructions will get you up and running on your local machine.
