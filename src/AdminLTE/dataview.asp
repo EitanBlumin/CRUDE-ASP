@@ -119,10 +119,10 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
         <!-- Data Manipulation Modals -->
         
 <!-- Edit/Update/Clone Modal -->
-<div class="modal fade" id="modal-edit">
+<div class="modal fade" id="modal-edit" role="dialog">
     <div class="modal-dialog">
     <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header bg-primary">
         <h4 class="modal-title">{{ selectedModalTitle }}
             <span class="box-tools pull-right">
             <a class="btn btn-danger btn-sm" ng-show="selectedModalMode != 'add'" role="button" href="javascript:void(0)" ng-click="dvDelete(selectedRow)" aria-label="Delete" title="Delete" data-toggle="modal" data-target="#modal-delete"><i class="far fa-trash-alt"></i> Delete</a>
@@ -248,7 +248,7 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
             <input type="hidden" name="ItemID" ng-model="selectedRow._ItemID" />
             <input type="hidden" name="mode" ng-model="selectedModalMode" />
             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-primary">Save changes</button>
+            <button type="submit" class="btn btn-success">Save changes</button>
             </div>
         </form>
     </div>
@@ -259,10 +259,10 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
 <!-- /.modal -->
 
 <!-- Deletion Modal -->
-<div class="modal fade" id="modal-delete">
-    <div class="modal-dialog">
+<div class="modal fade" id="modal-delete" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header bg-primary">
         <h4 class="modal-title">{{ deletingModalTitle }}
             <span class="box-tools pull-right">
             <a role="button" class="btn btn-default btn-sm" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></a>
