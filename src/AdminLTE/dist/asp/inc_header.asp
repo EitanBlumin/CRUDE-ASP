@@ -202,19 +202,30 @@
 
       <!-- Sidebar Menu -->
       <ul class="sidebar-menu" data-widget="tree">
-        <li class="header">HEADER</li>
+        <li class="header">Menu</li>
         <!-- Optionally, you can add icons to the links -->
         <li class="active"><a href="#"><i class="fas fa-link"></i> <span>Link</span></a></li>
         <li><a href="#"><i class="fas fa-link"></i> <span>Another Link</span></a></li>
-        <li class="treeview">
+        <li class="treeview active">
           <a href="#"><i class="fas fa-link"></i> <span>Multilevel</span>
             <span class="pull-right-container">
                 <i class="fas fa-angle-left pull-right"></i>
               </span>
           </a>
           <ul class="treeview-menu">
-            <li><a href="#">Link in level 2</a></li>
-            <li><a href="#">Link in level 2</a></li>
+            <li><a href="#">Link 1 in level 2</a></li>
+            <li class="active"><a href="#">Link 2 in level 2</a></li>
+          </ul>
+        </li>
+        <li class="treeview">
+          <a href="#"><i class="fas fa-link"></i> <span>Multilevel 2</span>
+            <span class="pull-right-container">
+                <i class="fas fa-angle-left pull-right"></i>
+              </span>
+          </a>
+          <ul class="treeview-menu">
+            <li><a href="#">Link 1 in level 2</a></li>
+            <li><a href="#">Link 2 in level 2</a></li>
           </ul>
         </li>
       </ul>
