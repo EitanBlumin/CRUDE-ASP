@@ -20,7 +20,7 @@ adoConn.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
     
 Dim blnFound, blnRequiredFieldsFilled, strViewIDString, strViewQueryString
-Dim blnRTEEnabled, blnShowForm, blnShowList, blnAllowUpdate, blnAllowInsert, blnAllowDelete, blnAllowClone, blnAllowSearch, strOrderBy, strSearchFilter, strCurrFilter
+Dim blnRTEEnabled, blnShowForm, blnShowList, blnShowCharts, blnAllowUpdate, blnAllowInsert, blnAllowDelete, blnAllowClone, blnAllowSearch, strOrderBy, strSearchFilter, strCurrFilter
 Dim strLastOptGroup, blnOptGroupStarted
 Set rsItems = Server.CreateObject("ADODB.Recordset")
 
@@ -33,7 +33,7 @@ myRegEx.Global = True
 '[ConfigVars]
 ' Init Form Variables from DB. This will be deleted when generated as a seperate file.
 DIM nViewID, rsFields, arrViewFields, nColSpan
-DIM nFieldsNum, nViewFlags, strPageTitle, strPrimaryKey, strMainTableName, constPageScriptName, strDataViewDescription, strFilterBackLink
+DIM nFieldsNum, nViewFlags, strPageTitle, strPrimaryKey, strMainTableName, strDataViewDescription, strFilterBackLink
 Dim strFilterField, blnFilterRequired, cmdStoredProc, strViewProcedure, strModificationProcedure, strDeleteProcedure, varCurrFieldValue
 Dim paramPK, paramMode, paramFilter, paramOrderBy
 
@@ -41,6 +41,8 @@ strError = ""
 strSearchFilter = ""
 strPageTitle = "Data View"
 
+nItemID = Request("ItemID")
+IF NOT IsNumeric(nItemID) THEN nItemID = ""
 strMode = Request("mode")
 IF strMode = "" THEN strMode = "none"
 
@@ -52,6 +54,13 @@ IF nViewID <> "" AND IsNumeric(nViewID) THEN
 	IF NOT rsItems.EOF THEN
 		strPageTitle = rsItems("Title")
         strDataViewDescription = rsItems("ViewDescription")
+        strViewProcedure = rsItems("ViewProcedure")
+        strModificationProcedure = rsItems("ModificationProcedure")
+        strDeleteProcedure = rsItems("DeleteProcedure")
+        strMainTableName = rsItems("MainTable")
+        strOrderBy = rsItems("OrderBy")
+        strPrimaryKey = rsItems("PrimaryKey")
+        nViewFlags = rsItems("Flags")
 
 		SET rsFields = Server.CreateObject("ADODB.Recordset")
 		rsFields.Open "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID & " ORDER BY FieldOrder ASC", adoConStr
@@ -61,6 +70,15 @@ IF nViewID <> "" AND IsNumeric(nViewID) THEN
 		rsFields.Close
 		SET rsFields = Nothing
 		
+        blnAllowUpdate = CBool((nViewFlags AND 1) > 0)
+        blnAllowInsert = CBool((nViewFlags AND 2) > 0)
+        blnAllowDelete = CBool((nViewFlags AND 4) > 0)
+        blnAllowClone = CBool((nViewFlags AND 8) > 0)
+        blnShowForm = CBool((nViewFlags AND 16) > 0)
+        blnShowList = CBool((nViewFlags AND 32) > 0)
+        blnAllowSearch = CBool((nViewFlags AND 64) > 0)
+        blnRTEEnabled = CBool((nViewFlags AND 128) > 0)
+        blnShowCharts = CBool((nViewFlags AND 256) > 0)
 	ELSE
 		strError = "ViewID Not Found!"
 		nViewID = ""
@@ -77,8 +95,7 @@ IF strFilteredValue <> "" THEN strViewQueryString = strViewQueryString & "&" & s
 '***************************
 ' Data Manipulation Section
 '***************************
-IF ((strMode = "add" AND blnAllowInsert AND blnRequiredFieldsFilled) OR (strMode = "edit" AND blnAllowUpdate AND nItemID <> "" AND blnRequiredFieldsFilled)) AND Request.Form("postback") = "true" THEN
-	
+IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate AND nItemID <> "")) AND Request.Form("postback") = "true" THEN
 	' If stored procedure
     IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
         strSQL = strModificationProcedure
@@ -105,7 +122,7 @@ IF ((strMode = "add" AND blnAllowInsert AND blnRequiredFieldsFilled) OR (strMode
         ELSE
 		    strSQL = strSQL & " WHERE 1=2"
         END IF
-    
+        
         rsItems.CursorLocation = adUseClient
         rsItems.CursorType = adOpenKeyset
         rsItems.LockType = adLockOptimistic
@@ -116,7 +133,7 @@ IF ((strMode = "add" AND blnAllowInsert AND blnRequiredFieldsFilled) OR (strMode
         END IF
 
         IF strMode = "edit" AND rsItems.EOF THEN
-            strError = GetWord("Item Not Found")
+            strError = "Item Not Found<br/>"
         END IF
     END IF
 
@@ -124,20 +141,22 @@ IF ((strMode = "add" AND blnAllowInsert AND blnRequiredFieldsFilled) OR (strMode
 	
     ON ERROR RESUME NEXT
 
-		FOR nIndex = 0 TO UBound(arrViewFields, 2)
-			IF arrViewFields(dvfcFieldType, nIndex) <> 10 AND NOT (arrViewFields(dvfcFieldFlags, nIndex) AND 4) > 0 THEN ' not "link" or read-only
+		FOR nIndex = 0 TO UBound(arrViewFields, 2) 'AND False
+			IF arrViewFields(dvfcFieldType, nIndex) <> 10 AND (arrViewFields(dvfcFieldFlags, nIndex) AND 4) = 0 THEN ' not "link" or read-only
                 
                 IF Request("inputField_" & nIndex) = "" AND (arrViewFields(dvfcFieldFlags, nIndex) AND 2) > 0 THEN
-                    strError = strError = strError & "<b>" & arrViewFields(dvfcFieldLabel, nIndex) & "</b> is required but has not been filled.<br/>"
+                    strError = strError & "<b>" & arrViewFields(dvfcFieldLabel, nIndex) & "</b> is required but has not been filled.<br/>"
                 ELSE
                     Select Case arrViewFields(dvfcFieldType, nIndex)
                         Case 12, 1, 2, 6, 14 '"password", "text", "textarea", "multicombo", "rte"
                             varCurrFieldValue = Request("inputField_" & nIndex)
                         Case Else
-                            IF Request("inputField_" & nIndex) = "" AND NOT (arrViewFields(dvfcFieldFlags, nIndex) AND 2) = 0 THEN ' if empty and not required, enter NULL
-                                varCurrFieldValue = Null
+                            IF Len(Request("inputField_" & nIndex)) = 0 AND (arrViewFields(dvfcFieldFlags, nIndex) AND 2) = 0 THEN ' if empty and not required, enter NULL
+                                varCurrFieldValue = NULL
+                                'Response.Write "<!-- setting " & arrViewFields(dvfcFieldSource, nIndex) & " = NULL -->" & vbCrLf
                             ELSE
 				                varCurrFieldValue = Request("inputField_" & nIndex)
+                                'Response.Write "<!-- " & arrViewFields(dvfcFieldSource, nIndex) & " is NOT NULL (" & Len(Request("inputField_" & nIndex)) & ", " & (arrViewFields(dvfcFieldFlags, nIndex) AND 2) & ") -->" & vbCrLf
                             END IF
                     End Select
 
@@ -146,22 +165,32 @@ IF ((strMode = "add" AND blnAllowInsert AND blnRequiredFieldsFilled) OR (strMode
 
                         cmdStoredProc.Parameters(nIndex + 3).Value = varCurrFieldValue
                     ELSE
+                        'Response.Write "<!-- setting " & arrViewFields(dvfcFieldSource, nIndex) & " = """ & varCurrFieldValue & """ (isnull: " & IsNull(varCurrFieldValue) & ") ErrCount: " & adoConn.Errors.Count & " -->" & vbCrLf
                         rsItems(arrViewFields(dvfcFieldSource, nIndex)) = varCurrFieldValue
                     END IF
                 END IF
 			END IF
 		NEXT
         
-        IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
-	        cmdStoredProc.Execute
+        IF strError = "" THEN
+            IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
+	            cmdStoredProc.Execute
 	
-	        IF Err.Number <> 0 THEN
-		        strError = Err.Description
-	        END IF
+	            IF Err.Number <> 0 THEN
+		            strError = strError & Err.Description & "<br/>"
+	            END IF
 	
-	        SET cmdStoredProc = Nothing
+	            SET cmdStoredProc = Nothing
+            ELSE
+                'strError = strError & "Attempting rs.Update<br/>"
+                'Response.Write "<!-- ErrCount before Update: " & adoConn.Errors.Count & " -->" & vbCrLf
+                rsItems.Update
+                'Response.Write "<!-- ErrCount after Update: " & adoConn.Errors.Count & " -->" & vbCrLf
+                rsItems.Close    
+                'Response.Write "<!-- ErrCount after Close: " & adoConn.Errors.Count & " -->" & vbCrLf
+            END IF
         ELSE
-            rsItems.Update
+            rsItems.Close    
         END IF
 
 	END IF
@@ -171,16 +200,17 @@ IF ((strMode = "add" AND blnAllowInsert AND blnRequiredFieldsFilled) OR (strMode
     ' check for errors
     If adoConn.Errors.Count > 0 Then
         DIM Err
-        strError = strError & " Error(s) while performing '" & strMode & "':<br/>" 
+        strError = strError & " Error(s) while performing &quot;" & strMode & "&quot;:<br/>" 
         For Each Err In adoConn.Errors
-			strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | " & Err.NativeError & "<br/>"
+			strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
         Next
         strError = strError & "While trying to run:<br/><b>" & strSQL & "</b>"
     End If
 	
-    adoConn.Close
-	
-	IF strError = "" THEN Response.Redirect(constPageScriptName & "?MSG=" & strMode & strViewQueryString)
+	IF strError = "" THEN 
+        adoConn.Close
+	    Response.Redirect(constPageScriptName & "?MSG=" & strMode & strViewQueryString)
+    END IF
 
 ELSEIF strMode = "delete" AND nItemID <> "" AND blnAllowDelete THEN
 	
@@ -376,7 +406,7 @@ END IF
 			<%
 			Case 3, 4 '"int", "double"
 			%>
-			<input class="form-control form-control-sm" type="number" name="inputField_<%= nIndex %>" placeholder="<%= arrViewFields(dvfcFieldLabel, nIndex) %>" ng-model="selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']" size="<%= arrViewFields(dvfcWidth, nIndex) %>" maxlength="<%= arrViewFields(dvfcMaxLength, nIndex) %>"<% IF blnRequired THEN Response.Write(" required") %>>
+			<input class="form-control form-control-sm" type="number" name="inputField_<%= nIndex %>" placeholder="<%= arrViewFields(dvfcFieldLabel, nIndex) %>" value="{{ selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>'] }}" size="<%= arrViewFields(dvfcWidth, nIndex) %>" maxlength="<%= arrViewFields(dvfcMaxLength, nIndex) %>"<% IF blnRequired THEN Response.Write(" required") %>>
 			<%
 			Case 15 '"email"
 			%>
@@ -393,8 +423,9 @@ END IF
              NEXT %>
             </div>
             <div class="modal-footer">
-            <input type="hidden" name="ItemID" ng-model="selectedRow._ItemID" />
-            <input type="hidden" name="mode" ng-model="selectedModalMode" />
+            <input type="hidden" name="postback" value="true" />
+            <input type="hidden" name="ItemID" value="{{ selectedRow._ItemID }}" />
+            <input type="hidden" name="mode" value="{{ selectedModalMode }}" />
             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
             <button type="submit" class="btn btn-success">Save changes</button>
             </div>
