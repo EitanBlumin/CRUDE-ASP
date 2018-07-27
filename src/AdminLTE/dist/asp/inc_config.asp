@@ -21,7 +21,7 @@ adoConn.CommandTimeout = 0
 
 ' Global Constants
 ' ============================
-Const constPortalTitle = "Guardian"
+Const constPortalTitle = "CrudeASP"
 
 ' Create language dictionary
 ' ============================
