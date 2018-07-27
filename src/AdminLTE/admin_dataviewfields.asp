@@ -22,7 +22,7 @@ adoConn.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
 Dim strFieldLabel, strFieldSource, strDataViewTitle, nViewID, strDefaultValue, strUriPath, strLinkedTable, strLinkedTableGroupField
 Dim strLinkedTableTitleField, strLinkedTableAddition, strLinkedTableValueField, nFlags, nFieldType, nOrdering
-Dim nUriStyle, nMaxLength, nWidth, nHeight
+Dim nUriStyle, nMaxLength, nWidth, nHeight, strFieldDescription
     
 strMode = Request("mode")
 nItemID = Request("ItemID")
@@ -48,6 +48,7 @@ strFieldLabel = Request("FieldLabel")
 strFieldSource = Request("FieldSource")
 nFieldType = Request("FieldType")
 IF nFieldType = "" OR NOT IsNumeric(nFieldType) THEN nFieldType = 1
+strFieldDescription = Request("FieldDescription")
 strDefaultValue = Request("DefaultValue")
 strUriPath = Request("UriPath")
 nUriStyle = Request("UriStyle")
@@ -83,12 +84,13 @@ IF Request.Form("FieldLabel") <> "" THEN
 		rsItems.Close
         SET rsItems = Nothing
 
-		strSQL = "INSERT INTO portal.DataViewField(ViewID, [FieldLabel], [FieldSource], [FieldType], [FieldOrder], [DefaultValue], [UriPath], [UriStyle], [LinkedTable], [LinkedTableGroupField], LinkedTableTitleField, [LinkedTableValueField], [LinkedTableAddition], [FieldFlags], [MaxLength], [Width], [Height]) VALUES(" & _
+		strSQL = "INSERT INTO portal.DataViewField(ViewID, [FieldLabel], [FieldSource], [FieldType], [FieldOrder], [FieldDescription], [DefaultValue], [UriPath], [UriStyle], [LinkedTable], [LinkedTableGroupField], LinkedTableTitleField, [LinkedTableValueField], [LinkedTableAddition], [FieldFlags], [MaxLength], [Width], [Height]) VALUES(" & _
 				  CStr(CInt(nViewID)) & _
 				 ",'" & Replace(strFieldLabel,"'","''") & "'" & _
 				 ",'" & Replace(strFieldSource,"'","''") & "'" & _
 				 "," & CStr(CInt(nFieldType)) & _
 				 "," & CStr(CInt(nOrdering)) & _
+                 ",'" & Replace(strFieldDescription,"'","''") & "'" & _
 				 ",'" & Replace(strDefaultValue,"'","''") & "'" & _
 				 ",'" & Replace(strUriPath, "'", "''") & "'" & _
 				 "," & CStr(CInt(nUriStyle)) & _
@@ -107,6 +109,7 @@ IF Request.Form("FieldLabel") <> "" THEN
 				 "FieldLabel = '" & Replace(strFieldLabel,"'","''") & "'" & _
 				 ", FieldSource = '" & Replace(strFieldSource,"'","''") & "'" & _
 				 ", FieldType = " & CStr(CInt(nFieldType)) & _
+				 ", FieldDescription = '" & Replace(strFieldDescription,"'","''") & "'" & _
 				 ", DefaultValue = '" & Replace(strDefaultValue,"'","''") & "'" & _
                  ", UriPath = '" & Replace(strUriPath, "'", "''") & "'" & _
 				 ", UriStyle = " & CStr(CInt(nUriStyle)) & _
@@ -223,6 +226,7 @@ IF strMode = "edit" AND nItemID <> "" Then
 		strFieldLabel = rsItems("FieldLabel")
 		strFieldSource = rsItems("FieldSource")
         nFieldType = rsItems("FieldType")
+        strFieldDescription = rsItems("FieldDescription")
 		strDefaultValue = rsItems("DefaultValue")
 		nFlags = rsItems("FieldFlags")
         strLinkedTable = rsItems("LinkedTable")
@@ -244,7 +248,7 @@ END IF
 %>
 
 <!-- Update/Insert Form -->
-<div class="col-md-6">
+<div class="col-md-10 col-lg-8">
     <br />
 <div class="panel panel-primary">
 <div class="box-header with-border">
@@ -261,23 +265,23 @@ END IF
 <form class="form-horizontal" action="<%= constPageScriptName %>" method="post">
     <div class="panel-body">
     <div class="form-group">
-        <label for="inputFieldLabel" class="col-sm-2 control-label">Field Label</label>
+        <label for="inputFieldLabel" class="col-sm-3 col-md-3 col-lg-2 control-label">Field Label</label>
 
-        <div class="col-sm-10">
+        <div class="col-sm-9 col-md-9 col-lg-10">
         <input type="text" class="form-control" id="inputFieldLabel" placeholder="FieldLabel" name="FieldLabel" value="<%= strFieldLabel %>" required="required">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputFieldSource" class="col-sm-2 control-label">Field Source</label>
+        <label for="inputFieldSource" class="col-sm-3 col-md-3 col-lg-2 control-label">Field Source</label>
 
-        <div class="col-sm-10">
+        <div class="col-sm-9 col-md-9 col-lg-10">
         <input type="text" class="form-control" id="inputFieldSource" placeholder="Field Source Column" name="FieldSource" value="<%= strFieldSource %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputFieldType" class="col-sm-2 control-label">Field Type</label>
+        <label for="inputFieldType" class="col-sm-3 col-md-3 col-lg-2 control-label">Field Type</label>
 
-        <div class="col-sm-10">
+        <div class="col-sm-9 col-md-9 col-lg-10">
             <select class="form-control" id="inputFieldType" name="FieldType">
                 <% FOR nIndex = 0 TO UBound(arrDataViewFieldTypes,2) %>
                 <option value="<%= arrDataViewFieldTypes(dvftValue, nIndex) %>" <% IF CStr(arrDataViewFieldTypes(dvftValue, nIndex)) = CStr(nFieldType) THEN Response.Write "selected='selected'" %>>
@@ -288,44 +292,51 @@ END IF
         </div>
     </div>
     <div class="form-group">
-        <label for="inputDefaultValue" class="col-sm-2 control-label">Default Value</label>
+        <label for="inputFieldDescription" class="col-sm-3 col-md-3 col-lg-2 control-label">Description</label>
 
-        <div class="col-sm-10">
+        <div class="col-sm-9 col-md-9 col-lg-10">
+        <input type="text" class="form-control" id="inputFieldDescription" placeholder="Field Tooltip" name="FieldDescription" value="<%= strFieldDescription %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputDefaultValue" class="col-sm-3 col-md-3 col-lg-2 control-label">Default Value</label>
+
+        <div class="col-sm-9 col-md-9 col-lg-10">
         <input type="text" class="form-control" id="inputDefaultValue" placeholder="Default Value" name="DefaultValue" value="<%= strDefaultValue %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputMaxLength" class="col-sm-2 control-label">Max Length</label>
+        <label for="inputMaxLength" class="col-sm-3 col-md-3 col-lg-2 control-label">Max Length</label>
 
-        <div class="col-sm-10">
+        <div class="col-sm-9 col-md-9 col-lg-10">
         <input type="number" min="0" step="1" class="form-control" id="inputMaxLength" placeholder="Max Length" name="MaxLength" value="<%= nMaxLength %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputWidth" class="col-sm-2 control-label">Width</label>
+        <label for="inputWidth" class="col-sm-3 col-md-3 col-lg-2 control-label">Width</label>
 
-        <div class="col-sm-10">
+        <div class="col-sm-9 col-md-9 col-lg-10">
         <input type="number" min="0" step="1" class="form-control" id="inputWidth" placeholder="Width" name="Width" value="<%= nWidth %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputHeight" class="col-sm-2 control-label">Height</label>
+        <label for="inputHeight" class="col-sm-3 col-md-3 col-lg-2 control-label">Height</label>
 
-        <div class="col-sm-10">
+        <div class="col-sm-9 col-md-9 col-lg-10">
         <input type="number" min="0" step="1" class="form-control" id="inputHeight" placeholder="Height" name="Height" value="<%= nHeight %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputUriPath" class="col-sm-2 control-label">Link URI</label>
+        <label for="inputUriPath" class="col-sm-3 col-md-3 col-lg-2 control-label">Link URI</label>
 
-        <div class="col-sm-10">
+        <div class="col-sm-9 col-md-9 col-lg-10">
         <input type="text" class="form-control" id="inputUriPath" placeholder="Link URI Path" name="UriPath" value="<%= strUriPath %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputUriStyle" class="col-sm-2 control-label">Link Style</label>
+        <label for="inputUriStyle" class="col-sm-3 col-md-3 col-lg-2 control-label">Link Style</label>
 
-        <div class="col-sm-10">
+        <div class="col-sm-9 col-md-9 col-lg-10">
             <select class="form-control" id="inputUriStyle" name="UriStyle">
                 <% FOR nIndex = 0 TO UBound(arrDataViewUriStyles,2) %><option value="<%= arrDataViewUriStyles(dvusValue, nIndex) %>" <% IF arrDataViewUriStyles(dvusValue, nIndex) = nUriStyle THEN Response.Write "selected" %>><%= arrDataViewUriStyles(dvusLabel,nIndex) %></option>
                 <% NEXT %>
@@ -333,44 +344,44 @@ END IF
         </div>
     </div>
     <div class="form-group">
-        <label for="inputLinkedTable" class="col-sm-3 control-label">Linked Table</label>
+        <label for="inputLinkedTable" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table</label>
 
-        <div class="col-sm-9">
+        <div class="col-sm-9 col-md-9 col-lg-10">
         <input type="text" class="form-control" id="inputLinkedTable" placeholder="Linked Table Name" name="LinkedTable" value="<%= strLinkedTable %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputLinkedTableGroupField" class="col-sm-3 control-label">Linked Table Group Field</label>
+        <label for="inputLinkedTableGroupField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Group Field</label>
 
-        <div class="col-sm-9">
+        <div class="col-sm-9 col-md-9 col-lg-10">
         <input type="text" class="form-control" id="inputLinkedTableGroupField" placeholder="Linked Table Group Field Column" name="LinkedTableGroupField" value="<%= strLinkedTableGroupField %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputLinkedTableTitleField" class="col-sm-3 control-label">Linked Table Title Field</label>
+        <label for="inputLinkedTableTitleField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Title Field</label>
 
-        <div class="col-sm-9">
+        <div class="col-sm-9 col-md-9 col-lg-10">
         <input type="text" class="form-control" id="inputLinkedTableTitleField" placeholder="Linked Table Title Field Column" name="LinkedTableTitleField" value="<%= strLinkedTableTitleField %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputLinkedTableValueField" class="col-sm-3 control-label">Linked Table Value Field</label>
+        <label for="inputLinkedTableValueField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Value Field</label>
 
-        <div class="col-sm-9">
+        <div class="col-sm-9 col-md-9 col-lg-10">
         <input type="text" class="form-control" id="inputLinkedTableValueField" placeholder="Linked Table Value Column" name="LinkedTableValueField" value="<%= strLinkedTableValueField %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputLinkedTableAddition" class="col-sm-3 control-label">Linked Table Addition</label>
+        <label for="inputLinkedTableAddition" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Addition</label>
 
-        <div class="col-sm-9">
-        <textarea class="form-control" id="inputLinkedTableAddition" name="LinkedTableAddition" placeholder="Linked Table Addition"><%= strLinkedTableAddition %></textarea>
+        <div class="col-sm-9 col-md-9 col-lg-10">
+        <textarea class="form-control" id="inputLinkedTableAddition" name="LinkedTableAddition" placeholder="Linked Table Addition" height="4"><%= strLinkedTableAddition %></textarea>
         </div>
     </div>
     <div class="form-group">
-        <label for="inputFlags" class="col-sm-3 control-label">Properties</label>
+        <label for="inputFlags" class="col-sm-3 col-md-3 col-lg-2 control-label">Properties</label>
         
-        <div class="col-sm-9">
+        <div class="col-sm-9 col-md-9 col-lg-10">
         <% FOR nIndex = 0 TO UBound(arrDataViewFieldFlags, 2) %>
         <div class="checkbox">
             <label>

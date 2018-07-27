@@ -4,6 +4,7 @@
     [FieldLabel]            NVARCHAR (300)  NOT NULL,
     [FieldSource]           NVARCHAR (300)  NULL,
     [FieldType]             NVARCHAR (50)   NOT NULL,
+	[FieldDescription]		NVARCHAR (4000) NULL,
     [FieldFlags]            INT             CONSTRAINT [DF_DataViewField_FieldFlags] DEFAULT ((1)) NOT NULL,
     [FieldOrder]            INT             CONSTRAINT [DF_DataViewField_FieldOrder] DEFAULT ((1)) NOT NULL,
     [DefaultValue]          NVARCHAR (1000) NULL,
