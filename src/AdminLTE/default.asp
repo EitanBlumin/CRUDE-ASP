@@ -43,9 +43,7 @@ adoConn.Open
     <!-- Main content -->
     <section class="content container-fluid">
 
-      <!--------------------------
-        | Your Page Content Here |
-        -------------------------->
+        <img title="CrudeASP" src="dist/img/crude-logo.png" width="128" />
 
     </section>
     <!-- /.content -->
