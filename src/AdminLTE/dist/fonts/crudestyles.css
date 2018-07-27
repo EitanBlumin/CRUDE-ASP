@@ -1,0 +1,29 @@
+﻿@font-face {
+  font-family: 'icomoon';
+  src:  url('crudeicon.eot?oslvif');
+  src:  url('crudeicon.eot?oslvif#iefix') format('embedded-opentype'),
+    url('crudeicon.ttf?oslvif') format('truetype'),
+    url('crudeicon.woff?oslvif') format('woff'),
+    url('crudeicon.svg?oslvif#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-crude-asp:before {
+  content: "\e900";
+}

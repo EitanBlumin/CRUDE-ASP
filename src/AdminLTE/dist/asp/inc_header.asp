@@ -13,10 +13,7 @@
       </span>
       <!-- logo for regular state and mobile devices -->
       <span class="logo-lg">
-          <span class="fa-stack fa-1x">
-            <i class="far fa-circle fa-stack-2x"></i>
-            <i class="fas fa-tint fa-stack-1x"></i>
-          </span>
+            <i class="icon-crude-asp"></i>
            Crude<b>ASP</b></span>
     </a>
 
