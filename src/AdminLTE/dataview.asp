@@ -314,7 +314,7 @@ END IF
                 IF (arrViewFields(dvfcFieldFlags,nIndex) AND 1) > 0 THEN 
                     blnRequired = CBool((arrViewFields(dvfcFieldFlags, nIndex) AND 2) > 0)
                 %>
-                <div class="form-group">
+                <div class="form-group" data-toggle="tooltip" title="<%= arrViewFields(dvfcFieldDescription, nIndex) %>">
                     <label for="inputLabel_<%= nIndex %>" class="control-label"><%= arrViewFields(dvfcFieldLabel, nIndex) %></label>
             <%
         Select Case arrViewFields(dvfcFieldType,nIndex)

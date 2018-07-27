@@ -34,6 +34,11 @@
     $('.textarea').wysihtml5()
   })
 </script>
+<script type="text/javascript">
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();   
+});
+</script>
 <script>
 toastr.options = {
   "closeButton": true,

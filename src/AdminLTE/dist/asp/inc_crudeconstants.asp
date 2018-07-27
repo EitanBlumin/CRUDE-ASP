@@ -90,4 +90,5 @@ Const dvfcLinkedTableValueField = 14
 Const dvfcLinkedTableAddition = 15
 Const dvfcWidth = 16
 Const dvfcHeight = 17
+Const dvfcFieldDescription = 18
 %>
