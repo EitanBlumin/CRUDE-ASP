@@ -3,11 +3,21 @@
   <header class="main-header">
 
     <!-- Logo -->
-    <a href="index2.html" class="logo">
+    <a href="default.asp" class="logo">
       <!-- mini logo for sidebar mini 50x50 pixels -->
-      <span class="logo-mini"><b>A</b>LT</span>
+      <span class="logo-mini">
+          <span class="fa-stack fa-1x">
+            <i class="far fa-circle fa-stack-2x"></i>
+            <i class="fas fa-tint fa-stack-1x"></i>
+          </span>
+      </span>
       <!-- logo for regular state and mobile devices -->
-      <span class="logo-lg"><b>Admin</b>LTE</span>
+      <span class="logo-lg">
+          <span class="fa-stack fa-1x">
+            <i class="far fa-circle fa-stack-2x"></i>
+            <i class="fas fa-tint fa-stack-1x"></i>
+          </span>
+           Crude<b>ASP</b></span>
     </a>
 
     <!-- Header Navbar -->
