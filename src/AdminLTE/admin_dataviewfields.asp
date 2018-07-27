@@ -83,59 +83,76 @@ IF Request.Form("FieldLabel") <> "" THEN
 		END IF
 		rsItems.Close
         SET rsItems = Nothing
+    END IF
 
-		strSQL = "INSERT INTO portal.DataViewField(ViewID, [FieldLabel], [FieldSource], [FieldType], [FieldOrder], [FieldDescription], [DefaultValue], [UriPath], [UriStyle], [LinkedTable], [LinkedTableGroupField], LinkedTableTitleField, [LinkedTableValueField], [LinkedTableAddition], [FieldFlags], [MaxLength], [Width], [Height]) VALUES(" & _
-				  CStr(CInt(nViewID)) & _
-				 ",'" & Replace(strFieldLabel,"'","''") & "'" & _
-				 ",'" & Replace(strFieldSource,"'","''") & "'" & _
-				 "," & CStr(CInt(nFieldType)) & _
-				 "," & CStr(CInt(nOrdering)) & _
-                 ",'" & Replace(strFieldDescription,"'","''") & "'" & _
-				 ",'" & Replace(strDefaultValue,"'","''") & "'" & _
-				 ",'" & Replace(strUriPath, "'", "''") & "'" & _
-				 "," & CStr(CInt(nUriStyle)) & _
-				 ",'" & Replace(strLinkedTable, "'", "''") & "'" & _
-				 ",'" & Replace(strLinkedTableGroupField, "'", "''") & "'" & _
-				 ",'" & Replace(strLinkedTableTitleField,"'","''") & "'" & _
-				 ",'" & Replace(strLinkedTableValueField,"'","''") & "'" & _
-				 ",'" & Replace(strLinkedTableAddition,"'","''") & "'" & _
-				 "," & CStr(CInt(nFlags)) & _
-				 "," & CStr(CInt(nMaxLength)) & _
-				 "," & CStr(CInt(nWidth)) & _
-				 "," & CStr(CInt(nHeight)) & _
-                 ");"
-	ELSEIF strMode ="edit" AND nItemID <> "" THEN
-		strSQL = "UPDATE portal.DataViewField SET " & _
-				 "FieldLabel = '" & Replace(strFieldLabel,"'","''") & "'" & _
-				 ", FieldSource = '" & Replace(strFieldSource,"'","''") & "'" & _
-				 ", FieldType = " & CStr(CInt(nFieldType)) & _
-				 ", FieldDescription = '" & Replace(strFieldDescription,"'","''") & "'" & _
-				 ", DefaultValue = '" & Replace(strDefaultValue,"'","''") & "'" & _
-                 ", UriPath = '" & Replace(strUriPath, "'", "''") & "'" & _
-				 ", UriStyle = " & CStr(CInt(nUriStyle)) & _
-                 ", LinkedTable = '" & Replace(strLinkedTable, "'", "''") & "'" & _
-                 ", LinkedTableGroupField = '" & Replace(strLinkedTableGroupField, "'", "''") & "'" & _
-				 ", LinkedTableTitleField = '" & Replace(strLinkedTableTitleField,"'","''") & "'" & _
-				 ", LinkedTableValueField = '" & Replace(strLinkedTableValueField,"'","''") & "'" & _
-				 ", LinkedTableAddition = '" & Replace(strLinkedTableAddition,"'","''") & "'" & _
-				 ", FieldFlags = " & CStr(CInt(nFlags)) & _
-				 ", MaxLength = " & CStr(CInt(nMaxLength)) & _
-				 ", Width = " & CStr(CInt(nWidth)) & _
-				 ", Height = " & CStr(CInt(nHeight)) & _
-	 			 " WHERE FieldID = " & nItemID
-	ELSE
-		strSQL = ""
-	END IF
+    strSQL = "SELECT * FROM portal.DataViewField WHERE "
+    IF strMode = "add" THEN
+        strSQL = strSQL & "1=2"
+    ELSEIF strMode ="edit" AND nItemID <> "" AND IsNumeric(nItemID) THEN
+        strSQL = strSQL & "FieldID = " & nItemID
+    ELSE
+        strError = "Invalid input!"
+        strSQL = ""
+    END IF
 
 	IF strSQL <> "" THEN
-		adoConn.Execute strSQL
-	END IF
-	
-	adoConn.Close
-	SET adoConn = Nothing
-	
-	Response.Redirect(constPageScriptName & "?ViewID=" & nViewID & "&MSG=" & strMode)
+        SET rsItems = Server.CreateObject("ADODB.Recordset")
+        rsItems.CursorLocation = adUseClient
+        rsItems.CursorType = adOpenKeyset
+        rsItems.LockType = adLockOptimistic
+        rsItems.Open strSQL, adoConn
     
+        IF strMode = "add" THEN
+            rsItems.AddNew
+            rsItems("FieldOrder") = nOrdering
+        END IF
+
+        IF strMode = "edit" AND rsItems.EOF THEN
+            strError = "Item Not Found<br/>"
+            rsItems.Close    
+        ELSE
+            rsItems("ViewID") = nViewID
+            rsItems("FieldLabel") = strFieldLabel
+            rsItems("FieldSource") = strFieldSource
+            rsItems("FieldType") = nFieldType
+            rsItems("FieldDescription") = strFieldDescription
+            rsItems("DefaultValue") = strDefaultValue
+            rsItems("UriPath") = strUriPath
+            rsItems("UriStyle") = nUriStyle
+            rsItems("LinkedTable") = strLinkedTable
+            rsItems("LinkedTableGroupField") = strLinkedTableGroupField
+            rsItems("LinkedTableTitleField") = strLinkedTableTitleField
+            rsItems("LinkedTableValueField") = strLinkedTableValueField
+            rsItems("LinkedTableAddition") = strLinkedTableAddition
+            rsItems("FieldFlags") = nFlags
+            rsItems("MaxLength") = nMaxLength
+            rsItems("Width") = nWidth
+            rsItems("Height") = nHeight 
+    
+            ON ERROR RESUME NEXT
+    
+            rsItems.Update
+            rsItems.Close   
+            
+            ON ERROR GOTO 0
+        END IF
+
+        ' check for errors
+        If adoConn.Errors.Count > 0 Then
+            DIM Err
+            strError = strError & " Error(s) while performing &quot;" & strMode & "&quot;:<br/>" 
+            For Each Err In adoConn.Errors
+			    strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+            Next
+            IF globalIsAdmin THEN strError = strError & "While trying to run:<br/><b>" & strSQL & "</b>"
+        End If
+	
+	    IF strError = "" THEN 
+            adoConn.Close
+	        Response.Redirect(constPageScriptName & "?ViewID=" & nViewID & "&MSG=" & strMode)
+        END IF
+	END IF
+
 ELSEIF strMode = "sortFields" THEN
 	strSQL = "SELECT FieldID, FieldOrder FROM portal.DataViewField WHERE ViewID = " & nViewID
     SET rsItems = Server.CreateObject("ADODB.Recordset")
@@ -179,7 +196,7 @@ END IF
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= constPortalTitle %></title>
+  <title><%= Sanitizer.HTMLFormControl(constPortalTitle) %></title>
 <!--#include file="dist/asp/inc_meta.asp" -->
 </head>
 <body class="hold-transition skin-blue sidebar-mini fixed">
@@ -196,8 +213,8 @@ END IF
 
       <ol class="breadcrumb">
         <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
-        <li><a href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"> <%= strDataViewTitle %></a></li>
-        <li class="active"><%= constPageTitle %></li>
+        <li><a href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"> <%= Sanitizer.HTMLDisplay(strDataViewTitle) %></a></li>
+        <li class="active"><%= Sanitizer.HTMLDisplay(constPageTitle) %></li>
       </ol>
 
     </section>
@@ -268,14 +285,14 @@ END IF
         <label for="inputFieldLabel" class="col-sm-3 col-md-3 col-lg-2 control-label">Field Label</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputFieldLabel" placeholder="FieldLabel" name="FieldLabel" value="<%= strFieldLabel %>" required="required">
+        <input type="text" class="form-control" id="inputFieldLabel" placeholder="FieldLabel" name="FieldLabel" value="<%= Sanitizer.HTMLFormControl(strFieldLabel) %>" required="required">
         </div>
     </div>
     <div class="form-group">
         <label for="inputFieldSource" class="col-sm-3 col-md-3 col-lg-2 control-label">Field Source</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputFieldSource" placeholder="Field Source Column" name="FieldSource" value="<%= strFieldSource %>">
+        <input type="text" class="form-control" id="inputFieldSource" placeholder="Field Source Column" name="FieldSource" value="<%= Sanitizer.HTMLFormControl(strFieldSource) %>">
         </div>
     </div>
     <div class="form-group">
@@ -295,42 +312,42 @@ END IF
         <label for="inputFieldDescription" class="col-sm-3 col-md-3 col-lg-2 control-label">Description</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputFieldDescription" placeholder="Field Tooltip" name="FieldDescription" value="<%= strFieldDescription %>">
+        <input type="text" class="form-control" id="inputFieldDescription" placeholder="Field Tooltip" name="FieldDescription" value="<%= Sanitizer.HTMLFormControl(strFieldDescription) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputDefaultValue" class="col-sm-3 col-md-3 col-lg-2 control-label">Default Value</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputDefaultValue" placeholder="Default Value" name="DefaultValue" value="<%= strDefaultValue %>">
+        <input type="text" class="form-control" id="inputDefaultValue" placeholder="Default Value" name="DefaultValue" value="<%= Sanitizer.HTMLFormControl(strDefaultValue) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputMaxLength" class="col-sm-3 col-md-3 col-lg-2 control-label">Max Length</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="number" min="0" step="1" class="form-control" id="inputMaxLength" placeholder="Max Length" name="MaxLength" value="<%= nMaxLength %>">
+        <input type="number" min="0" step="1" class="form-control" id="inputMaxLength" placeholder="Max Length" name="MaxLength" value="<%= Sanitizer.HTMLFormControl(nMaxLength) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputWidth" class="col-sm-3 col-md-3 col-lg-2 control-label">Width</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="number" min="0" step="1" class="form-control" id="inputWidth" placeholder="Width" name="Width" value="<%= nWidth %>">
+        <input type="number" min="0" step="1" class="form-control" id="inputWidth" placeholder="Width" name="Width" value="<%= Sanitizer.HTMLFormControl(nWidth) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputHeight" class="col-sm-3 col-md-3 col-lg-2 control-label">Height</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="number" min="0" step="1" class="form-control" id="inputHeight" placeholder="Height" name="Height" value="<%= nHeight %>">
+        <input type="number" min="0" step="1" class="form-control" id="inputHeight" placeholder="Height" name="Height" value="<%= Sanitizer.HTMLFormControl(nHeight) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputUriPath" class="col-sm-3 col-md-3 col-lg-2 control-label">Link URI</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputUriPath" placeholder="Link URI Path" name="UriPath" value="<%= strUriPath %>">
+        <input type="text" class="form-control" id="inputUriPath" placeholder="Link URI Path" name="UriPath" value="<%= Sanitizer.HTMLFormControl(strUriPath) %>">
         </div>
     </div>
     <div class="form-group">
@@ -347,35 +364,35 @@ END IF
         <label for="inputLinkedTable" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputLinkedTable" placeholder="Linked Table Name" name="LinkedTable" value="<%= strLinkedTable %>">
+        <input type="text" class="form-control" id="inputLinkedTable" placeholder="Linked Table Name" name="LinkedTable" value="<%= Sanitizer.HTMLFormControl(strLinkedTable) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputLinkedTableGroupField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Group Field</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputLinkedTableGroupField" placeholder="Linked Table Group Field Column" name="LinkedTableGroupField" value="<%= strLinkedTableGroupField %>">
+        <input type="text" class="form-control" id="inputLinkedTableGroupField" placeholder="Linked Table Group Field Column" name="LinkedTableGroupField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableGroupField) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputLinkedTableTitleField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Title Field</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputLinkedTableTitleField" placeholder="Linked Table Title Field Column" name="LinkedTableTitleField" value="<%= strLinkedTableTitleField %>">
+        <input type="text" class="form-control" id="inputLinkedTableTitleField" placeholder="Linked Table Title Field Column" name="LinkedTableTitleField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableTitleField) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputLinkedTableValueField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Value Field</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputLinkedTableValueField" placeholder="Linked Table Value Column" name="LinkedTableValueField" value="<%= strLinkedTableValueField %>">
+        <input type="text" class="form-control" id="inputLinkedTableValueField" placeholder="Linked Table Value Column" name="LinkedTableValueField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableValueField) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputLinkedTableAddition" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Addition</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <textarea class="form-control" id="inputLinkedTableAddition" name="LinkedTableAddition" placeholder="Linked Table Addition" height="4"><%= strLinkedTableAddition %></textarea>
+        <textarea class="form-control" id="inputLinkedTableAddition" name="LinkedTableAddition" placeholder="Linked Table Addition" height="4"><%= Sanitizer.HTMLFormControl(strLinkedTableAddition) %></textarea>
         </div>
     </div>
     <div class="form-group">
@@ -454,8 +471,8 @@ WHILE NOT rsItems.EOF
         <option value="<%= nIndex + 1 %>" <% IF nIndex + 1 = rsItems("FieldOrder") THEN Response.Write "selected" %>><%= nIndex + 1 %></option>
         <% NEXT %>
         </select></td>
-    <th><%= rsItems("FieldLabel") %></th>
-    <td><%= rsItems("FieldSource") %></td>
+    <th><%= Sanitizer.HTMLDisplay(rsItems("FieldLabel")) %></th>
+    <td><%= Sanitizer.HTMLDisplay(rsItems("FieldSource")) %></td>
     <td><%= arrDataViewFieldTypes(dvftLabel,rsItems("FieldType") - 1) %></td>
     <td>
         <% FOR nIndex = 0 TO UBound(arrDataViewFieldFlags, 2)

@@ -90,7 +90,7 @@ END IF
 
 Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
 strViewQueryString = "&ViewID=" & nViewID
-IF strFilteredValue <> "" THEN strViewQueryString = strViewQueryString & "&" & strFilterField & nViewID & "=" & strFilteredValue
+IF strFilteredValue <> "" THEN strViewQueryString = strViewQueryString & "&seek_" & Sanitizer.Querystring(strFilterField) & "=" & Sanitizer.Querystring(strFilteredValue)
 
 '***************************
 ' Data Manipulation Section
@@ -117,7 +117,7 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
     Else
 	    strSQL = "SELECT * FROM " & strMainTableName
 
-        IF strMode = "edit" THEN
+        IF strMode = "edit" AND nItemID <> "" AND IsNumeric(nItemID) THEN
 		    strSQL = strSQL & " WHERE " & strPrimaryKey & " = " & nItemID
         ELSE
 		    strSQL = strSQL & " WHERE 1=2"
@@ -145,7 +145,7 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
 			IF arrViewFields(dvfcFieldType, nIndex) <> 10 AND (arrViewFields(dvfcFieldFlags, nIndex) AND 4) = 0 THEN ' not "link" or read-only
                 
                 IF Request("inputField_" & nIndex) = "" AND (arrViewFields(dvfcFieldFlags, nIndex) AND 2) > 0 THEN
-                    strError = strError & "<b>" & arrViewFields(dvfcFieldLabel, nIndex) & "</b> is required but has not been filled.<br/>"
+                    strError = strError & "<b>" & Sanitizer.HTMLDisplay(arrViewFields(dvfcFieldLabel, nIndex)) & "</b> is required but has not been filled.<br/>"
                 ELSE
                     Select Case arrViewFields(dvfcFieldType, nIndex)
                         Case 12, 1, 2, 6, 14 '"password", "text", "textarea", "multicombo", "rte"
@@ -204,7 +204,7 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
         For Each Err In adoConn.Errors
 			strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
         Next
-        strError = strError & "While trying to run:<br/><b>" & strSQL & "</b>"
+        IF globalIsAdmin THEN strError = strError & "While trying to run:<br/><b>" & strSQL & "</b>"
     End If
 	
 	IF strError = "" THEN 
@@ -212,7 +212,7 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
 	    Response.Redirect(constPageScriptName & "?MSG=" & strMode & strViewQueryString)
     END IF
 
-ELSEIF strMode = "delete" AND nItemID <> "" AND blnAllowDelete THEN
+ELSEIF strMode = "delete" AND nItemID <> "" AND IsNumeric(nItemID) AND blnAllowDelete THEN
 	
 	' If stored procedure
     IF NOT IsNull(strDeleteProcedure) AND strDeleteProcedure <> "" THEN
@@ -259,7 +259,7 @@ END IF
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= constPortalTitle %></title>
+  <title><%= Sanitizer.HTMLFormControl(constPortalTitle) %></title>
 <!--#include file="dist/asp/inc_meta.asp" -->
 </head>
 <body class="hold-transition skin-blue sidebar-mini fixed" ng-app="CrudeApp" ng-controller="CrudeCtrl">
@@ -271,12 +271,12 @@ END IF
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
-        <%= strPageTitle %>
+        <%= Sanitizer.HTMLDisplay(strPageTitle) %>
       </h1>
 
       <ol class="breadcrumb">
         <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
-        <li class="active"><%= strPageTitle %></li>
+        <li class="active"><%= Sanitizer.HTMLDisplay(strPageTitle) %></li>
       </ol>
 
     </section>
@@ -291,7 +291,7 @@ END IF
 </div>
 <div class="row">
     <div class="col col-sm-12"><br />
-        <small><%= strDataViewDescription %></small>
+        <small><%= Sanitizer.HTMLDisplay(strDataViewDescription) %></small>
     </div>
 </div>
         <!-- Data Manipulation Modals -->
@@ -308,37 +308,37 @@ END IF
             <a role="button" class="btn btn-default btn-sm" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></a>
             </span></h4>
         </div>
-        <form action="<%= constPageScriptName & "?ViewID=" & nViewID %>" method="post">
+        <form action="<%= constPageScriptName & "?ViewID=" & Sanitizer.Querystring(nViewID) %>" method="post">
             <div class="modal-body"><%
             FOR nIndex = 0 TO UBound(arrViewFields, 2)
                 IF (arrViewFields(dvfcFieldFlags,nIndex) AND 1) > 0 THEN 
                     blnRequired = CBool((arrViewFields(dvfcFieldFlags, nIndex) AND 2) > 0)
                 %>
-                <div class="form-group" data-toggle="tooltip" title="<%= arrViewFields(dvfcFieldDescription, nIndex) %>">
-                    <label for="inputLabel_<%= nIndex %>" class="control-label"><%= arrViewFields(dvfcFieldLabel, nIndex) %></label>
+                <div class="form-group" data-toggle="tooltip" title="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldDescription, nIndex)) %>">
+                    <label for="inputLabel_<%= nIndex %>" class="control-label"><%= Sanitizer.HTMLDisplay(arrViewFields(dvfcFieldLabel, nIndex)) %></label>
             <%
         Select Case arrViewFields(dvfcFieldType,nIndex)
 			Case 2 '"textarea"
-			%><textarea class="form-control form-control-sm" name="inputField_<%= nIndex %>" placeholder="<%= arrViewFields(dvfcFieldLabel, nIndex) %>" rows="<%= arrViewFields(dvfcHeight, nIndex) %>" cols="<%= arrViewFields(dvfcWidth, nIndex) %>"<% IF blnRequired THEN Response.Write(" required") %> ng-model="selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']"></textarea>
+			%><textarea class="form-control form-control-sm" name="inputField_<%= nIndex %>" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" rows="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcHeight, nIndex)) %>" cols="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %> ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"></textarea>
 			<%
 			Case 14 '"rte"
-			%><textarea name="inputField_<%= nIndex %>" id="summernote" <% IF blnRequired THEN Response.Write(" required") %> ng-model="selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']"></textarea>
+			%><textarea name="inputField_<%= nIndex %>" id="summernote" <% IF blnRequired THEN Response.Write(" required") %> ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"></textarea>
 			<%
 			Case 5, 6 '"combo", "multicombo"
 				strSQL = "SELECT DISTINCT "
-                IF arrViewFields(dvfcLinkedTableGroupField, nIndex) <> "" THEN strSQL = strSQL & arrViewFields(dvfcLinkedTableGroupField, nIndex) & " AS grouplabel, "
-                IF arrViewFields(dvfcLinkedTableTitleField, nIndex) <> "" THEN strSQL = strSQL & arrViewFields(dvfcLinkedTableTitleField, nIndex) & " AS fieldtitle, "
-				strSQL = strSQL & arrViewFields(dvfcLinkedTableValueField, nIndex) & " AS fieldvalue FROM " & arrViewFields(dvfcLinkedTable, nIndex) & arrViewFields(dvfcLinkedTableAddition, nIndex)
+                IF arrViewFields(dvfcLinkedTableGroupField, nIndex) <> "" THEN strSQL = strSQL & Sanitizer.SQL(arrViewFields(dvfcLinkedTableGroupField, nIndex)) & " AS grouplabel, "
+                IF arrViewFields(dvfcLinkedTableTitleField, nIndex) <> "" THEN strSQL = strSQL & Sanitizer.SQL(arrViewFields(dvfcLinkedTableTitleField, nIndex)) & " AS fieldtitle, "
+				strSQL = strSQL & arrViewFields(dvfcLinkedTableValueField, nIndex) & " AS fieldvalue FROM " & Sanitizer.SQL(arrViewFields(dvfcLinkedTable, nIndex)) & " " & arrViewFields(dvfcLinkedTableAddition, nIndex)
 				strSQL = strSQL & " ORDER BY 1"
                 IF arrViewFields(dvfcLinkedTableTitleField, nIndex) <> "" OR arrViewFields(dvfcLinkedTableGroupField, nIndex) <> "" THEN strSQL = strSQL & ", 2"
 			
 				'Response.Write(strSQL)
 				IF arrViewFields(dvfcLinkedTable, nIndex) <> "" AND arrViewFields(dvfcLinkedTableValueField, nIndex) <> "" THEN
 				%>
-				<select class="form-control form-control-sm" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']" <%
+				<select class="form-control form-control-sm" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']" <%
 				IF arrViewFields(dvfcFieldType, nIndex) = "multicombo" THEN
 					Response.Write("multiple")
-					IF IsNumeric(arrViewFields(dvfcHeight, nIndex)) AND arrViewFields(dvfcHeight, nIndex) > 0 THEN Response.Write(" size=" & arrViewFields(dvfcHeight, nIndex))
+					IF IsNumeric(arrViewFields(dvfcHeight, nIndex)) AND arrViewFields(dvfcHeight, nIndex) > 0 THEN Response.Write(" size=""" & Sanitizer.HTMLFormControl(arrViewFields(dvfcHeight, nIndex)) & """")
 				END IF %>>
 				<%
 					SET rsFields = Server.CreateObject("ADODB.Recordset")
@@ -354,15 +354,15 @@ END IF
                                     Response.Write "</optgroup>"
                                 END IF
                             blnOptGroupStarted = True
-                        %><optgroup label="<%= Replace(rsFields("grouplabel"), """", "&quot;") %>">
+                        %><optgroup label="<%= Sanitizer.HTMLFormControl(rsFields("grouplabel")) %>">
                             <%
                             END IF
                         END IF
 				%><option value="<%= rsFields("fieldvalue") %>"><%
 						IF arrViewFields(dvfcLinkedTableTitleField, nIndex) <> "" THEN
-							Response.Write(rsFields("fieldtitle"))
+							Response.Write Sanitizer.HTMLFormControl(rsFields("fieldtitle"))
 						Else
-							Response.Write(rsFields("fieldvalue"))
+							Response.Write Sanitizer.HTMLFormControl(rsFields("fieldvalue"))
 						END IF
 						%></option>
 				<%
@@ -381,7 +381,7 @@ END IF
 				    IF arrViewFields(dvfcFieldType, nIndex) = "multicombo" THEN Response.Write "<small class=""form-text form-text-sm text-muted"">Hold Ctrl to select multiple values</small>"
 				END IF
 			Case 7, 8 '"date", "datetime"
-			%><input class="form-control" type="<%= arrViewFields(dvfcFieldType, nIndex) %>" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']"<% IF blnRequired THEN Response.Write(" required") %> <%
+			%><input class="form-control" type="datetime" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnRequired THEN Response.Write(" required") %> <%
 				IF arrViewFields(dvfcFieldType, nIndex) = "date" THEN
 				 Response.Write("size=""10"" maxlength=""10""")
 				Else
@@ -389,31 +389,31 @@ END IF
 				END IF %>>
 			<%
 		    Case 13 '"time"
-		    %><input class="form-control form-control-sm" type="time" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']"<% IF blnRequired THEN Response.Write(" required") %> step="1">
+		    %><input class="form-control form-control-sm" type="time" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnRequired THEN Response.Write(" required") %> step="1">
 		    <%
 			Case 9 '"boolean"
-				%><input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>1" value="1" ng-model="selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']"><label for="inputField_<%= nIndex %>1" class="form-check-label">Yes</label>
+				%><input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>1" value="1" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"><label for="inputField_<%= nIndex %>1" class="form-check-label">Yes</label>
 				&nbsp;
-				<input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>0" value="0" ng-model="selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']"><label for="inputField_<%= nIndex %>0" class="form-check-label">No</label>
+				<input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>0" value="0" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"><label for="inputField_<%= nIndex %>0" class="form-check-label">No</label>
 				<%
 			Case 10 '"link"
-				%><span ng-model="selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']"></span>
+				%><span ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"></span>
                  <%
 			Case 12 '"password"
 			%>
-			<input class="form-control form-control-sm" type="password" name="inputField_<%= nIndex %>" placeholder="<%= arrViewFields(dvfcFieldLabel, nIndex) %>" value="" size="<%= arrViewFields(dvfcWidth, nIndex) %>" maxlength="<%= arrViewFields(dvfcMaxLength, nIndex) %>"<% IF blnRequired THEN Response.Write(" required") %>>
+			<input class="form-control form-control-sm" type="password" name="inputField_<%= nIndex %>" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" value="" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %>>
 			<%
 			Case 3, 4 '"int", "double"
 			%>
-			<input class="form-control form-control-sm" type="number" name="inputField_<%= nIndex %>" placeholder="<%= arrViewFields(dvfcFieldLabel, nIndex) %>" value="{{ selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>'] }}" size="<%= arrViewFields(dvfcWidth, nIndex) %>" maxlength="<%= arrViewFields(dvfcMaxLength, nIndex) %>"<% IF blnRequired THEN Response.Write(" required") %>>
+			<input class="form-control form-control-sm" type="number" name="inputField_<%= nIndex %>" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" value="{{ selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %>>
 			<%
 			Case 15 '"email"
 			%>
-			<input class="form-control form-control-sm" type="email" placeholder="<%= arrViewFields(dvfcFieldLabel, nIndex) %>" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']" size="<%= arrViewFields(dvfcWidth, nIndex) %>" maxlength="<%= arrViewFields(dvfcMaxLength, nIndex) %>"<% IF blnRequired THEN Response.Write(" required") %>>
+			<input class="form-control form-control-sm" type="email" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %>>
 			<%
 			Case Else
 			%>
-			<input class="form-control form-control-sm" type="text" placeholder="<%= arrViewFields(dvfcFieldLabel, nIndex) %>" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']" size="<%= arrViewFields(dvfcWidth, nIndex) %>" maxlength="<%= arrViewFields(dvfcMaxLength, nIndex) %>"<% IF blnRequired THEN Response.Write(" required") %>>
+			<input class="form-control form-control-sm" type="text" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %>>
 			<%
 		End Select
 		%>
@@ -453,8 +453,8 @@ END IF
             FOR nIndex = 0 TO UBound(arrViewFields, 2)
                 IF (arrViewFields(dvfcFieldFlags,nIndex) AND 8) > 0 THEN %>
                 <div class="row">
-                    <div class="col col-md-5 col-sm-3" data-toggle="tooltip" title="<%= arrViewFields(dvfcFieldDescription, nIndex) %>"><b><%= arrViewFields(dvfcFieldLabel, nIndex) %>:</b></div>
-                    <div class="col col-md-7 col-sm-9">{{ selectedRow['<%= arrViewFields(dvfcFieldLabel, nIndex) %>'] }}</div>
+                    <div class="col col-md-5 col-sm-3" data-toggle="tooltip" title="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldDescription, nIndex)) %>"><b><%= Sanitizer.HTMLDisplay(arrViewFields(dvfcFieldLabel, nIndex)) %>:</b></div>
+                    <div class="col col-md-7 col-sm-9">{{ selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}</div>
                 </div>
                 <% END IF
             NEXT %>
@@ -486,7 +486,7 @@ END IF
     FOR nIndex = 0 TO UBound(arrViewFields, 2)
         IF (arrViewFields(dvfcFieldFlags,nIndex) AND 8) > 0 THEN
         nColSpan = nColSpan + 1 %>
-    <th><%= arrViewFields(dvfcFieldLabel, nIndex) %></th><%
+    <th><%= Sanitizer.HTMLDisplay(arrViewFields(dvfcFieldLabel, nIndex)) %></th><%
         END IF
      NEXT %><th>Actions</th>
 </tr>
