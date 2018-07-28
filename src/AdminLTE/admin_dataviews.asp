@@ -277,7 +277,7 @@ END IF
         
 <div class="row">
     <div class="col col-sm-12">
-        <a class="btn btn-primary" role="button" href="<%= constPageScriptName %>?mode=add"><i class="fas fa-plus"></i> Add Data View</a>
+        <a class="btn btn-primary" role="button" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=add"><i class="fas fa-plus"></i> Add Data View</a>
     </div>
 </div>
 
@@ -299,7 +299,7 @@ WHILE NOT rsItems.EOF
 
 %><tr>
     <td><%= rsItems("ViewID") %></td>
-    <td><a href="dataview.asp?ViewID=<%= rsItems("ViewID") %>"><%= rsItems("Title") %></a></td>
+    <td><a href="dataview.asp?ViewID=<%= rsItems("ViewID") %>"><%= Sanitizer.HTMLDisplay(rsItems("Title")) %></a></td>
     <td>
         <% FOR nIndex = 1 TO UBound(arrDataViewFlags, 2)
             IF (rsItems("Flags") AND arrDataViewFlags(dvfValue, nIndex)) THEN %>
@@ -311,9 +311,9 @@ WHILE NOT rsItems.EOF
     <td>
         <a title="Manage Fields" class="btn btn-primary" href="admin_dataviewfields.asp?ViewID=<%= rsItems("ViewID") %>"><i class="fas fa-bars"></i> Manage Fields</a>
         &nbsp;
-        <a title="Edit" class="btn btn-primary" href="<%= constPageScriptName %>?mode=edit&ItemID=<%= rsItems("ViewID") %>"><i class="fas fa-edit"></i> Edit</a>
+        <a title="Edit" class="btn btn-primary" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=edit&ItemID=<%= rsItems("ViewID") %>"><i class="fas fa-edit"></i> Edit</a>
         &nbsp;
-        <a title="Delete" class="btn btn-primary" href="<%= constPageScriptName %>?mode=delete&ItemID=<%= rsItems("ViewID") %>"><i class="far fa-trash-alt"></i> Delete</a>
+        <a title="Delete" class="btn btn-primary" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=delete&ItemID=<%= rsItems("ViewID") %>"><i class="far fa-trash-alt"></i> Delete</a>
     </td>
   </tr>
     <% 
