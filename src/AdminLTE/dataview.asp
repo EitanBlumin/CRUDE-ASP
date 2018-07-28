@@ -474,11 +474,11 @@ END IF
         <!-- Items List -->
 
 <div class="box">
-<div class="box-body">
 <div class="box-header">
  <a class="btn btn-primary btn-sm" role="button" href="javascript:void(0)" ng-click="dvAdd(null)" title="Add" data-toggle="modal" data-target="#modal-edit"><i class="fas fa-plus"></i> Add</a>
 </div>
-<table datatable="ng" id="DataViewMainTable" class="table table-hover table-bordered table-striped">
+<div class="box-body">
+<table datatable="ng" id="DataViewMainTable" dt-options="dtOptions" class="table table-hover table-bordered table-striped">
 <thead>
 <tr><%
     nColSpan = 1
@@ -550,6 +550,21 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
     $scope.deletingModalTitle = "Deleting...";
     $scope.selectedModalMode = "add"; 
     $scope.selectedRow = {};
+    $scope.dtOptions = {
+            paginationType: 'full_numbers',
+            //bSort: false,
+            //bFilter: false,
+            //bInfo: false,
+            //displayLength: 25,
+            //bLengthChange: false,
+            aoColumnDefs: [
+                {
+                    aTargets: [-1],
+                    bSortable: false,
+                    bSearchable: false
+                }
+            ]
+        };
 
     $scope.getAjaxData = function () {
 

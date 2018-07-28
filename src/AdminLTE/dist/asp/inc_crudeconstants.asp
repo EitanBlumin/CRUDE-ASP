@@ -1,6 +1,6 @@
 <%
 SET rsItems = Server.CreateObject("ADODB.Recordset")
-
+    
 '==============================
 ' Data View Flags
 '==============================
@@ -15,6 +15,23 @@ strSQL = "SELECT * FROM portal.DataViewFlags ORDER BY FlagValue ASC"
 rsItems.Open strSQL, adoConn
 
 arrDataViewFlags = rsItems.GetRows()
+
+rsItems.Close
+
+'==============================
+' Data Table Flags
+'==============================
+
+Dim arrDataTableFlags
+Const dtfValue = 0
+Const dtfLabel = 1
+Const dtfGlyph = 2
+Const dtfDefault = 3
+
+strSQL = "SELECT * FROM portal.DataViewDataTableFlags ORDER BY FlagValue ASC"
+rsItems.Open strSQL, adoConn
+
+arrDataTableFlags = rsItems.GetRows()
 
 rsItems.Close
 

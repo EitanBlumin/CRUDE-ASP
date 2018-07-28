@@ -10,6 +10,8 @@
     [OrderBy]               NVARCHAR (300)  NULL,
     [Flags]                 INT             CONSTRAINT [DF_DataView_Flags] DEFAULT ((63)) NOT NULL,
     [DataTableModifierButtonStyle] SMALLINT NOT NULL DEFAULT 1, 
+    [DataTableFlags] INT NOT NULL DEFAULT 61, 
+    [DataTableDefaultPageSize] INT NOT NULL DEFAULT 25, 
     CONSTRAINT [PK_DataView] PRIMARY KEY CLUSTERED ([ViewID] ASC)
 );
 
