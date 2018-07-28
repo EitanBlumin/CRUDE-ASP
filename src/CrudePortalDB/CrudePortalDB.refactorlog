@@ -7,4 +7,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="NavId" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="5387bfae-3b0b-4e13-9803-ad1f56a7b4f7" ChangeDateTime="07/28/2018 09:26:37">
+    <Property Name="ElementName" Value="[portal].[DataView].[DataTable]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[portal].[DataView]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="DataTableModifierButtonStyle" />
+  </Operation>
 </Operations>

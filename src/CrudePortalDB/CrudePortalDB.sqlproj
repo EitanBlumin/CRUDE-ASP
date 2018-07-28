@@ -95,6 +95,7 @@
     <Build Include="Stored Procedures\dbo.usp_Generate_Merge_For_Table.sql" />
     <Build Include="Stored Procedures\portal.GetDataViewContents.sql" />
     <Build Include="Functions\portal.FormatValueForJson.sql" />
+    <Build Include="Views\portal.DataViewModifierButtonStyles.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="CrudePortalDB.refactorlog" />

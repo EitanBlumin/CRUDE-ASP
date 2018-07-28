@@ -9,6 +9,7 @@
     [ViewDescription]       NVARCHAR (4000) NULL,
     [OrderBy]               NVARCHAR (300)  NULL,
     [Flags]                 INT             CONSTRAINT [DF_DataView_Flags] DEFAULT ((63)) NOT NULL,
+    [DataTableModifierButtonStyle] SMALLINT NOT NULL DEFAULT 1, 
     CONSTRAINT [PK_DataView] PRIMARY KEY CLUSTERED ([ViewID] ASC)
 );
 
