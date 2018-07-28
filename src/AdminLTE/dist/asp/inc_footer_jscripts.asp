@@ -40,23 +40,7 @@ $(document).ready(function(){
 });
 </script>
 <script>
-toastr.options = {
-  "closeButton": true,
-  "debug": false,
-  "newestOnTop": true,
-  "progressBar": true,
-  "positionClass": "toast-bottom-left",
-  "preventDuplicates": false,
-  "onclick": null,
-  "showDuration": "300",
-  "hideDuration": "1000",
-  "timeOut": "5000",
-  "extendedTimeOut": "1000",
-  "showEasing": "swing",
-  "hideEasing": "linear",
-  "showMethod": "slideDown",
-  "hideMethod": "fadeOut"
-}
+toastr.options = {<%= globalToastrOptions %>}
     <% SELECT CASE Request("MSG")
         CASE "edit" %>
             toastr.success('Item was successfully updated.', '<h3>Success!</h3>')
@@ -72,6 +56,6 @@ toastr.options = {
             toastr.error('Provided item ID was not found.', '<h3>Error!</h3>')
     <% END SELECT
     IF strError <> "" THEN %>
-            toastr.error('<%= Replace(strError, "'", "`") %>', '<h3>Error!</h3>')
+            toastr.error("<%= Sanitizer.HTMLFormControl(strError) %>", '<h3>Error!</h3>')
     <% END IF %>
 </script>

@@ -41,39 +41,66 @@ Next
 
 IF Request.Form("Title") <> "" THEN
 	
-	IF strMode = "add" THEN
-		strSQL = "INSERT INTO portal.DataView([Title], [MainTable], [Primarykey], [ModificationProcedure], [ViewProcedure], [DeleteProcedure], [ViewDescription], [OrderBy], [Flags]) VALUES(" & _
-				 "'" & Replace(strTitle,"'","''") & "'" & _
-				 ",'" & Replace(strMainTable,"'","''") & "'" & _
-				 ",'" & Replace(strPrimaryKey,"'","''") & "'" & _
-				 ",'" & Replace(strModificationProcedure, "'", "''") & "'" & _
-				 ",'" & Replace(strViewProcedure, "'", "''") & "'" & _
-				 ",'" & Replace(strDeleteProcedure, "'", "''") & "'" & _
-				 ",'" & Replace(strDescription,"'","''") & "'" & _
-				 ",'" & Replace(strOrderBy,"'","''") & "'" & _
-				 "," & CStr(CInt(nFlags)) & _
-                 ");"
-	ELSEIF strMode ="edit" AND nItemID <> "" THEN
-		strSQL = "UPDATE portal.DataView SET " & _
-				 "Title = '" & Replace(strTitle,"'","''") & "'" & _
-				 ", MainTable = '" & Replace(strMainTable,"'","''") & "'" & _
-				 ", Primarykey = '" & Replace(strPrimaryKey,"'","''") & "'" & _
-                 ", ModificationProcedure = '" & Replace(strModificationProcedure, "'", "''") & "'" & _
-                 ", ViewProcedure = '" & Replace(strViewProcedure, "'", "''") & "'" & _
-                 ", DeleteProcedure = '" & Replace(strDeleteProcedure, "'", "''") & "'" & _
-				 ", ViewDescription = '" & Replace(strDescription,"'","''") & "'" & _
-				 ", OrderBy = '" & Replace(strOrderBy,"'","''") & "'" & _
-				 ", Flags = " & CStr(CInt(nFlags)) & _
-	 			 " WHERE ViewID = " & nItemID
-	ELSE
-		strSQL = ""
-	END IF
-
+    strSQL = "SELECT * FROM portal.DataView WHERE "
+    
+    IF strMode = "add" THEN
+        strSQL = strSQL & "1=2"
+    ELSEIF strMode ="edit" AND nItemID <> "" AND IsNumeric(nItemID) THEN
+        strSQL = strSQL & "ViewID = " & nItemID
+    ELSE
+        strError = "Invalid input!"
+        strSQL = ""
+    END IF
+    
 	IF strSQL <> "" THEN
-		adoConn.Execute strSQL
-	END IF
+        SET rsItems = Server.CreateObject("ADODB.Recordset")
+        rsItems.CursorLocation = adUseClient
+        rsItems.CursorType = adOpenKeyset
+        rsItems.LockType = adLockOptimistic
+        rsItems.Open strSQL, adoConn
+    
+        IF strMode = "add" THEN
+            rsItems.AddNew
+            rsItems("FieldOrder") = nOrdering
+        END IF
+
+        IF strMode = "edit" AND rsItems.EOF THEN
+            strError = "Item Not Found<br/>"
+            rsItems.Close    
+        ELSE
+            rsItems("Title") = strTitle
+            rsItems("MainTable") = strMainTable
+            rsItems("Primarykey") = strPrimaryKey
+            rsItems("ModificationProcedure") = strModificationProcedure
+            rsItems("ViewProcedure") = strViewProcedure
+            rsItems("DeleteProcedure") = strDeleteProcedure
+            rsItems("ViewDescription") = strDescription
+            rsItems("OrderBy") = strOrderBy
+            rsItems("Flags") = CInt(nFlags)
+    
+            ON ERROR RESUME NEXT
+    
+            rsItems.Update
+            rsItems.Close   
+            
+            ON ERROR GOTO 0
+        END IF
+
+        ' check for errors
+        If adoConn.Errors.Count > 0 Then
+            DIM Err
+            strError = strError & " Error(s) while performing &quot;" & strMode & "&quot;:<br/>" 
+            For Each Err In adoConn.Errors
+			    strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+            Next
+            IF globalIsAdmin THEN strError = strError & "While trying to run:<br/><b>" & strSQL & "</b>"
+        End If
 	
-	Response.Redirect(constPageScriptName & "?MSG=" & strMode)
+	    IF strError = "" THEN 
+            adoConn.Close
+	        Response.Redirect(constPageScriptName & "?MSG=" & strMode)
+        END IF
+	END IF
 
 ELSEIF strMode = "delete" AND nItemID <> "" THEN
 		
@@ -104,7 +131,7 @@ END IF
 
       <ol class="breadcrumb">
         <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
-        <li class="active"><%= constPageTitle %></li>
+        <li class="active"><%= Sanitizer.HTMLDisplay(constPageTitle) %></li>
       </ol>
 
     </section>
@@ -153,18 +180,18 @@ END IF
     &nbsp;
     <a role="button" href="dataview.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fas fa-eye"></i> Open Data View</a>
     &nbsp;
-    <a role="button" class="btn btn-primary btn-sm" title="Cancel" href="<%= constPageScriptName %>"><i class="fas fa-times"></i></a>
+    <a role="button" class="btn btn-primary btn-sm" title="Cancel" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>"><i class="fas fa-times"></i></a>
     </div>
     <!-- /. tools -->
     <% END IF %>
 </div>
-<form class="form-horizontal" action="<%= constPageScriptName %>" method="post">
+<form class="form-horizontal" action="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>" method="post">
     <div class="panel-body">
     <div class="form-group">
         <label for="inputTitle" class="col-sm-2 control-label">Title</label>
 
         <div class="col-sm-10">
-        <input type="text" class="form-control" id="inputTitle" placeholder="Title" name="Title" value="<%= strTitle %>" required="required">
+        <input type="text" class="form-control" id="inputTitle" placeholder="Title" name="Title" value="<%= Sanitizer.HTMLFormControl(strTitle) %>" required="required">
         </div>
     </div>
     <div class="form-group">
@@ -172,48 +199,48 @@ END IF
         <label for="inputDescription" class="control-label">Description</label>
 
         <textarea class="textarea" name="ViewDescription" placeholder="Description"
-                    style="width: 100%; height: 200px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;"><%= strDescription %></textarea>
+                    style="width: 100%; height: 200px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;"><%= Sanitizer.HTMLFormControl(strDescription) %></textarea>
     </div></div>
     <div class="form-group">
         <label for="inputMainTable" class="col-sm-3 control-label">Main Table Name</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputMainTable" placeholder="Main Table Name" name="MainTable" value="<%= strMainTable %>">
+        <input type="text" class="form-control" id="inputMainTable" placeholder="Main Table Name" name="MainTable" value="<%= Sanitizer.HTMLFormControl(strMainTable) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputPrimaryKey" class="col-sm-3 control-label">Primary Key</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputPrimaryKey" placeholder="Primary Key (must be single numerical column)" name="PrimaryKey" value="<%= strPrimaryKey %>">
-        </div>
-    </div>
-    <div class="form-group">
-        <label for="inputViewProcedure" class="col-sm-3 control-label">Source Procedure</label>
-
-        <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputViewProcedure" placeholder="Procedure for View" name="ViewProcedure" value="<%= strViewProcedure %>">
-        </div>
-    </div>
-    <div class="form-group">
-        <label for="inputModificationProcedure" class="col-sm-3 control-label">Modification Procedure</label>
-
-        <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputModificationProcedure" placeholder="Procedure for Modification" name="ModificationProcedure" value="<%= strModificationProcedure %>">
-        </div>
-    </div>
-    <div class="form-group">
-        <label for="inputDeleteProcedure" class="col-sm-3 control-label">Deletion Procedure</label>
-
-        <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputDeleteProcedure" placeholder="Procedure for Deletion" name="DeleteProcedure" value="<%= strDeleteProcedure %>">
+        <input type="text" class="form-control" id="inputPrimaryKey" placeholder="Primary Key (must be single numerical column)" name="PrimaryKey" value="<%= Sanitizer.HTMLFormControl(strPrimaryKey) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputOrderBy" class="col-sm-3 control-label">Order By</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputOrderBy" placeholder="Column1 ASC, Column2 DESC" name="OrderBy" value="<%= strOrderBy %>">
+        <input type="text" class="form-control" id="inputOrderBy" placeholder="Column1 ASC, Column2 DESC" name="OrderBy" value="<%= Sanitizer.HTMLFormControl(strOrderBy) %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputViewProcedure" class="col-sm-3 control-label">Source Procedure</label>
+
+        <div class="col-sm-9">
+        <input type="text" class="form-control" id="inputViewProcedure" placeholder="Procedure for View" name="ViewProcedure" value="<%= Sanitizer.HTMLFormControl(strViewProcedure) %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputModificationProcedure" class="col-sm-3 control-label">Modification Procedure</label>
+
+        <div class="col-sm-9">
+        <input type="text" class="form-control" id="inputModificationProcedure" placeholder="Procedure for Modification" name="ModificationProcedure" value="<%= Sanitizer.HTMLFormControl(strModificationProcedure) %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputDeleteProcedure" class="col-sm-3 control-label">Deletion Procedure</label>
+
+        <div class="col-sm-9">
+        <input type="text" class="form-control" id="inputDeleteProcedure" placeholder="Procedure for Deletion" name="DeleteProcedure" value="<%= Sanitizer.HTMLFormControl(strDeleteProcedure) %>">
         </div>
     </div>
     <div class="form-group">
@@ -236,7 +263,7 @@ END IF
     <input type="hidden" name="ItemID" value="<%= nItemID %>" />
     <input type="hidden" name="mode" value="<%= strMode %>" />
 
-    <a class="btn btn-default" role="button" href="<%= constPageScriptName %>">Cancel</a>
+    <a class="btn btn-default" role="button" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>">Cancel</a>
 
     <button type="submit" class="btn btn-success pull-right">Submit</button>
     </div>
@@ -250,7 +277,7 @@ END IF
         
 <div class="row">
     <div class="col col-sm-12">
-        <a class="btn btn-primary" role="button" href="<%= constPageScriptName %>?mode=add"><i class="fas fa-plus"></i> Add Data View</a>
+        <a class="btn btn-primary" role="button" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=add"><i class="fas fa-plus"></i> Add Data View</a>
     </div>
 </div>
 
@@ -272,7 +299,7 @@ WHILE NOT rsItems.EOF
 
 %><tr>
     <td><%= rsItems("ViewID") %></td>
-    <td><a href="dataview.asp?ViewID=<%= rsItems("ViewID") %>"><%= rsItems("Title") %></a></td>
+    <td><a href="dataview.asp?ViewID=<%= rsItems("ViewID") %>"><%= Sanitizer.HTMLDisplay(rsItems("Title")) %></a></td>
     <td>
         <% FOR nIndex = 1 TO UBound(arrDataViewFlags, 2)
             IF (rsItems("Flags") AND arrDataViewFlags(dvfValue, nIndex)) THEN %>
@@ -284,9 +311,9 @@ WHILE NOT rsItems.EOF
     <td>
         <a title="Manage Fields" class="btn btn-primary" href="admin_dataviewfields.asp?ViewID=<%= rsItems("ViewID") %>"><i class="fas fa-bars"></i> Manage Fields</a>
         &nbsp;
-        <a title="Edit" class="btn btn-primary" href="<%= constPageScriptName %>?mode=edit&ItemID=<%= rsItems("ViewID") %>"><i class="fas fa-edit"></i> Edit</a>
+        <a title="Edit" class="btn btn-primary" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=edit&ItemID=<%= rsItems("ViewID") %>"><i class="fas fa-edit"></i> Edit</a>
         &nbsp;
-        <a title="Delete" class="btn btn-primary" href="<%= constPageScriptName %>?mode=delete&ItemID=<%= rsItems("ViewID") %>"><i class="far fa-trash-alt"></i> Delete</a>
+        <a title="Delete" class="btn btn-primary" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=delete&ItemID=<%= rsItems("ViewID") %>"><i class="far fa-trash-alt"></i> Delete</a>
     </td>
   </tr>
     <% 
