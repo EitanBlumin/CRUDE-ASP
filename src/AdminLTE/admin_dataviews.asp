@@ -168,9 +168,9 @@ IF strMode = "edit" AND nItemID <> "" Then
         strViewProcedure = rsItems("ViewProcedure")
         strDeleteProcedure = rsItems("DeleteProcedure")
 		nFlags = rsItems("Flags")
-            'rsItems("DataTableModifierButtonStyle") = CInt(nDtModBtnStyle)
-            'rsItems("DataTableDefaultPageSize") = CInt(nDtDefaultPageSize)
-            'rsItems("DataTableFlags") = CInt(nDtFlags)
+        nDtModBtnStyle = rsItems("DataTableModifierButtonStyle")
+        nDtDefaultPageSize = rsItems("DataTableDefaultPageSize")
+        nDtFlags = rsItems("DataTableFlags")
 	END IF
 	rsItems.Close
 ELSE
@@ -257,7 +257,7 @@ END IF
         </div>
     </div>
     <div class="form-group">
-        <label for="inputFlags" class="col-sm-3 control-label">Properties</label>
+        <label class="col-sm-3 control-label">Properties</label>
         
         <div class="col-sm-9">
         <% FOR nIndex = 0 TO UBound(arrDataViewFlags, 2) %>
@@ -265,6 +265,41 @@ END IF
             <label>
             <input type="checkbox" name="Flags" value="<%= arrDataViewFlags(dvfValue, nIndex) %>" <% IF (arrDataViewFlags(dvfValue, nIndex) AND nFlags) > 0 THEN Response.Write "checked" %> /> 
                 <i class="<%= arrDataViewFlags(dvfGlyph, nIndex) %>"></i> <%= arrDataViewFlags(dvfLabel, nIndex) %>
+            </label>
+        </div>
+        <% NEXT %>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputDataTableModificationButtonStyle" class="col-sm-3 control-label">DataTable Row Button Style</label>
+
+        <div class="col-sm-9">
+            <select name="DataTableModificationButtonStyle" id="inputDataTableModificationButtonStyle">
+                <option value="1" selected>Buttons - Icon and Text</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="intpuDataTableDefaultPageSize" class="col-sm-3 control-label">DataTable Default Page Size</label>
+
+        <div class="col-sm-9">
+            <select name="DataTableDefaultPageSize" id="inputDataTableDefaultPageSize">
+                <option value="10" <% IF nDtDefaultPageSize = 10 THEN Response.Write "selected" %>>10</option>
+                <option value="25" <% IF nDtDefaultPageSize = 25 THEN Response.Write "selected" %>>25</option>
+                <option value="50" <% IF nDtDefaultPageSize = 50 THEN Response.Write "selected" %>>50</option>
+                <option value="100" <% IF nDtDefaultPageSize = 100 THEN Response.Write "selected" %>>100</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">DataTable Options</label>
+        
+        <div class="col-sm-9">
+        <% FOR nIndex = 0 TO UBound(arrDataTableFlags, 2) %>
+        <div class="checkbox">
+            <label>
+            <input type="checkbox" name="DataTableFlags" value="<%= arrDataTableFlags(dvfValue, nIndex) %>" <% IF (arrDataTableFlags(dvfValue, nIndex) AND nDtFlags) > 0 THEN Response.Write "checked" %> /> 
+                <i class="<%= arrDataTableFlags(dvfGlyph, nIndex) %>"></i> <%= arrDataTableFlags(dvfLabel, nIndex) %>
             </label>
         </div>
         <% NEXT %>
