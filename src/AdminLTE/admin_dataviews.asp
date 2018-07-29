@@ -21,6 +21,7 @@ adoConn.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
 Dim strTitle, strMainTable, strPrimaryKey, strModificationProcedure, strViewProcedure, strDeleteProcedure
 Dim strDescription, strOrderBy, nFlags
+Dim nDtModBtnStyle, nDtFlags
     
 strMode = Request("mode")
 nItemID = Request("ItemID")

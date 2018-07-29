@@ -551,12 +551,13 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
     $scope.selectedModalMode = "add"; 
     $scope.selectedRow = {};
     $scope.dtOptions = {
-            paginationType: 'full_numbers',
+            sPaginationType: 'full_numbers',
             //bSort: false,
             //bFilter: false,
             //bInfo: false,
             //displayLength: 25,
             //bLengthChange: false,
+            bStateSave: true,
             aoColumnDefs: [
                 {
                     aTargets: [-1],

@@ -11,8 +11,8 @@
   <!-- Ionicons -->
   <link rel="stylesheet" href="bower_components/Ionicons/css/ionicons.min.css">
   <!-- DataTables -->
+  <!--<link href="bower_components/angular-datatables/dist/css/angular-datatables.css" rel="stylesheet" />-->
   <link rel="stylesheet" href="bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css">
-  <link href="bower_components/angular-datatables/dist/css/angular-datatables.css" rel="stylesheet" />
   <!-- Theme style -->
   <link rel="stylesheet" href="dist/css/AdminLTE.min.css">
   <!-- AdminLTE Skins. We have chosen the skin-blue for this starter
