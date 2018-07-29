@@ -21,7 +21,7 @@ adoConn.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
 Dim strTitle, strMainTable, strPrimaryKey, strModificationProcedure, strViewProcedure, strDeleteProcedure
 Dim strDescription, strOrderBy, nFlags
-Dim nDtModBtnStyle, nDtFlags
+Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize
     
 strMode = Request("mode")
 nItemID = Request("ItemID")
@@ -34,10 +34,16 @@ strViewProcedure = Request("ViewProcedure")
 strDeleteProcedure = Request("DeleteProcedure")
 strDescription = Request("ViewDescription")
 strOrderBy = Request("OrderBy")
+nDtModBtnStyle = Request("DataTableModificationButtonStyle")
+nDtDefaultPageSize = Request("DataTableDefaultPageSize")
+nDtFlags = 0
 nFlags = 0
 
 For nIndex = 1 TO Request.Form("Flags").Count
     nFlags= nFlags + CInt(Request.Form("Flags")(nIndex))
+Next
+For nIndex = 1 TO Request.Form("DataTableFlags").Count
+    nDtFlags= nDtFlags + CInt(Request.Form("DataTableFlags")(nIndex))
 Next
 
 IF Request.Form("Title") <> "" THEN
@@ -78,6 +84,9 @@ IF Request.Form("Title") <> "" THEN
             rsItems("ViewDescription") = strDescription
             rsItems("OrderBy") = strOrderBy
             rsItems("Flags") = CInt(nFlags)
+            rsItems("DataTableModifierButtonStyle") = CInt(nDtModBtnStyle)
+            rsItems("DataTableDefaultPageSize") = CInt(nDtDefaultPageSize)
+            rsItems("DataTableFlags") = CInt(nDtFlags)
     
             ON ERROR RESUME NEXT
     
@@ -153,12 +162,15 @@ IF strMode = "edit" AND nItemID <> "" Then
 		strTitle = rsItems("Title")
 		strMainTable = rsItems("MainTable")
 		strPrimaryKey = rsItems("PrimaryKey")
-		nFlags = rsItems("Flags")
-		strDescription = rsItems("ViewDescription")
 		strOrderBy = rsItems("OrderBy")
+		strDescription = rsItems("ViewDescription")
         strModificationProcedure = rsItems("ModificationProcedure")
         strViewProcedure = rsItems("ViewProcedure")
         strDeleteProcedure = rsItems("DeleteProcedure")
+		nFlags = rsItems("Flags")
+            'rsItems("DataTableModifierButtonStyle") = CInt(nDtModBtnStyle)
+            'rsItems("DataTableDefaultPageSize") = CInt(nDtDefaultPageSize)
+            'rsItems("DataTableFlags") = CInt(nDtFlags)
 	END IF
 	rsItems.Close
 ELSE
