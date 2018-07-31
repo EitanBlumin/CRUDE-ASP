@@ -25,13 +25,33 @@ rsItems.Close
 Dim arrDataTableFlags
 Const dtfValue = 0
 Const dtfLabel = 1
-Const dtfGlyph = 2
-Const dtfDefault = 3
+Const dtfTooltip = 2
+Const dtfGlyph = 3
+Const dtfDefault = 4
 
 strSQL = "SELECT * FROM portal.DataViewDataTableFlags ORDER BY FlagValue ASC"
 rsItems.Open strSQL, adoConn
 
 arrDataTableFlags = rsItems.GetRows()
+
+rsItems.Close
+    
+'==============================
+' Data Table Button Styles
+'==============================
+
+Dim arrDataTableModifierButtonStyles
+Const dtbsValue = 0
+Const dtbsLabel = 1
+Const dtbsClass = 2
+Const dtbsShowText = 3
+Const dtbsShowGlyph = 4
+Const dtbsDefault = 5
+
+strSQL = "SELECT * FROM portal.DataViewModifierButtonStyles ORDER BY StyleValue ASC"
+rsItems.Open strSQL, adoConn
+
+arrDataTableModifierButtonStyles = rsItems.GetRows()
 
 rsItems.Close
 

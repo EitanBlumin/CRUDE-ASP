@@ -204,56 +204,56 @@ END IF
         <label for="inputTitle" class="col-sm-2 control-label">Title</label>
 
         <div class="col-sm-10">
-        <input type="text" class="form-control" id="inputTitle" placeholder="Title" name="Title" value="<%= Sanitizer.HTMLFormControl(strTitle) %>" required="required">
+        <input type="text" class="form-control" id="inputTitle" placeholder="Title" data-toggle="tooltip" name="Title" title="The title will be displayed at the top of the page" value="<%= Sanitizer.HTMLFormControl(strTitle) %>" required="required">
         </div>
     </div>
     <div class="form-group">
         <div class="col-sm-12">
         <label for="inputDescription" class="control-label">Description</label>
 
-        <textarea class="textarea" name="ViewDescription" placeholder="Description"
+        <textarea class="textarea" name="ViewDescription" placeholder="Description" data-toggle="tooltip" title="This richly-formatted text will be displayed below the title, before the datatable"
                     style="width: 100%; height: 200px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;"><%= Sanitizer.HTMLFormControl(strDescription) %></textarea>
     </div></div>
     <div class="form-group">
         <label for="inputMainTable" class="col-sm-3 control-label">Main Table Name</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputMainTable" placeholder="Main Table Name" name="MainTable" value="<%= Sanitizer.HTMLFormControl(strMainTable) %>">
+        <input type="text" class="form-control" id="inputMainTable" data-toggle="tooltip" placeholder="Main Database Table Name" title="This is the database table name from which data will be queried and modified in (unless you specified stored procedures below). It can also be a view" name="MainTable" value="<%= Sanitizer.HTMLFormControl(strMainTable) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputPrimaryKey" class="col-sm-3 control-label">Primary Key</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputPrimaryKey" placeholder="Primary Key (must be single numerical column)" name="PrimaryKey" value="<%= Sanitizer.HTMLFormControl(strPrimaryKey) %>">
+        <input type="text" class="form-control" id="inputPrimaryKey" data-toggle="tooltip" title="A column name which serves as a primary key in the aforementioned database table" placeholder="Primary Key (must be single numerical column)" name="PrimaryKey" value="<%= Sanitizer.HTMLFormControl(strPrimaryKey) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputOrderBy" class="col-sm-3 control-label">Order By</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputOrderBy" placeholder="Column1 ASC, Column2 DESC" name="OrderBy" value="<%= Sanitizer.HTMLFormControl(strOrderBy) %>">
+        <input type="text" class="form-control" id="inputOrderBy" data-toggle="tooltip" title="Default sorting expression when querying from the database table" placeholder="Column1 ASC, Column2 DESC" name="OrderBy" value="<%= Sanitizer.HTMLFormControl(strOrderBy) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputViewProcedure" class="col-sm-3 control-label">Source Procedure</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputViewProcedure" placeholder="Procedure for View" name="ViewProcedure" value="<%= Sanitizer.HTMLFormControl(strViewProcedure) %>">
+        <input type="text" class="form-control" id="inputViewProcedure" data-toggle="tooltip" title="Execute this stored procedure instead of querying directly from a table" placeholder="Procedure for View" name="ViewProcedure" value="<%= Sanitizer.HTMLFormControl(strViewProcedure) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputModificationProcedure" class="col-sm-3 control-label">Modification Procedure</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputModificationProcedure" placeholder="Procedure for Modification" name="ModificationProcedure" value="<%= Sanitizer.HTMLFormControl(strModificationProcedure) %>">
+        <input type="text" class="form-control" id="inputModificationProcedure" data-toggle="tooltip" title="Execute this stored procedure instead of modifying data directly in a table" placeholder="Procedure for Modification" name="ModificationProcedure" value="<%= Sanitizer.HTMLFormControl(strModificationProcedure) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputDeleteProcedure" class="col-sm-3 control-label">Deletion Procedure</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputDeleteProcedure" placeholder="Procedure for Deletion" name="DeleteProcedure" value="<%= Sanitizer.HTMLFormControl(strDeleteProcedure) %>">
+        <input type="text" class="form-control" id="inputDeleteProcedure" data-toggle="tooltip" title="Execute this stored procedure instead of deleting directly from a table" placeholder="Procedure for Deletion" name="DeleteProcedure" value="<%= Sanitizer.HTMLFormControl(strDeleteProcedure) %>">
         </div>
     </div>
     <div class="form-group">
@@ -274,8 +274,10 @@ END IF
         <label for="inputDataTableModificationButtonStyle" class="col-sm-3 control-label">DataTable Row Button Style</label>
 
         <div class="col-sm-9">
-            <select name="DataTableModificationButtonStyle" id="inputDataTableModificationButtonStyle">
-                <option value="1" selected>Buttons - Icon and Text</option>
+            <select class="form-control" name="DataTableModificationButtonStyle" id="inputDataTableModificationButtonStyle" data-toggle="tooltip" title="Choose how the Add/Edit/Clone/Delete buttons would look like">
+            <% FOR nIndex = 0 TO UBound(arrDataTableModifierButtonStyles, 2) %>
+                <option value="<%= arrDataTableModifierButtonStyles(dtbsValue, nIndex) %>" <% IF arrDataTableModifierButtonStyles(dtbsValue, nIndex) = nDtModBtnStyle THEN Response.Write "selected" %>><%= arrDataTableModifierButtonStyles(dtbsLabel, nIndex) %></option>
+            <% NEXT %>
             </select>
         </div>
     </div>
@@ -283,7 +285,7 @@ END IF
         <label for="intpuDataTableDefaultPageSize" class="col-sm-3 control-label">DataTable Default Page Size</label>
 
         <div class="col-sm-9">
-            <select name="DataTableDefaultPageSize" id="inputDataTableDefaultPageSize">
+            <select class="form-control" name="DataTableDefaultPageSize" id="inputDataTableDefaultPageSize" data-toggle="tooltip" title="Choose the default number of rows per page (ignored when pagination is disabled)">
                 <option value="10" <% IF nDtDefaultPageSize = 10 THEN Response.Write "selected" %>>10</option>
                 <option value="25" <% IF nDtDefaultPageSize = 25 THEN Response.Write "selected" %>>25</option>
                 <option value="50" <% IF nDtDefaultPageSize = 50 THEN Response.Write "selected" %>>50</option>
@@ -297,9 +299,9 @@ END IF
         <div class="col-sm-9">
         <% FOR nIndex = 0 TO UBound(arrDataTableFlags, 2) %>
         <div class="checkbox">
-            <label>
-            <input type="checkbox" name="DataTableFlags" value="<%= arrDataTableFlags(dvfValue, nIndex) %>" <% IF (arrDataTableFlags(dvfValue, nIndex) AND nDtFlags) > 0 THEN Response.Write "checked" %> /> 
-                <i class="<%= arrDataTableFlags(dvfGlyph, nIndex) %>"></i> <%= arrDataTableFlags(dvfLabel, nIndex) %>
+            <label data-toggle="tooltip" title="<%= arrDataTableFlags(dtfTooltip, nIndex) %>">
+            <input type="checkbox" name="DataTableFlags" value="<%= arrDataTableFlags(dtfValue, nIndex) %>" <% IF (arrDataTableFlags(dtfValue, nIndex) AND nDtFlags) > 0 THEN Response.Write "checked" %> /> 
+                <i class="<%= arrDataTableFlags(dtfGlyph, nIndex) %>"></i> <%= arrDataTableFlags(dtfLabel, nIndex) %>
             </label>
         </div>
         <% NEXT %>
