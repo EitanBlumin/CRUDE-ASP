@@ -477,15 +477,15 @@ WHILE NOT rsItems.EOF
     <td>
         <% FOR nIndex = 0 TO UBound(arrDataViewFieldFlags, 2)
             IF (rsItems("FieldFlags") AND arrDataViewFieldFlags(dvffValue, nIndex)) THEN %>
-        <b title="<%= arrDataViewFieldFlags(dvffLabel, nIndex) %>"><i class="<%= arrDataViewFieldFlags(dvffGlyph, nIndex) %>"></i></b>
+        <b data-toggle="tooltip" title="<%= arrDataViewFieldFlags(dvffLabel, nIndex) %>"><i class="<%= arrDataViewFieldFlags(dvffGlyph, nIndex) %>"></i></b>
         &nbsp;
         <% END IF
             NEXT %>
     </td>
     <td>
-        <a title="Edit" class="btn btn-primary" href="<%= constPageScriptName %>?mode=edit&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="fas fa-edit"></i> Edit</a>
+        <a data-toggle="tooltip" title="Edit" class="btn btn-primary" href="<%= constPageScriptName %>?mode=edit&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="fas fa-edit"></i> Edit</a>
         &nbsp;
-        <a title="Delete" class="btn btn-primary" href="<%= constPageScriptName %>?mode=delete&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="far fa-trash-alt"></i> Delete</a>
+        <a data-toggle="tooltip" title="Delete" class="btn btn-primary" href="<%= constPageScriptName %>?mode=delete&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="far fa-trash-alt"></i> Delete</a>
     </td>
   </tr>
     <% 

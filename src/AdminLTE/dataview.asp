@@ -529,7 +529,16 @@ END IF
             <a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="javascript:void(0)" ng-click="dvDelete(row)" title="Delete" data-toggle="modal" data-target="#modal-delete"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="far fa-trash-alt"></i> <% END IF %><% IF arrDataTableModifierButtonStyles(dtbsShowText,nDtModBtnStyleIndex) THEN Response.Write "Delete" %></a>
         </td>
     </tr>
-</tbody>
+</tbody><% IF blnDtColumnFooter THEN %>
+<tfoot>
+<tr><%
+    FOR nIndex = 0 TO UBound(arrViewFields, 2)
+        IF (arrViewFields(dvfcFieldFlags,nIndex) AND 8) > 0 THEN %>
+    <th><%= Sanitizer.HTMLDisplay(arrViewFields(dvfcFieldLabel, nIndex)) %></th><%
+        END IF
+     NEXT %><th>Actions</th>
+</tr>
+</tfoot><% END IF %>
 </table>
 </div>
 <!-- /.box-body -->

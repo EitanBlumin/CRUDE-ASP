@@ -352,6 +352,7 @@ END IF
     <th>ID</th>
     <th>Title</th>
     <th>Properties</th>
+    <th>DataTable Options</th>
     <th>Actions</th>
 </tr>
 <%
@@ -366,18 +367,26 @@ WHILE NOT rsItems.EOF
     <td><a href="dataview.asp?ViewID=<%= rsItems("ViewID") %>"><%= Sanitizer.HTMLDisplay(rsItems("Title")) %></a></td>
     <td>
         <% FOR nIndex = 1 TO UBound(arrDataViewFlags, 2)
-            IF (rsItems("Flags") AND arrDataViewFlags(dvfValue, nIndex)) THEN %>
-        <b title="<%= arrDataViewFlags(dvfLabel, nIndex) %>"><i class="<%= arrDataViewFlags(dvfGlyph, nIndex) %>"></i></b>
+            IF (rsItems("Flags") AND arrDataViewFlags(dvfValue, nIndex)) > 0 THEN %>
+        <b data-toggle="tooltip" title="<%= arrDataViewFlags(dvfLabel, nIndex) %>"><i class="<%= arrDataViewFlags(dvfGlyph, nIndex) %>"></i></b>
         &nbsp;
         <% END IF
             NEXT %>
     </td>
     <td>
-        <a title="Manage Fields" class="btn btn-primary" href="admin_dataviewfields.asp?ViewID=<%= rsItems("ViewID") %>"><i class="fas fa-bars"></i> Manage Fields</a>
+        <% FOR nIndex = 1 TO UBound(arrDataTableFlags, 2)
+            IF (rsItems("DataTableFlags") AND arrDataTableFlags(dtfValue, nIndex)) > 0 THEN %>
+        <b data-toggle="tooltip" title="<%= arrDataTableFlags(dtfLabel, nIndex) %>"><i class="<%= arrDataTableFlags(dtfGlyph, nIndex) %>"></i></b>
         &nbsp;
-        <a title="Edit" class="btn btn-primary" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=edit&ItemID=<%= rsItems("ViewID") %>"><i class="fas fa-edit"></i> Edit</a>
+        <% END IF
+            NEXT %>
+    </td>
+    <td>
+        <a data-toggle="tooltip" title="Manage Fields" class="btn btn-primary" href="admin_dataviewfields.asp?ViewID=<%= rsItems("ViewID") %>"><i class="fas fa-bars"></i> Manage Fields</a>
         &nbsp;
-        <a title="Delete" class="btn btn-primary" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=delete&ItemID=<%= rsItems("ViewID") %>"><i class="far fa-trash-alt"></i> Delete</a>
+        <a data-toggle="tooltip" title="Edit" class="btn btn-primary" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=edit&ItemID=<%= rsItems("ViewID") %>"><i class="fas fa-edit"></i> Edit</a>
+        &nbsp;
+        <a data-toggle="tooltip" title="Delete" class="btn btn-primary" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=delete&ItemID=<%= rsItems("ViewID") %>"><i class="far fa-trash-alt"></i> Delete</a>
     </td>
   </tr>
     <% 
