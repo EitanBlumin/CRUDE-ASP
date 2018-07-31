@@ -251,9 +251,9 @@ function displayNavLink(navLink) {
     else
         txt += "javascript:"
 
-    txt += '"';
-    if (navLink.NavTooltip.length > 0)
-        txt += ' data-toggle="tooltip" title="' + navLink.NavTooltip + '"';
+    txt += '" title="' + navLink.NavTooltip + '"';
+    if (navLink.NavTooltip.length > 0 && navLink.ChildItems.length == 0)
+        txt += ' data-toggle="tooltip"';
 
     txt += '><i class="' + navLink.NavGlyph + '"></i> <span>' + navLink.NavLabel + '</span>'
     
@@ -294,7 +294,7 @@ function loadSideNav()
 
     document.getElementById("sideNavMenu").innerHTML = navTxt;
 }
-window.onload = function() { loadSideNav(); }
+//window.onload = function() { loadSideNav(); }
 
 //loadSideNav();
 </script>
