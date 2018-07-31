@@ -1,6 +1,16 @@
 <%
 SET rsItems = Server.CreateObject("ADODB.Recordset")
-    
+ 
+'==============================
+' Site Navigation
+'==============================
+strSQL = "SELECT [Json] = portal.GetNavigationRecursive(NULL)"
+rsItems.Open strSQL, adoConn
+IF NOT rsItems.EOF THEN
+    Response.Cookies("SiteNav") = rsItems("Json")
+END IF
+rsItems.Close
+
 '==============================
 ' Data View Flags
 '==============================
