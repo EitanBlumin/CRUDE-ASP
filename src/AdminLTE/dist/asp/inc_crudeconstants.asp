@@ -54,7 +54,23 @@ rsItems.Open strSQL, adoConn
 arrDataTableModifierButtonStyles = rsItems.GetRows()
 
 rsItems.Close
+    
+'==============================
+' Data Table Paging Styles
+'==============================
 
+Dim arrDataTablePagingStyles
+Const dtpsValue = 0
+Const dtpsLabel = 1
+Const dtpsDefault = 2
+
+strSQL = "SELECT * FROM portal.DataViewPagingTypes ORDER BY StyleValue ASC"
+rsItems.Open strSQL, adoConn
+
+arrDataTablePagingStyles = rsItems.GetRows()
+
+rsItems.Close
+    
 '==============================
 ' Data View Field Flags
 '==============================

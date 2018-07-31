@@ -21,7 +21,7 @@ adoConn.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
 Dim strTitle, strMainTable, strPrimaryKey, strModificationProcedure, strViewProcedure, strDeleteProcedure
 Dim strDescription, strOrderBy, nFlags
-Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize
+Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle
     
 strMode = Request("mode")
 nItemID = Request("ItemID")
@@ -36,6 +36,7 @@ strDescription = Request("ViewDescription")
 strOrderBy = Request("OrderBy")
 nDtModBtnStyle = Request("DataTableModificationButtonStyle")
 nDtDefaultPageSize = Request("DataTableDefaultPageSize")
+strDtPagingStyle = Request("DataTablePagingStyle")
 nDtFlags = 0
 nFlags = 0
 
@@ -87,6 +88,7 @@ IF Request.Form("Title") <> "" THEN
             rsItems("DataTableModifierButtonStyle") = CInt(nDtModBtnStyle)
             rsItems("DataTableDefaultPageSize") = CInt(nDtDefaultPageSize)
             rsItems("DataTableFlags") = CInt(nDtFlags)
+            rsItems("DataTablePagingStyle") = strDtPagingStyle
     
             ON ERROR RESUME NEXT
     
@@ -171,6 +173,7 @@ IF strMode = "edit" AND nItemID <> "" Then
         nDtModBtnStyle = rsItems("DataTableModifierButtonStyle")
         nDtDefaultPageSize = rsItems("DataTableDefaultPageSize")
         nDtFlags = rsItems("DataTableFlags")
+        strDtPagingStyle = rsItems("DataTablePagingStyle")
 	END IF
 	rsItems.Close
 ELSE
@@ -290,6 +293,17 @@ END IF
                 <option value="25" <% IF nDtDefaultPageSize = 25 THEN Response.Write "selected" %>>25</option>
                 <option value="50" <% IF nDtDefaultPageSize = 50 THEN Response.Write "selected" %>>50</option>
                 <option value="100" <% IF nDtDefaultPageSize = 100 THEN Response.Write "selected" %>>100</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputDataTablePagingStyle" class="col-sm-3 control-label">DataTable Paging Style</label>
+
+        <div class="col-sm-9">
+            <select class="form-control" name="DataTablePagingStyle" id="inputDataTablePagingStyle" data-toggle="tooltip" title="Choose how the pagination buttons would look like (ignored when pagination is disabled)">
+            <% FOR nIndex = 0 TO UBound(arrDataTablePagingStyles, 2) %>
+                <option value="<%= arrDataTablePagingStyles(dtpsValue, nIndex) %>" <% IF arrDataTablePagingStyles(dtpsValue, nIndex) = strDtPagingStyle THEN Response.Write "selected" %>><%= arrDataTablePagingStyles(dtpsLabel, nIndex) %></option>
+            <% NEXT %>
             </select>
         </div>
     </div>

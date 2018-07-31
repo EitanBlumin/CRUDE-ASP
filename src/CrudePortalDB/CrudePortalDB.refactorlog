@@ -14,4 +14,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="DataTableModifierButtonStyle" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="df7688c0-bdf0-467f-9c8d-a8200291f4cb" ChangeDateTime="07/31/2018 13:11:03">
+    <Property Name="ElementName" Value="[portal].[DataView].[DataTablePagingType]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[portal].[DataView]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="DataTablePagingStyle" />
+  </Operation>
 </Operations>
