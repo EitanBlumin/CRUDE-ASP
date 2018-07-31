@@ -23,8 +23,14 @@
       <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
         <i class="fas fa-bars"></i> <span class="sr-only">Toggle navigation</span>
       </a>
-      <!-- Navbar Right Menu -->
-      <div class="navbar-custom-menu">
+
+      <div class="collapse navbar-collapse navbar-custom-menu" id="navbar-collapse">
+        <form class="navbar-form navbar-left" role="search">
+        <div class="form-group">
+            <input type="text" class="form-control" id="navbar-search-input" placeholder="Search">
+        </div>
+        <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
+        </form>
         <ul class="nav navbar-nav">
           <!-- Messages: style can be found in dropdown.less-->
           <li class="dropdown messages-menu">
@@ -194,18 +200,6 @@
           <a href="#"><i class="fas fa-circle text-success"></i> Online</a>
         </div>
       </div>
-
-      <!-- search form (Optional) -->
-      <form action="#" method="get" class="sidebar-form">
-        <div class="input-group">
-          <input type="text" name="q" class="form-control" placeholder="Search...">
-          <span class="input-group-btn">
-              <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fas fa-search"></i>
-              </button>
-            </span>
-        </div>
-      </form>
-      <!-- /.search form -->
 
       <!-- Sidebar Menu -->
         
