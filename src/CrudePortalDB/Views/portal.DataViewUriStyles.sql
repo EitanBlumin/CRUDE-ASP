@@ -2,7 +2,7 @@
 AS
 SELECT *
 FROM (VALUES
- (1, 'Link', '', 'fa fa-link', CONVERT(bit, 1))
+ (1, 'Hyperlink', '', 'fa fa-link', CONVERT(bit, 1))
 ,(2, 'Button Default', 'btn btn-default btn-sm', 'fa fa-square', CONVERT(bit, 0))
 ,(3, 'Button Primary', 'btn btn-primary btn-sm', 'fa fa-square', CONVERT(bit, 0))
 ,(4, 'Button Success', 'btn btn-success btn-sm', 'fa fa-square', CONVERT(bit, 0))

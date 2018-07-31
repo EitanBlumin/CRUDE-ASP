@@ -21,6 +21,8 @@ adoConn.Open
     
 Dim blnFound, blnRequiredFieldsFilled, strViewIDString, strViewQueryString
 Dim blnRTEEnabled, blnShowForm, blnShowList, blnShowCharts, blnAllowUpdate, blnAllowInsert, blnAllowDelete, blnAllowClone, blnAllowSearch, strOrderBy, strSearchFilter, strCurrFilter
+Dim blnDtInfo, blnDtColumnFooter, blnDtQuickSearch, blnDtSort, blnDtPagination, blnDtPageSizeSelection, blnDtStateSave
+Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle
 Dim strLastOptGroup, blnOptGroupStarted
 Set rsItems = Server.CreateObject("ADODB.Recordset")
 
@@ -35,7 +37,7 @@ myRegEx.Global = True
 DIM nViewID, rsFields, arrViewFields, nColSpan
 DIM nFieldsNum, nViewFlags, strPageTitle, strPrimaryKey, strMainTableName, strDataViewDescription, strFilterBackLink
 Dim strFilterField, blnFilterRequired, cmdStoredProc, strViewProcedure, strModificationProcedure, strDeleteProcedure, varCurrFieldValue
-Dim paramPK, paramMode, paramFilter, paramOrderBy, blnRequired
+Dim paramPK, paramMode, paramFilter, paramOrderBy, blnRequired, nDtModBtnStyleIndex
 
 strError = ""
 strSearchFilter = ""
@@ -61,15 +63,11 @@ IF nViewID <> "" AND IsNumeric(nViewID) THEN
         strOrderBy = rsItems("OrderBy")
         strPrimaryKey = rsItems("PrimaryKey")
         nViewFlags = rsItems("Flags")
-
-		SET rsFields = Server.CreateObject("ADODB.Recordset")
-		rsFields.Open "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID & " ORDER BY FieldOrder ASC", adoConStr
-		IF NOT rsFields.EOF THEN
-			arrViewFields = rsFields.GetRows()
-		END IF
-		rsFields.Close
-		SET rsFields = Nothing
-		
+        nDtModBtnStyle = rsItems("DataTableModifierButtonStyle")
+        nDtDefaultPageSize = rsItems("DataTableDefaultPageSize")
+        nDtFlags = rsItems("DataTableFlags")
+        strDtPagingStyle = rsItems("DataTablePagingStyle")
+    
         blnAllowUpdate = CBool((nViewFlags AND 1) > 0)
         blnAllowInsert = CBool((nViewFlags AND 2) > 0)
         blnAllowDelete = CBool((nViewFlags AND 4) > 0)
@@ -79,6 +77,28 @@ IF nViewID <> "" AND IsNumeric(nViewID) THEN
         blnAllowSearch = CBool((nViewFlags AND 64) > 0)
         blnRTEEnabled = CBool((nViewFlags AND 128) > 0)
         blnShowCharts = CBool((nViewFlags AND 256) > 0)
+
+        blnDtInfo = CBool((nDtFlags AND 1) > 0)
+        blnDtColumnFooter = CBool((nDtFlags AND 2) > 0)
+        blnDtQuickSearch = CBool((nDtFlags AND 4) > 0)
+        blnDtSort = CBool((nDtFlags AND 8) > 0)
+        blnDtPagination = CBool((nDtFlags AND 16) > 0)
+        blnDtPageSizeSelection = CBool((nDtFlags AND 32) > 0)
+        blnDtStateSave = CBool((nDtFlags AND 64) > 0)
+
+        FOR nIndex = 0 TO UBound(arrDataTableModifierButtonStyles, 2)
+            IF nDtModBtnStyle = arrDataTableModifierButtonStyles(dtbsValue, nIndex) THEN
+                nDtModBtnStyleIndex = nIndex
+            END IF
+        NEXT
+		SET rsFields = Server.CreateObject("ADODB.Recordset")
+		rsFields.Open "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID & " ORDER BY FieldOrder ASC", adoConStr
+		IF NOT rsFields.EOF THEN
+			arrViewFields = rsFields.GetRows()
+		END IF
+		rsFields.Close
+		SET rsFields = Nothing
+		
 	ELSE
 		strError = "ViewID Not Found!"
 		nViewID = ""
@@ -474,11 +494,11 @@ END IF
         <!-- Items List -->
 
 <div class="box">
-<div class="box-body">
 <div class="box-header">
- <a class="btn btn-primary btn-sm" role="button" href="javascript:void(0)" ng-click="dvAdd(null)" title="Add" data-toggle="modal" data-target="#modal-edit"><i class="fas fa-plus"></i> Add</a>
+ <a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="javascript:void(0)" ng-click="dvAdd(null)" title="Add" data-toggle="modal" data-target="#modal-edit"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="fas fa-plus"></i> <% END IF %>Add</a>
 </div>
-<table datatable="ng" id="DataViewMainTable" class="table table-hover table-bordered table-striped">
+<div class="box-body">
+<table datatable="ng" id="DataViewMainTable" dt-options="dtOptions" class="table table-hover table-bordered table-striped">
 <thead>
 <tr><%
     nColSpan = 1
@@ -504,12 +524,21 @@ END IF
         END IF
      NEXT %>
         <td>
-            <a class="btn btn-primary btn-sm" role="button" href="javascript:void(0)" ng-click="dvEdit(row)" title="Edit" data-toggle="modal" data-target="#modal-edit"><i class="fas fa-edit"></i> Edit</a>
-            &nbsp;<a class="btn btn-primary btn-sm" role="button" href="javascript:void(0)" ng-click="dvClone(row)" title="Clone" data-toggle="modal" data-target="#modal-edit"><i class="far fa-clone"></i> Clone</a>
-            &nbsp;<a class="btn btn-primary btn-sm" role="button" href="javascript:void(0)" ng-click="dvDelete(row)" title="Delete" data-toggle="modal" data-target="#modal-delete"><i class="far fa-trash-alt"></i> Delete</a>
+            <a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="javascript:void(0)" ng-click="dvEdit(row)" title="Edit" data-toggle="modal" data-target="#modal-edit"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="fas fa-edit"></i> <% END IF %><% IF arrDataTableModifierButtonStyles(dtbsShowText,nDtModBtnStyleIndex) THEN Response.Write "Edit" %></a>&nbsp;
+            <a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="javascript:void(0)" ng-click="dvClone(row)" title="Clone" data-toggle="modal" data-target="#modal-edit"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="far fa-clone"></i> <% END IF %><% IF arrDataTableModifierButtonStyles(dtbsShowText,nDtModBtnStyleIndex) THEN Response.Write "Clone" %></a>&nbsp;
+            <a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="javascript:void(0)" ng-click="dvDelete(row)" title="Delete" data-toggle="modal" data-target="#modal-delete"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="far fa-trash-alt"></i> <% END IF %><% IF arrDataTableModifierButtonStyles(dtbsShowText,nDtModBtnStyleIndex) THEN Response.Write "Delete" %></a>
         </td>
     </tr>
-</tbody>
+</tbody><% IF blnDtColumnFooter THEN %>
+<tfoot>
+<tr><%
+    FOR nIndex = 0 TO UBound(arrViewFields, 2)
+        IF (arrViewFields(dvfcFieldFlags,nIndex) AND 8) > 0 THEN %>
+    <th><%= Sanitizer.HTMLDisplay(arrViewFields(dvfcFieldLabel, nIndex)) %></th><%
+        END IF
+     NEXT %><th>Actions</th>
+</tr>
+</tfoot><% END IF %>
 </table>
 </div>
 <!-- /.box-body -->
@@ -550,6 +579,23 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
     $scope.deletingModalTitle = "Deleting...";
     $scope.selectedModalMode = "add"; 
     $scope.selectedRow = {};
+    $scope.dtOptions = {
+            sPaginationType: '<%= strDtPagingStyle %>',<% IF NOT blnDtSort THEN %>
+            bSort: false,<% END IF %><% IF NOT blnDtQuickSearch THEN %>
+            bFilter: false,<% END IF %><% IF NOT blnDtInfo THEN %>
+            bInfo: false,<% END IF %><% IF NOT blnDtPageSizeSelection THEN %>
+            bLengthChange: false,<% END IF %><% IF NOT blnDtPagination THEN %>
+            bPaginate: false,<% END IF %><% IF blnDtStateSave THEN %>
+            bStateSave: true,<% END IF %>
+            displayLength: <%= nDtDefaultPageSize %>,
+            aoColumnDefs: [
+                {
+                    aTargets: [-1],
+                    bSortable: false,
+                    bSearchable: false
+                }
+            ]
+        };
 
     $scope.getAjaxData = function () {
 

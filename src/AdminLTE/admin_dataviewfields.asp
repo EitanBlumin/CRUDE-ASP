@@ -285,14 +285,14 @@ END IF
         <label for="inputFieldLabel" class="col-sm-3 col-md-3 col-lg-2 control-label">Field Label</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputFieldLabel" placeholder="FieldLabel" name="FieldLabel" value="<%= Sanitizer.HTMLFormControl(strFieldLabel) %>" required="required">
+        <input type="text" class="form-control" id="inputFieldLabel" data-toggle="tooltip" title="The field label displayed to the users" placeholder="FieldLabel" name="FieldLabel" value="<%= Sanitizer.HTMLFormControl(strFieldLabel) %>" required="required">
         </div>
     </div>
     <div class="form-group">
         <label for="inputFieldSource" class="col-sm-3 col-md-3 col-lg-2 control-label">Field Source</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputFieldSource" placeholder="Field Source Column" name="FieldSource" value="<%= Sanitizer.HTMLFormControl(strFieldSource) %>">
+        <input type="text" class="form-control" id="inputFieldSource" data-toggle="tooltip" title="The actual column name from the database" placeholder="Field Source Column" name="FieldSource" value="<%= Sanitizer.HTMLFormControl(strFieldSource) %>">
         </div>
     </div>
     <div class="form-group">
@@ -309,52 +309,52 @@ END IF
         </div>
     </div>
     <div class="form-group">
-        <label for="inputFieldDescription" class="col-sm-3 col-md-3 col-lg-2 control-label">Description</label>
+        <label for="inputFieldDescription" class="col-sm-3 col-md-3 col-lg-2 control-label">Tooltip</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputFieldDescription" placeholder="Field Tooltip" name="FieldDescription" value="<%= Sanitizer.HTMLFormControl(strFieldDescription) %>">
+        <input type="text" class="form-control" id="inputFieldDescription" data-toggle="tooltip" title="The tooltip text displayed to users (kinda like this one, actually)" placeholder="Field Tooltip" name="FieldDescription" value="<%= Sanitizer.HTMLFormControl(strFieldDescription) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputDefaultValue" class="col-sm-3 col-md-3 col-lg-2 control-label">Default Value</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputDefaultValue" placeholder="Default Value" name="DefaultValue" value="<%= Sanitizer.HTMLFormControl(strDefaultValue) %>">
+        <input type="text" class="form-control" id="inputDefaultValue" data-toggle="tooltip" title="The default value automatically filled out when adding a new item" placeholder="Default Value" name="DefaultValue" value="<%= Sanitizer.HTMLFormControl(strDefaultValue) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputMaxLength" class="col-sm-3 col-md-3 col-lg-2 control-label">Max Length</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="number" min="0" step="1" class="form-control" id="inputMaxLength" placeholder="Max Length" name="MaxLength" value="<%= Sanitizer.HTMLFormControl(nMaxLength) %>">
+        <input type="number" min="0" step="1" class="form-control" data-toggle="tooltip" title="Relevant to textual field types such as Text, Password, Email and Phone" id="inputMaxLength" placeholder="Max Length" name="MaxLength" value="<%= Sanitizer.HTMLFormControl(nMaxLength) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputWidth" class="col-sm-3 col-md-3 col-lg-2 control-label">Width</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="number" min="0" step="1" class="form-control" id="inputWidth" placeholder="Width" name="Width" value="<%= Sanitizer.HTMLFormControl(nWidth) %>">
+        <input type="number" min="0" step="1" class="form-control" id="inputWidth" data-toggle="tooltip" title="Horizontal width of the input" placeholder="Width" name="Width" value="<%= Sanitizer.HTMLFormControl(nWidth) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputHeight" class="col-sm-3 col-md-3 col-lg-2 control-label">Height</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="number" min="0" step="1" class="form-control" id="inputHeight" placeholder="Height" name="Height" value="<%= Sanitizer.HTMLFormControl(nHeight) %>">
+        <input type="number" min="0" step="1" class="form-control" id="inputHeight" data-toggle="tooltip" title="Vertical height of the input (relevant only to Text Area and Multi-Selection box)" placeholder="Height" name="Height" value="<%= Sanitizer.HTMLFormControl(nHeight) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputUriPath" class="col-sm-3 col-md-3 col-lg-2 control-label">Link URI</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputUriPath" placeholder="Link URI Path" name="UriPath" value="<%= Sanitizer.HTMLFormControl(strUriPath) %>">
+        <input type="text" class="form-control" id="inputUriPath" placeholder="Link URI Path" data-toggle="tooltip" title="Provide a URL to make the field clickable in the items list" name="UriPath" value="<%= Sanitizer.HTMLFormControl(strUriPath) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputUriStyle" class="col-sm-3 col-md-3 col-lg-2 control-label">Link Style</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-            <select class="form-control" id="inputUriStyle" name="UriStyle">
+            <select class="form-control" id="inputUriStyle" name="UriStyle" data-toggle="tooltip" title="Choose how the link would look like">
                 <% FOR nIndex = 0 TO UBound(arrDataViewUriStyles,2) %><option value="<%= arrDataViewUriStyles(dvusValue, nIndex) %>" <% IF arrDataViewUriStyles(dvusValue, nIndex) = nUriStyle THEN Response.Write "selected" %>><%= arrDataViewUriStyles(dvusLabel,nIndex) %></option>
                 <% NEXT %>
             </select>
@@ -364,35 +364,35 @@ END IF
         <label for="inputLinkedTable" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputLinkedTable" placeholder="Linked Table Name" name="LinkedTable" value="<%= Sanitizer.HTMLFormControl(strLinkedTable) %>">
+        <input type="text" class="form-control" id="inputLinkedTable" data-toggle="tooltip" title="Used for Dropdown and Multi-Selection Box" placeholder="Linked Table Name" name="LinkedTable" value="<%= Sanitizer.HTMLFormControl(strLinkedTable) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputLinkedTableGroupField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Group Field</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputLinkedTableGroupField" placeholder="Linked Table Group Field Column" name="LinkedTableGroupField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableGroupField) %>">
+        <input type="text" class="form-control" id="inputLinkedTableGroupField" data-toggle="tooltip" title="Used for Dropdown and Multi-Selection Box" placeholder="Linked Table Group Field Column" name="LinkedTableGroupField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableGroupField) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputLinkedTableTitleField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Title Field</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputLinkedTableTitleField" placeholder="Linked Table Title Field Column" name="LinkedTableTitleField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableTitleField) %>">
+        <input type="text" class="form-control" id="inputLinkedTableTitleField" data-toggle="tooltip" title="Used for Dropdown and Multi-Selection Box" placeholder="Linked Table Title Field Column" name="LinkedTableTitleField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableTitleField) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputLinkedTableValueField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Value Field</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputLinkedTableValueField" placeholder="Linked Table Value Column" name="LinkedTableValueField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableValueField) %>">
+        <input type="text" class="form-control" id="inputLinkedTableValueField" data-toggle="tooltip" title="Used for Dropdown and Multi-Selection Box" placeholder="Linked Table Value Column" name="LinkedTableValueField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableValueField) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputLinkedTableAddition" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Addition</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <textarea class="form-control" id="inputLinkedTableAddition" name="LinkedTableAddition" placeholder="Linked Table Addition" height="4"><%= Sanitizer.HTMLFormControl(strLinkedTableAddition) %></textarea>
+        <textarea class="form-control" id="inputLinkedTableAddition" name="LinkedTableAddition" data-toggle="tooltip" title="Used for Dropdown and Multi-Selection Box" placeholder="Linked Table Addition" height="4"><%= Sanitizer.HTMLFormControl(strLinkedTableAddition) %></textarea>
         </div>
     </div>
     <div class="form-group">
@@ -477,15 +477,15 @@ WHILE NOT rsItems.EOF
     <td>
         <% FOR nIndex = 0 TO UBound(arrDataViewFieldFlags, 2)
             IF (rsItems("FieldFlags") AND arrDataViewFieldFlags(dvffValue, nIndex)) THEN %>
-        <b title="<%= arrDataViewFieldFlags(dvffLabel, nIndex) %>"><i class="<%= arrDataViewFieldFlags(dvffGlyph, nIndex) %>"></i></b>
+        <b data-toggle="tooltip" title="<%= arrDataViewFieldFlags(dvffLabel, nIndex) %>"><i class="<%= arrDataViewFieldFlags(dvffGlyph, nIndex) %>"></i></b>
         &nbsp;
         <% END IF
             NEXT %>
     </td>
     <td>
-        <a title="Edit" class="btn btn-primary" href="<%= constPageScriptName %>?mode=edit&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="fas fa-edit"></i> Edit</a>
+        <a data-toggle="tooltip" title="Edit" class="btn btn-primary" href="<%= constPageScriptName %>?mode=edit&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="fas fa-edit"></i> Edit</a>
         &nbsp;
-        <a title="Delete" class="btn btn-primary" href="<%= constPageScriptName %>?mode=delete&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="far fa-trash-alt"></i> Delete</a>
+        <a data-toggle="tooltip" title="Delete" class="btn btn-primary" href="<%= constPageScriptName %>?mode=delete&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="far fa-trash-alt"></i> Delete</a>
     </td>
   </tr>
     <% 

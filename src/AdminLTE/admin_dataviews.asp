@@ -21,6 +21,7 @@ adoConn.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
 Dim strTitle, strMainTable, strPrimaryKey, strModificationProcedure, strViewProcedure, strDeleteProcedure
 Dim strDescription, strOrderBy, nFlags
+Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle
     
 strMode = Request("mode")
 nItemID = Request("ItemID")
@@ -33,10 +34,17 @@ strViewProcedure = Request("ViewProcedure")
 strDeleteProcedure = Request("DeleteProcedure")
 strDescription = Request("ViewDescription")
 strOrderBy = Request("OrderBy")
+nDtModBtnStyle = Request("DataTableModificationButtonStyle")
+nDtDefaultPageSize = Request("DataTableDefaultPageSize")
+strDtPagingStyle = Request("DataTablePagingStyle")
+nDtFlags = 0
 nFlags = 0
 
 For nIndex = 1 TO Request.Form("Flags").Count
     nFlags= nFlags + CInt(Request.Form("Flags")(nIndex))
+Next
+For nIndex = 1 TO Request.Form("DataTableFlags").Count
+    nDtFlags= nDtFlags + CInt(Request.Form("DataTableFlags")(nIndex))
 Next
 
 IF Request.Form("Title") <> "" THEN
@@ -77,6 +85,10 @@ IF Request.Form("Title") <> "" THEN
             rsItems("ViewDescription") = strDescription
             rsItems("OrderBy") = strOrderBy
             rsItems("Flags") = CInt(nFlags)
+            rsItems("DataTableModifierButtonStyle") = CInt(nDtModBtnStyle)
+            rsItems("DataTableDefaultPageSize") = CInt(nDtDefaultPageSize)
+            rsItems("DataTableFlags") = CInt(nDtFlags)
+            rsItems("DataTablePagingStyle") = strDtPagingStyle
     
             ON ERROR RESUME NEXT
     
@@ -152,12 +164,16 @@ IF strMode = "edit" AND nItemID <> "" Then
 		strTitle = rsItems("Title")
 		strMainTable = rsItems("MainTable")
 		strPrimaryKey = rsItems("PrimaryKey")
-		nFlags = rsItems("Flags")
-		strDescription = rsItems("ViewDescription")
 		strOrderBy = rsItems("OrderBy")
+		strDescription = rsItems("ViewDescription")
         strModificationProcedure = rsItems("ModificationProcedure")
         strViewProcedure = rsItems("ViewProcedure")
         strDeleteProcedure = rsItems("DeleteProcedure")
+		nFlags = rsItems("Flags")
+        nDtModBtnStyle = rsItems("DataTableModifierButtonStyle")
+        nDtDefaultPageSize = rsItems("DataTableDefaultPageSize")
+        nDtFlags = rsItems("DataTableFlags")
+        strDtPagingStyle = rsItems("DataTablePagingStyle")
 	END IF
 	rsItems.Close
 ELSE
@@ -191,60 +207,60 @@ END IF
         <label for="inputTitle" class="col-sm-2 control-label">Title</label>
 
         <div class="col-sm-10">
-        <input type="text" class="form-control" id="inputTitle" placeholder="Title" name="Title" value="<%= Sanitizer.HTMLFormControl(strTitle) %>" required="required">
+        <input type="text" class="form-control" id="inputTitle" placeholder="Title" data-toggle="tooltip" name="Title" title="The title will be displayed at the top of the page" value="<%= Sanitizer.HTMLFormControl(strTitle) %>" required="required">
         </div>
     </div>
     <div class="form-group">
         <div class="col-sm-12">
         <label for="inputDescription" class="control-label">Description</label>
 
-        <textarea class="textarea" name="ViewDescription" placeholder="Description"
+        <textarea class="textarea" name="ViewDescription" placeholder="Description" data-toggle="tooltip" title="This richly-formatted text will be displayed below the title, before the datatable"
                     style="width: 100%; height: 200px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;"><%= Sanitizer.HTMLFormControl(strDescription) %></textarea>
     </div></div>
     <div class="form-group">
         <label for="inputMainTable" class="col-sm-3 control-label">Main Table Name</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputMainTable" placeholder="Main Table Name" name="MainTable" value="<%= Sanitizer.HTMLFormControl(strMainTable) %>">
+        <input type="text" class="form-control" id="inputMainTable" data-toggle="tooltip" placeholder="Main Database Table Name" title="This is the database table name from which data will be queried and modified in (unless you specified stored procedures below). It can also be a view" name="MainTable" value="<%= Sanitizer.HTMLFormControl(strMainTable) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputPrimaryKey" class="col-sm-3 control-label">Primary Key</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputPrimaryKey" placeholder="Primary Key (must be single numerical column)" name="PrimaryKey" value="<%= Sanitizer.HTMLFormControl(strPrimaryKey) %>">
+        <input type="text" class="form-control" id="inputPrimaryKey" data-toggle="tooltip" title="A column name which serves as a primary key in the aforementioned database table" placeholder="Primary Key (must be single numerical column)" name="PrimaryKey" value="<%= Sanitizer.HTMLFormControl(strPrimaryKey) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputOrderBy" class="col-sm-3 control-label">Order By</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputOrderBy" placeholder="Column1 ASC, Column2 DESC" name="OrderBy" value="<%= Sanitizer.HTMLFormControl(strOrderBy) %>">
+        <input type="text" class="form-control" id="inputOrderBy" data-toggle="tooltip" title="Default sorting expression when querying from the database table" placeholder="Column1 ASC, Column2 DESC" name="OrderBy" value="<%= Sanitizer.HTMLFormControl(strOrderBy) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputViewProcedure" class="col-sm-3 control-label">Source Procedure</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputViewProcedure" placeholder="Procedure for View" name="ViewProcedure" value="<%= Sanitizer.HTMLFormControl(strViewProcedure) %>">
+        <input type="text" class="form-control" id="inputViewProcedure" data-toggle="tooltip" title="Execute this stored procedure instead of querying directly from a table" placeholder="Procedure for View" name="ViewProcedure" value="<%= Sanitizer.HTMLFormControl(strViewProcedure) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputModificationProcedure" class="col-sm-3 control-label">Modification Procedure</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputModificationProcedure" placeholder="Procedure for Modification" name="ModificationProcedure" value="<%= Sanitizer.HTMLFormControl(strModificationProcedure) %>">
+        <input type="text" class="form-control" id="inputModificationProcedure" data-toggle="tooltip" title="Execute this stored procedure instead of modifying data directly in a table" placeholder="Procedure for Modification" name="ModificationProcedure" value="<%= Sanitizer.HTMLFormControl(strModificationProcedure) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputDeleteProcedure" class="col-sm-3 control-label">Deletion Procedure</label>
 
         <div class="col-sm-9">
-        <input type="text" class="form-control" id="inputDeleteProcedure" placeholder="Procedure for Deletion" name="DeleteProcedure" value="<%= Sanitizer.HTMLFormControl(strDeleteProcedure) %>">
+        <input type="text" class="form-control" id="inputDeleteProcedure" data-toggle="tooltip" title="Execute this stored procedure instead of deleting directly from a table" placeholder="Procedure for Deletion" name="DeleteProcedure" value="<%= Sanitizer.HTMLFormControl(strDeleteProcedure) %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputFlags" class="col-sm-3 control-label">Properties</label>
+        <label class="col-sm-3 control-label">Properties</label>
         
         <div class="col-sm-9">
         <% FOR nIndex = 0 TO UBound(arrDataViewFlags, 2) %>
@@ -252,6 +268,54 @@ END IF
             <label>
             <input type="checkbox" name="Flags" value="<%= arrDataViewFlags(dvfValue, nIndex) %>" <% IF (arrDataViewFlags(dvfValue, nIndex) AND nFlags) > 0 THEN Response.Write "checked" %> /> 
                 <i class="<%= arrDataViewFlags(dvfGlyph, nIndex) %>"></i> <%= arrDataViewFlags(dvfLabel, nIndex) %>
+            </label>
+        </div>
+        <% NEXT %>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputDataTableModificationButtonStyle" class="col-sm-3 control-label">DataTable Row Button Style</label>
+
+        <div class="col-sm-9">
+            <select class="form-control" name="DataTableModificationButtonStyle" id="inputDataTableModificationButtonStyle" data-toggle="tooltip" title="Choose how the Add/Edit/Clone/Delete buttons would look like">
+            <% FOR nIndex = 0 TO UBound(arrDataTableModifierButtonStyles, 2) %>
+                <option value="<%= arrDataTableModifierButtonStyles(dtbsValue, nIndex) %>" <% IF arrDataTableModifierButtonStyles(dtbsValue, nIndex) = nDtModBtnStyle THEN Response.Write "selected" %>><%= arrDataTableModifierButtonStyles(dtbsLabel, nIndex) %></option>
+            <% NEXT %>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="intpuDataTableDefaultPageSize" class="col-sm-3 control-label">DataTable Default Page Size</label>
+
+        <div class="col-sm-9">
+            <select class="form-control" name="DataTableDefaultPageSize" id="inputDataTableDefaultPageSize" data-toggle="tooltip" title="Choose the default number of rows per page (ignored when pagination is disabled)">
+                <option value="10" <% IF nDtDefaultPageSize = 10 THEN Response.Write "selected" %>>10</option>
+                <option value="25" <% IF nDtDefaultPageSize = 25 THEN Response.Write "selected" %>>25</option>
+                <option value="50" <% IF nDtDefaultPageSize = 50 THEN Response.Write "selected" %>>50</option>
+                <option value="100" <% IF nDtDefaultPageSize = 100 THEN Response.Write "selected" %>>100</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputDataTablePagingStyle" class="col-sm-3 control-label">DataTable Paging Style</label>
+
+        <div class="col-sm-9">
+            <select class="form-control" name="DataTablePagingStyle" id="inputDataTablePagingStyle" data-toggle="tooltip" title="Choose how the pagination buttons would look like (ignored when pagination is disabled)">
+            <% FOR nIndex = 0 TO UBound(arrDataTablePagingStyles, 2) %>
+                <option value="<%= arrDataTablePagingStyles(dtpsValue, nIndex) %>" <% IF arrDataTablePagingStyles(dtpsValue, nIndex) = strDtPagingStyle THEN Response.Write "selected" %>><%= arrDataTablePagingStyles(dtpsLabel, nIndex) %></option>
+            <% NEXT %>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-3 control-label">DataTable Options</label>
+        
+        <div class="col-sm-9">
+        <% FOR nIndex = 0 TO UBound(arrDataTableFlags, 2) %>
+        <div class="checkbox">
+            <label data-toggle="tooltip" title="<%= arrDataTableFlags(dtfTooltip, nIndex) %>">
+            <input type="checkbox" name="DataTableFlags" value="<%= arrDataTableFlags(dtfValue, nIndex) %>" <% IF (arrDataTableFlags(dtfValue, nIndex) AND nDtFlags) > 0 THEN Response.Write "checked" %> /> 
+                <i class="<%= arrDataTableFlags(dtfGlyph, nIndex) %>"></i> <%= arrDataTableFlags(dtfLabel, nIndex) %>
             </label>
         </div>
         <% NEXT %>
@@ -288,6 +352,7 @@ END IF
     <th>ID</th>
     <th>Title</th>
     <th>Properties</th>
+    <th>DataTable Options</th>
     <th>Actions</th>
 </tr>
 <%
@@ -302,18 +367,26 @@ WHILE NOT rsItems.EOF
     <td><a href="dataview.asp?ViewID=<%= rsItems("ViewID") %>"><%= Sanitizer.HTMLDisplay(rsItems("Title")) %></a></td>
     <td>
         <% FOR nIndex = 1 TO UBound(arrDataViewFlags, 2)
-            IF (rsItems("Flags") AND arrDataViewFlags(dvfValue, nIndex)) THEN %>
-        <b title="<%= arrDataViewFlags(dvfLabel, nIndex) %>"><i class="<%= arrDataViewFlags(dvfGlyph, nIndex) %>"></i></b>
+            IF (rsItems("Flags") AND arrDataViewFlags(dvfValue, nIndex)) > 0 THEN %>
+        <b data-toggle="tooltip" title="<%= arrDataViewFlags(dvfLabel, nIndex) %>"><i class="<%= arrDataViewFlags(dvfGlyph, nIndex) %>"></i></b>
         &nbsp;
         <% END IF
             NEXT %>
     </td>
     <td>
-        <a title="Manage Fields" class="btn btn-primary" href="admin_dataviewfields.asp?ViewID=<%= rsItems("ViewID") %>"><i class="fas fa-bars"></i> Manage Fields</a>
+        <% FOR nIndex = 1 TO UBound(arrDataTableFlags, 2)
+            IF (rsItems("DataTableFlags") AND arrDataTableFlags(dtfValue, nIndex)) > 0 THEN %>
+        <b data-toggle="tooltip" title="<%= arrDataTableFlags(dtfLabel, nIndex) %>"><i class="<%= arrDataTableFlags(dtfGlyph, nIndex) %>"></i></b>
         &nbsp;
-        <a title="Edit" class="btn btn-primary" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=edit&ItemID=<%= rsItems("ViewID") %>"><i class="fas fa-edit"></i> Edit</a>
+        <% END IF
+            NEXT %>
+    </td>
+    <td>
+        <a data-toggle="tooltip" title="Manage Fields" class="btn btn-primary" href="admin_dataviewfields.asp?ViewID=<%= rsItems("ViewID") %>"><i class="fas fa-bars"></i> Manage Fields</a>
         &nbsp;
-        <a title="Delete" class="btn btn-primary" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=delete&ItemID=<%= rsItems("ViewID") %>"><i class="far fa-trash-alt"></i> Delete</a>
+        <a data-toggle="tooltip" title="Edit" class="btn btn-primary" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=edit&ItemID=<%= rsItems("ViewID") %>"><i class="fas fa-edit"></i> Edit</a>
+        &nbsp;
+        <a data-toggle="tooltip" title="Delete" class="btn btn-primary" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=delete&ItemID=<%= rsItems("ViewID") %>"><i class="far fa-trash-alt"></i> Delete</a>
     </td>
   </tr>
     <% 
