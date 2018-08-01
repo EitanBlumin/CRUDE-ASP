@@ -23,8 +23,14 @@
       <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
         <i class="fas fa-bars"></i> <span class="sr-only">Toggle navigation</span>
       </a>
-      <!-- Navbar Right Menu -->
-      <div class="navbar-custom-menu">
+
+      <div class="collapse navbar-collapse navbar-custom-menu" id="navbar-collapse">
+        <form class="navbar-form navbar-left" role="search">
+        <div class="form-group">
+            <input type="text" class="form-control" id="navbar-search-input" placeholder="Search">
+        </div>
+        <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
+        </form>
         <ul class="nav navbar-nav">
           <!-- Messages: style can be found in dropdown.less-->
           <li class="dropdown messages-menu">
@@ -195,47 +201,100 @@
         </div>
       </div>
 
-      <!-- search form (Optional) -->
-      <form action="#" method="get" class="sidebar-form">
-        <div class="input-group">
-          <input type="text" name="q" class="form-control" placeholder="Search...">
-          <span class="input-group-btn">
-              <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fas fa-search"></i>
-              </button>
-            </span>
-        </div>
-      </form>
-      <!-- /.search form -->
-
       <!-- Sidebar Menu -->
-      <ul class="sidebar-menu" data-widget="tree">
+        
+      <ul class="sidebar-menu" data-widget="tree" id="sideNavMenu">
         <li class="header">Menu</li>
         <!-- Optionally, you can add icons to the links -->
-        <li class="active"><a href="#"><i class="fas fa-link"></i> <span>Link</span></a></li>
-        <li><a href="#"><i class="fas fa-link"></i> <span>Another Link</span></a></li>
-        <li class="treeview active">
-          <a href="#"><i class="fas fa-link"></i> <span>Multilevel</span>
-            <span class="pull-right-container">
-                <i class="fas fa-angle-left pull-right"></i>
-              </span>
-          </a>
-          <ul class="treeview-menu">
-            <li><a href="#">Link 1 in level 2</a></li>
-            <li class="active"><a href="#">Link 2 in level 2</a></li>
-          </ul>
-        </li>
-        <li class="treeview">
-          <a href="#"><i class="fas fa-link"></i> <span>Multilevel 2</span>
-            <span class="pull-right-container">
-                <i class="fas fa-angle-left pull-right"></i>
-              </span>
-          </a>
-          <ul class="treeview-menu">
-            <li><a href="#">Link 1 in level 2</a></li>
-            <li><a href="#">Link 2 in level 2</a></li>
-          </ul>
-        </li>
+        <li><a href="#"><i class="fas fa-spinner fa-pulse"></i> Loading...</a></li>
       </ul>
+<script>
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+function isNavLinkActive(navLink) {
+    // not yet implemented
+    return false;
+}
+function displayNavLink(navLink) {
+    var txt = "";
+    txt += '<li class="nav-link';
+    if (navLink.ChildItems.length > 0)
+        txt += ' treeview';
+    if (isNavLinkActive(navLink))
+        txt += ' active';
+    if (navLink.ViewID.length > 0)
+        txt += '" view-id="' + navLink.ViewID;
+
+    txt += '"><a href="';
+
+    if (navLink.ChildItems.length > 0)
+        txt += "javascript:"
+    else if (navLink.NavUri.length > 0)
+        txt += navLink.NavUri;
+    else if (navLink.ViewID.length > 0)
+        txt += "dataview.asp?ViewID=" + navLink.ViewID;
+    else
+        txt += "javascript:"
+
+    txt += '" title="' + navLink.NavTooltip + '"';
+    if (navLink.NavTooltip.length > 0 && navLink.ChildItems.length == 0)
+        txt += ' data-toggle="tooltip"';
+
+    txt += '><i class="' + navLink.NavGlyph + '"></i> <span>' + navLink.NavLabel + '</span>'
+    
+    if (navLink.ChildItems.length > 0)
+    {
+        txt += '<span class="pull-right-container"><i class="fas fa-angle-left pull-right"></i></span><ul class="treeview-menu">';
+        for (y in navLink.ChildItems) {
+            txt += displayNavLink(navLink.ChildItems[y]);
+        }
+        txt += '</ul>'
+    } else {
+        txt += '</a>';
+    }
+
+    txt += '</li>'
+    return txt;
+}
+function loadSideNav()
+{
+    var nav = getCookie('SiteNav').replace(/\\n/g, "\\n")  
+               .replace(/\\'/g, "\\'")
+               .replace(/\\"/g, '\\"')
+               .replace(/\\&/g, "\\&")
+               .replace(/\\r/g, "\\r")
+               .replace(/\\t/g, "\\t")
+               .replace(/\+/g, " ")
+               .replace(/\\b/g, "\\b")
+               .replace(/\\f/g, "\\f");
+    nav = nav.replace(/[\u0000-\u0019]+/g,"");
+    nav = JSON.parse(nav);
+    //console.log(nav);
+    
+    var navTxt = '<li class="header">Menu</li>';
+
+    for (x in nav) {
+        navTxt += displayNavLink(nav[x]);
+    }
+
+    document.getElementById("sideNavMenu").innerHTML = navTxt;
+}
+
+loadSideNav();
+</script>
       <!-- /.sidebar-menu -->
     </section>
     <!-- /.sidebar -->
