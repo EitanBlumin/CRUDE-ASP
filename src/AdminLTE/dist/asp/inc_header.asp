@@ -230,15 +230,19 @@ function isNavLinkActive(navLink) {
 }
 function displayNavLink(navLink) {
     var txt = "";
-    txt += '<li class="';
+    txt += '<li class="nav-link';
     if (navLink.ChildItems.length > 0)
-        txt += 'treeview';
+        txt += ' treeview';
     if (isNavLinkActive(navLink))
         txt += ' active';
+    if (navLink.ViewID.length > 0)
+        txt += '" view-id="' + navLink.ViewID;
 
     txt += '"><a href="';
 
-    if (navLink.NavUri.length > 0)
+    if (navLink.ChildItems.length > 0)
+        txt += "javascript:"
+    else if (navLink.NavUri.length > 0)
         txt += navLink.NavUri;
     else if (navLink.ViewID.length > 0)
         txt += "dataview.asp?ViewID=" + navLink.ViewID;
@@ -278,7 +282,7 @@ function loadSideNav()
                .replace(/\\f/g, "\\f");
     nav = nav.replace(/[\u0000-\u0019]+/g,"");
     nav = JSON.parse(nav);
-    console.log(nav);
+    //console.log(nav);
     
     var navTxt = '<li class="header">Menu</li>';
 
@@ -288,9 +292,8 @@ function loadSideNav()
 
     document.getElementById("sideNavMenu").innerHTML = navTxt;
 }
-//window.onload = function() { loadSideNav(); }
 
-//loadSideNav();
+loadSideNav();
 </script>
       <!-- /.sidebar-menu -->
     </section>

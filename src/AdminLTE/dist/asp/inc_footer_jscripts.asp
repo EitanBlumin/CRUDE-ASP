@@ -36,7 +36,6 @@
 </script>
 <script type="text/javascript">
 $(document).ready(function(){
-    loadSideNav();
     $('[data-toggle="tooltip"]').tooltip();
 });
 </script>
@@ -59,4 +58,72 @@ toastr.options = {<%= globalToastrOptions %>}
     IF strError <> "" THEN %>
             toastr.error("<%= Sanitizer.HTMLFormControl(strError) %>", '<h3>Error!</h3>')
     <% END IF %>
+</script>
+
+<script>
+function getPageName(path) {
+    if (!path) path = window.location.href;
+    var segments = path.split('?')[0].split('/');
+    var toDelete = [];
+    for (var i = 0; i < segments.length; i++) {
+        if (segments[i].length < 1) {
+            toDelete.push(i);
+        }
+    }
+    for (var i = 0; i < toDelete.length; i++) {
+        segments.splice(i, 1);
+    }
+    return segments[segments.length - 1];
+}
+function getParameterByName(name, url) {
+     if (!url) url = window.location.href;
+     name = name.replace(/[\[\]]/g, "\\$&");
+     var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+         results = regex.exec(url);
+     if (!results) return null;
+     if (!results[2]) return '';
+     return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+var currFileName = getPageName();
+var currViewID = getParameterByName("ViewID");
+
+function setActiveAndBubbleUp(element) {
+    //console.log($(element).parent().get(0).tagName);
+    if (!$(element).parent().hasClass("active")) {
+        if ($(element).parent().get(0).tagName == "LI" && $(element).parent().hasClass("nav-link"))
+        {
+            $(element).parent().addClass('active');
+            setActiveAndBubbleUp($(element).parent());
+        }
+        else if ($(element).parent().get(0).tagName == "UL" && $(element).parent().hasClass("treeview-menu"))
+        {
+            $(element).parent().addClass('active');
+            setActiveAndBubbleUp($(element).parent());
+        }
+    }
+}
+
+$('li.nav-link a').each(function() {
+    //console.log("examining link: " + getPageName($(this).attr('href')));
+    if (getPageName($(this).attr('href')) == currFileName){
+
+        if (currFileName == "dataview.asp")
+        {
+            if ($(this).parent().attr("view-id") == currViewID)
+            {
+                //console.log("found match (ViewID)");
+                //console.log($(this).parent());
+                setActiveAndBubbleUp(this);
+            }
+        }
+        else
+        { 
+            //console.log("found match (URI)");
+            //console.log($(this).parent());
+            setActiveAndBubbleUp(this);
+        }
+
+    }
+});
 </script>
