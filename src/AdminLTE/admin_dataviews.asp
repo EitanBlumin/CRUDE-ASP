@@ -366,7 +366,7 @@ WHILE NOT rsItems.EOF
     <td><%= rsItems("ViewID") %></td>
     <td><a href="dataview.asp?ViewID=<%= rsItems("ViewID") %>"><%= Sanitizer.HTMLDisplay(rsItems("Title")) %></a></td>
     <td>
-        <% FOR nIndex = 1 TO UBound(arrDataViewFlags, 2)
+        <% FOR nIndex = 0 TO UBound(arrDataViewFlags, 2)
             IF (rsItems("Flags") AND arrDataViewFlags(dvfValue, nIndex)) > 0 THEN %>
         <b data-toggle="tooltip" title="<%= arrDataViewFlags(dvfLabel, nIndex) %>"><i class="<%= arrDataViewFlags(dvfGlyph, nIndex) %>"></i></b>
         &nbsp;
@@ -374,7 +374,7 @@ WHILE NOT rsItems.EOF
             NEXT %>
     </td>
     <td>
-        <% FOR nIndex = 1 TO UBound(arrDataTableFlags, 2)
+        <% FOR nIndex = 0 TO UBound(arrDataTableFlags, 2)
             IF (rsItems("DataTableFlags") AND arrDataTableFlags(dtfValue, nIndex)) > 0 THEN %>
         <b data-toggle="tooltip" title="<%= arrDataTableFlags(dtfLabel, nIndex) %>"><i class="<%= arrDataTableFlags(dtfGlyph, nIndex) %>"></i></b>
         &nbsp;
