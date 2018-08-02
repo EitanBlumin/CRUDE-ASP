@@ -121,8 +121,9 @@ rsItems.Close
 Dim arrDataViewUriStyles
 Const dvusValue = 0
 Const dvusLabel = 1
-Const dvusGlyph = 2
-Const dvusDefault = 3
+Const dvusClass = 2
+Const dvusGlyph = 3
+Const dvusDefault = 4
 
 strSQL = "SELECT * FROM portal.DataViewUriStyles ORDER BY StyleValue ASC"
 rsItems.Open strSQL, adoConn
