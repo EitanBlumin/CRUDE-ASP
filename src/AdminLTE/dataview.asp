@@ -323,7 +323,7 @@ END IF
         <div class="modal-header bg-primary">
         <h4 class="modal-title">{{ selectedModalTitle }}
             <span class="box-tools pull-right">
-            <a class="btn btn-danger btn-sm" ng-show="selectedModalMode != 'add'" role="button" href="javascript:void(0)" ng-click="dvDelete(selectedRow)" aria-label="Delete" title="Delete" data-toggle="modal" data-target="#modal-delete"><i class="far fa-trash-alt"></i> Delete</a>
+            <a class="btn btn-danger btn-sm" ng-show="selectedModalMode != 'add'" role="button" href="javascript:void(0)" ng-click="dvDelete(row)" aria-label="Delete" title="Delete" data-toggle="modal" data-target="#modal-delete"><i class="far fa-trash-alt"></i> Delete</a>
                 &nbsp;
             <a role="button" class="btn btn-default btn-sm" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></a>
             </span></h4>
@@ -339,10 +339,10 @@ END IF
             <%
         Select Case arrViewFields(dvfcFieldType,nIndex)
 			Case 2 '"textarea"
-			%><textarea class="form-control form-control-sm" name="inputField_<%= nIndex %>" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" rows="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcHeight, nIndex)) %>" cols="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %> ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"></textarea>
+			%><textarea class="form-control form-control-sm" name="inputField_<%= nIndex %>" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" rows="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcHeight, nIndex)) %>" cols="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %> ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"></textarea>
 			<%
 			Case 14 '"rte"
-			%><textarea name="inputField_<%= nIndex %>" id="summernote" <% IF blnRequired THEN Response.Write(" required") %> ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"></textarea>
+			%><textarea name="inputField_<%= nIndex %>" id="summernote" <% IF blnRequired THEN Response.Write(" required") %> ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"></textarea>
 			<%
 			Case 5, 6 '"combo", "multicombo"
 				strSQL = "SELECT DISTINCT "
@@ -355,7 +355,7 @@ END IF
 				'Response.Write(strSQL)
 				IF arrViewFields(dvfcLinkedTable, nIndex) <> "" AND arrViewFields(dvfcLinkedTableValueField, nIndex) <> "" THEN
 				%>
-				<select class="form-control form-control-sm" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']" <%
+				<select class="form-control form-control-sm" name="inputField_<%= nIndex %>" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']" <%
 				IF arrViewFields(dvfcFieldType, nIndex) = "multicombo" THEN
 					Response.Write("multiple")
 					IF IsNumeric(arrViewFields(dvfcHeight, nIndex)) AND arrViewFields(dvfcHeight, nIndex) > 0 THEN Response.Write(" size=""" & Sanitizer.HTMLFormControl(arrViewFields(dvfcHeight, nIndex)) & """")
@@ -401,7 +401,7 @@ END IF
 				    IF arrViewFields(dvfcFieldType, nIndex) = "multicombo" THEN Response.Write "<small class=""form-text form-text-sm text-muted"">Hold Ctrl to select multiple values</small>"
 				END IF
 			Case 7, 8 '"date", "datetime"
-			%><input class="form-control" type="datetime" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnRequired THEN Response.Write(" required") %> <%
+			%><input class="form-control" type="datetime" name="inputField_<%= nIndex %>" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnRequired THEN Response.Write(" required") %> <%
 				IF arrViewFields(dvfcFieldType, nIndex) = "date" THEN
 				 Response.Write("size=""10"" maxlength=""10""")
 				Else
@@ -409,15 +409,15 @@ END IF
 				END IF %>>
 			<%
 		    Case 13 '"time"
-		    %><input class="form-control form-control-sm" type="time" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnRequired THEN Response.Write(" required") %> step="1">
+		    %><input class="form-control form-control-sm" type="time" name="inputField_<%= nIndex %>" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnRequired THEN Response.Write(" required") %> step="1">
 		    <%
 			Case 9 '"boolean"
-				%><input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>1" value="1" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"><label for="inputField_<%= nIndex %>1" class="form-check-label">Yes</label>
+				%><input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>1" value="1" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"><label for="inputField_<%= nIndex %>1" class="form-check-label">Yes</label>
 				&nbsp;
-				<input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>0" value="0" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"><label for="inputField_<%= nIndex %>0" class="form-check-label">No</label>
+				<input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>0" value="0" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"><label for="inputField_<%= nIndex %>0" class="form-check-label">No</label>
 				<%
 			Case 10 '"link"
-				%><span ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"></span>
+				%><span ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"></span>
                  <%
 			Case 12 '"password"
 			%>
@@ -425,15 +425,15 @@ END IF
 			<%
 			Case 3, 4 '"int", "double"
 			%>
-			<input class="form-control form-control-sm" type="number" name="inputField_<%= nIndex %>" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" value="{{ selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %>>
+			<input class="form-control form-control-sm" type="number" name="inputField_<%= nIndex %>" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" value="{{ row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %>>
 			<%
 			Case 15 '"email"
 			%>
-			<input class="form-control form-control-sm" type="email" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %>>
+			<input class="form-control form-control-sm" type="email" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" name="inputField_<%= nIndex %>" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %>>
 			<%
 			Case Else
 			%>
-			<input class="form-control form-control-sm" type="text" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" name="inputField_<%= nIndex %>" ng-model="selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %>>
+			<input class="form-control form-control-sm" type="text" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" name="inputField_<%= nIndex %>" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %>>
 			<%
 		End Select
 		%>
@@ -443,7 +443,7 @@ END IF
             </div>
             <div class="modal-footer">
             <input type="hidden" name="postback" value="true" />
-            <input type="hidden" name="ItemID" value="{{ selectedRow._ItemID }}" />
+            <input type="hidden" name="ItemID" value="{{ row._ItemID }}" />
             <input type="hidden" name="mode" value="{{ selectedModalMode }}" />
             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
             <button type="submit" class="btn btn-success">Save changes</button>
@@ -474,14 +474,14 @@ END IF
                 IF (arrViewFields(dvfcFieldFlags,nIndex) AND 8) > 0 THEN %>
                 <div class="row">
                     <div class="col col-md-5 col-sm-3" data-toggle="tooltip" title="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldDescription, nIndex)) %>"><b><%= Sanitizer.HTMLDisplay(arrViewFields(dvfcFieldLabel, nIndex)) %>:</b></div>
-                    <div class="col col-md-7 col-sm-9">{{ selectedRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}</div>
+                    <div class="col col-md-7 col-sm-9">{{ row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}</div>
                 </div>
                 <% END IF
             NEXT %>
             </div>
             <div class="modal-footer">
             <input type="hidden" name="postback" value="true" />
-            <input type="hidden" name="ItemID" value="{{ selectedRow._ItemID }}" />
+            <input type="hidden" name="ItemID" value="{{ row._ItemID }}" />
             <input type="hidden" name="mode" value="delete" />
             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
             <button type="submit" class="btn btn-danger">Delete</button>
@@ -578,7 +578,7 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
     $scope.selectedModalTitle = "Adding...";
     $scope.deletingModalTitle = "Deleting...";
     $scope.selectedModalMode = "add"; 
-    $scope.selectedRow = {};
+    $scope.row = {};
     $scope.dtOptions = {
             sPaginationType: '<%= strDtPagingStyle %>',<% IF NOT blnDtSort THEN %>
             bSort: false,<% END IF %><% IF NOT blnDtQuickSearch THEN %>
@@ -615,25 +615,25 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
     $scope.dvAdd = function() {
         $scope.selectedModalTitle = "Adding New Item";
         $scope.selectedModalMode = "add"; 
-        $scope.selectedRow = null;
+        $scope.row = null;
     }
 
     $scope.dvEdit = function(r) {
         $scope.selectedModalTitle = "Editing Item " + r._ItemID;
         $scope.selectedModalMode = "edit";
-        $scope.selectedRow = angular.copy(r);
+        $scope.row = angular.copy(r);
     }
 
     $scope.dvClone = function(r) {
         $scope.selectedModalTitle = "Adding New Item";
         $scope.selectedModalMode = "add"; 
-        $scope.selectedRow = angular.copy(r);
-        $scope.selectedRow._ItemID = null;
+        $scope.row = angular.copy(r);
+        $scope.row._ItemID = null;
     }
 
     $scope.dvDelete = function(r) {
         $scope.deletingModalTitle = "Deleting Item " + r._ItemID;
-        $scope.selectedRow = angular.copy(r);
+        $scope.row = angular.copy(r);
     }
 
     $scope.getAjaxData();
