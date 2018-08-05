@@ -11,8 +11,7 @@ CRUDE:
 This project aims to implement an easy-to-use platform to create CRUD Application websites using the most-available free technologies (classic ASP, bootstrap, fontawesome, angular, etc.), plus "Execute" functionality to expand database capabilities.
 Using this project you can easily create "Data Views" which would serve as CRUD interfaces where you can manipulate data from a SQL Server database, and to also execute custom database commands (such as stored procedures).
 
-Please see the Wiki for more info:
-https://github.com/EitanBlumin/CRUDE-ASP/wiki
+[Please see the Wiki for more info](https://github.com/EitanBlumin/CRUDE-ASP/wiki)
 
 ## Getting Started
 
@@ -35,8 +34,7 @@ To install **Classic ASP** on your machine, the following features will need to 
     - Common HTTP Features (everything)
 
 You will need a **Microsoft SQL Server** database to be installed.
-If you don't have a license already, you can download the Developer edition *for free* here:
-https://www.microsoft.com/en-us/sql-server/sql-server-downloads
+If you don't have a license already, [you can download the Developer edition *for free* here](https://www.microsoft.com/en-us/sql-server/sql-server-downloads).
 
 ### Installing
 
