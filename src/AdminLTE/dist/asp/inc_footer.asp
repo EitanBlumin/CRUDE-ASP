@@ -6,7 +6,7 @@
       <b>Version</b> 0.1 | <b>Powered by</b> <a href="https://adminlte.io/" target="_blank">AdminLTE v2.4.5</a>
     </div>
     <!-- Default to the left -->
-    <b>Copyright &copy; 2018 <a href="https://github.com/EitanBlumin/CRUDE-ASP" target="_blank">Eitan Blumin</a>.</b> All rights reserved.
+    <b>Copyright &copy; 2018 <a href="https://eitanblumin.github.io/CRUDE-ASP/" target="_blank">Eitan Blumin</a>.</b> All rights reserved.
   </footer>
 
 <% IF Right(Request.ServerVariables("SCRIPT_NAME"), Len("/dataview.asp")) = "/dataview.asp" THEN %>
