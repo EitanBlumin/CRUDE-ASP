@@ -247,7 +247,7 @@ function displayNavLink(navLink) {
     else if (navLink.ViewID.length > 0)
         txt += "dataview.asp?ViewID=" + navLink.ViewID;
     else
-        txt += "javascript:"
+        txt += "#"
 
     txt += '" title="' + navLink.NavTooltip + '"';
     if (navLink.NavTooltip.length > 0 && navLink.ChildItems.length == 0)

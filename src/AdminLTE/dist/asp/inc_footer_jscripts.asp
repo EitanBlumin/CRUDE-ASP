@@ -31,7 +31,22 @@
 <script>
   $(function () {
     //bootstrap WYSIHTML5 - text editor
-    $('.textarea').wysihtml5()
+    $editor = $('.textarea').wysihtml5();
+//    console.log($editor.val());
+//    $('.textarea').each(function () {
+//        var disabled = this.textareaElement.disabled;
+//        var readonly = !!this.textareaElement.getAttribute('readonly');
+
+//        if (readonly) {
+//            this.composer.element.setAttribute('contenteditable', false);
+//            this.toolbar.commandsDisabled = true;
+//        }
+
+//        if (disabled) {
+//            this.composer.disable();
+//            this.toolbar.commandsDisabled = true;
+//        }
+//    })
   })
 </script>
 <script type="text/javascript">

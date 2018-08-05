@@ -344,7 +344,7 @@ END IF
 			%><textarea class="form-control form-control-sm" name="inputField_<%= nIndex %>" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" rows="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcHeight, nIndex)) %>" cols="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %> ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %>></textarea>
 			<%
 			Case 14 '"rte"
-			%><textarea name="inputField_<%= nIndex %>" class="textarea" <% IF blnRequired THEN Response.Write(" required") %> ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %>></textarea>
+			%><textarea name="inputField_<%= nIndex %>" class="textarea__" <% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %>>{{ row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}</textarea>
 			<%
 			Case 5, 6 '"combo", "multicombo"
 				strSQL = "SELECT DISTINCT "
@@ -633,6 +633,11 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
         $scope.selectedModalTitle = "Editing Item " + r._ItemID;
         $scope.selectedModalMode = "edit";
         $scope.row = angular.copy(r);
+//        $('.textarea').each(function() {
+//            console.log(this.innerHTML);
+//            console.log($editor);
+//            $editor.html(r.Tooltip);
+//        });
     }
 
     $scope.dvClone = function(r) {
