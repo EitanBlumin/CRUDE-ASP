@@ -13,6 +13,8 @@ Using this project you can easily create "Data Views" which would serve as CRUD 
 
 [Please see the Wiki for more info](https://github.com/EitanBlumin/CRUDE-ASP/wiki)
 
+[Click here for AdminLTE documentation](documentation/index.html)
+
 ## Getting Started
 
 These instructions will get you up and running on your local machine.
