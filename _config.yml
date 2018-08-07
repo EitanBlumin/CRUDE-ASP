@@ -13,4 +13,10 @@ share-links-active:
   facebook: true
   google: true
   linkedin: true
+navbar-links:
+  About Me: "aboutme"
+  Resources:
+    - Google Plus: "https://plus.google.com/+EitanBlumin"
+    - GitHub Gists: "https://gist.github.com/EitanBlumin"
+  Author's home: "https://www.linkedin.com/in/eitanblumin/"
 theme: jekyll-theme-minimal
