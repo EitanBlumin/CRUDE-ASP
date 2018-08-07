@@ -37,7 +37,7 @@ myRegEx.Global = True
 DIM nViewID, rsFields, arrViewFields, nColSpan
 DIM nFieldsNum, nViewFlags, strPageTitle, strPrimaryKey, strMainTableName, strDataViewDescription, strFilterBackLink
 Dim strFilterField, blnFilterRequired, cmdStoredProc, strViewProcedure, strModificationProcedure, strDeleteProcedure, varCurrFieldValue
-Dim paramPK, paramMode, paramFilter, paramOrderBy, blnRequired, blnReadOnly, nDtModBtnStyleIndex
+Dim paramPK, paramMode, paramFilter, paramOrderBy, blnRequired, blnReadOnly, nDtModBtnStyleIndex, blnShowRowActions
 
 strError = ""
 strSearchFilter = ""
@@ -72,6 +72,9 @@ IF nViewID <> "" AND IsNumeric(nViewID) THEN
         blnAllowInsert = CBool((nViewFlags AND 2) > 0)
         blnAllowDelete = CBool((nViewFlags AND 4) > 0)
         blnAllowClone = CBool((nViewFlags AND 8) > 0)
+
+        blnShowRowActions = CBool(blnAllowUpdate OR blnAllowDelete OR blnAllowClone)
+
         blnShowForm = CBool((nViewFlags AND 16) > 0)
         blnShowList = CBool((nViewFlags AND 32) > 0)
         blnAllowSearch = CBool((nViewFlags AND 64) > 0)
@@ -516,7 +519,8 @@ END IF
         nColSpan = nColSpan + 1 %>
     <th><%= Sanitizer.HTMLDisplay(arrViewFields(dvfcFieldLabel, nIndex)) %></th><%
         END IF
-     NEXT %><th>Actions</th>
+     NEXT
+    IF blnShowRowActions THEN %><th>Actions</th><% END IF %>
 </tr>
 </thead>
 <tbody>
@@ -543,12 +547,15 @@ Dim nIndex2, strCurrLabelBind
 			%><td ng-bind="<%= strCurrLabelBind %>"></td><%
             END IF
         END IF
-     NEXT %>
+     NEXT
+                
+     IF blnShowRowActions THEN %>
         <td>
             <% IF blnAllowUpdate THEN %><a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="#" ng-click="dvEdit(row)" title="Edit" data-toggle="modal" data-target="#modal-edit"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="fas fa-edit"></i> <% END IF %><% IF arrDataTableModifierButtonStyles(dtbsShowText,nDtModBtnStyleIndex) THEN Response.Write "Edit" %></a>&nbsp;<% END IF %>
             <% IF blnAllowClone THEN %><a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="#" ng-click="dvClone(row)" title="Clone" data-toggle="modal" data-target="#modal-edit"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="far fa-clone"></i> <% END IF %><% IF arrDataTableModifierButtonStyles(dtbsShowText,nDtModBtnStyleIndex) THEN Response.Write "Clone" %></a>&nbsp;<% END IF %>
             <% IF blnAllowDelete THEN %><a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="#" ng-click="dvDelete(row)" title="Delete" data-toggle="modal" data-target="#modal-delete"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="far fa-trash-alt"></i> <% END IF %><% IF arrDataTableModifierButtonStyles(dtbsShowText,nDtModBtnStyleIndex) THEN Response.Write "Delete" %></a><% END IF %>
-        </td>
+        </td><%
+     END IF %>
     </tr>
 </tbody><% IF blnDtColumnFooter THEN %>
 <tfoot>
