@@ -38,13 +38,14 @@ If you don't have a license already, [you can download the Developer edition *fo
 
 ### Installing
 
-Copy the contents of the "build" folder to C:\inetpub\wwwroot\
-If the "build" folder doesn't exist (and you only see the "src" folder), that means this project is still in initial development :)
+This project is still in initial development, so there's nothing to install at the moment :)
 
-Run this file to deploy the database dacpac: TBD
+But when there would be a first release, then it would be something like this:
 
-After that, you'll need to change the connection string in the configuration file (dist\asp\inc_config.asp)
-And you're good to go!
+1. Deploy the database using a dacpac file.
+2. Copy the website folder to a subfolder in c:\inetpub\wwwroot
+3. Update the connection string in the configuration file (dist\asp\inc_config.asp)
+4. That's it! The site should be immediately operational and you should be able to start using it.
 
 ## Built With
 
