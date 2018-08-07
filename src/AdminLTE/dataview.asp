@@ -37,7 +37,7 @@ myRegEx.Global = True
 DIM nViewID, rsFields, arrViewFields, nColSpan
 DIM nFieldsNum, nViewFlags, strPageTitle, strPrimaryKey, strMainTableName, strDataViewDescription, strFilterBackLink
 Dim strFilterField, blnFilterRequired, cmdStoredProc, strViewProcedure, strModificationProcedure, strDeleteProcedure, varCurrFieldValue
-Dim paramPK, paramMode, paramFilter, paramOrderBy, blnRequired, blnReadOnly, nDtModBtnStyleIndex
+Dim paramPK, paramMode, paramFilter, paramOrderBy, blnRequired, blnReadOnly, nDtModBtnStyleIndex, blnShowRowActions
 
 strError = ""
 strSearchFilter = ""
@@ -72,6 +72,9 @@ IF nViewID <> "" AND IsNumeric(nViewID) THEN
         blnAllowInsert = CBool((nViewFlags AND 2) > 0)
         blnAllowDelete = CBool((nViewFlags AND 4) > 0)
         blnAllowClone = CBool((nViewFlags AND 8) > 0)
+
+        blnShowRowActions = CBool(blnAllowUpdate OR blnAllowDelete OR blnAllowClone)
+
         blnShowForm = CBool((nViewFlags AND 16) > 0)
         blnShowList = CBool((nViewFlags AND 32) > 0)
         blnAllowSearch = CBool((nViewFlags AND 64) > 0)
@@ -476,7 +479,13 @@ END IF
                 IF (arrViewFields(dvfcFieldFlags,nIndex) AND 8) > 0 THEN %>
                 <div class="row">
                     <div class="col col-md-5 col-sm-3" data-toggle="tooltip" title="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldDescription, nIndex)) %>"><b><%= Sanitizer.HTMLDisplay(arrViewFields(dvfcFieldLabel, nIndex)) %>:</b></div>
-                    <div class="col col-md-7 col-sm-9">{{ row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}</div>
+                    <div class="col col-md-7 col-sm-9"><% 
+                    Select Case arrViewFields(dvfcFieldType,nIndex)
+			            Case 5, 6 '"combo", "multicombo"
+                        %>{{ row['_resolved_<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}<%
+                        Case Else
+                        %>{{ row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}<%
+		            End Select %></div>
                 </div>
                 <% END IF
             NEXT %>
@@ -510,35 +519,43 @@ END IF
         nColSpan = nColSpan + 1 %>
     <th><%= Sanitizer.HTMLDisplay(arrViewFields(dvfcFieldLabel, nIndex)) %></th><%
         END IF
-     NEXT %><th>Actions</th>
+     NEXT
+    IF blnShowRowActions THEN %><th>Actions</th><% END IF %>
 </tr>
 </thead>
 <tbody>
     <tr ng-repeat="row in dataviewContents.data"><%
-Dim nIndex2
+Dim nIndex2, strCurrLabelBind
     FOR nIndex = 0 TO UBound(arrViewFields, 2)
         IF (arrViewFields(dvfcFieldFlags,nIndex) AND 8) > 0 THEN
-        Select Case arrViewFields(dvfcFieldType,nIndex)
-			Case 5, 6 '"combo", "multicombo"
-			%><td ng-bind="row['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']"></td><%
-             Case Else
-                IF arrViewFields(dvfcUriPath, nIndex) <> "" THEN
-			%><td><a ng-bind="row['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']" href="<%= arrViewFields(dvfcUriPath, nIndex) %>" class="<%
+
+            Select Case arrViewFields(dvfcFieldType,nIndex)
+			    Case 5, 6 '"combo", "multicombo"
+                    strCurrLabelBind = "row['_resolved_" & arrViewFields(dvfcFieldLabel, nIndex) & "']"
+                 Case Else
+                    strCurrLabelBind = "row['" & arrViewFields(dvfcFieldLabel, nIndex) & "']"
+		    End Select
+            
+            ' if has URI
+            IF arrViewFields(dvfcUriPath, nIndex) <> "" THEN
+			%><td><a ng-bind="<%= strCurrLabelBind %>" href="<%= arrViewFields(dvfcUriPath, nIndex) %>" class="<%
                 FOR nIndex2 = 0 TO UBound(arrDataViewUriStyles, 2)
                     IF arrDataViewUriStyles(dvusValue, nIndex2) = arrViewFields(dvfcUriStyle, nIndex) THEN Response.Write arrDataViewUriStyles(dvusClass, nIndex2)
                 NEXT
                  %>"></a></td><%
-                ELSE
-			%><td ng-bind="row['<%= arrViewFields(dvfcFieldLabel, nIndex) %>']"></td><%
-                END IF
-		End Select
+            ELSE
+			%><td ng-bind="<%= strCurrLabelBind %>"></td><%
+            END IF
         END IF
-     NEXT %>
+     NEXT
+                
+     IF blnShowRowActions THEN %>
         <td>
-            <a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="#" ng-click="dvEdit(row)" title="Edit" data-toggle="modal" data-target="#modal-edit"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="fas fa-edit"></i> <% END IF %><% IF arrDataTableModifierButtonStyles(dtbsShowText,nDtModBtnStyleIndex) THEN Response.Write "Edit" %></a>&nbsp;
-            <a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="#" ng-click="dvClone(row)" title="Clone" data-toggle="modal" data-target="#modal-edit"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="far fa-clone"></i> <% END IF %><% IF arrDataTableModifierButtonStyles(dtbsShowText,nDtModBtnStyleIndex) THEN Response.Write "Clone" %></a>&nbsp;
-            <a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="#" ng-click="dvDelete(row)" title="Delete" data-toggle="modal" data-target="#modal-delete"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="far fa-trash-alt"></i> <% END IF %><% IF arrDataTableModifierButtonStyles(dtbsShowText,nDtModBtnStyleIndex) THEN Response.Write "Delete" %></a>
-        </td>
+            <% IF blnAllowUpdate THEN %><a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="#" ng-click="dvEdit(row)" title="Edit" data-toggle="modal" data-target="#modal-edit"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="fas fa-edit"></i> <% END IF %><% IF arrDataTableModifierButtonStyles(dtbsShowText,nDtModBtnStyleIndex) THEN Response.Write "Edit" %></a>&nbsp;<% END IF %>
+            <% IF blnAllowClone THEN %><a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="#" ng-click="dvClone(row)" title="Clone" data-toggle="modal" data-target="#modal-edit"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="far fa-clone"></i> <% END IF %><% IF arrDataTableModifierButtonStyles(dtbsShowText,nDtModBtnStyleIndex) THEN Response.Write "Clone" %></a>&nbsp;<% END IF %>
+            <% IF blnAllowDelete THEN %><a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="#" ng-click="dvDelete(row)" title="Delete" data-toggle="modal" data-target="#modal-delete"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="far fa-trash-alt"></i> <% END IF %><% IF arrDataTableModifierButtonStyles(dtbsShowText,nDtModBtnStyleIndex) THEN Response.Write "Delete" %></a><% END IF %>
+        </td><%
+     END IF %>
     </tr>
 </tbody><% IF blnDtColumnFooter THEN %>
 <tfoot>
