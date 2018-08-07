@@ -1,2 +1,16 @@
+url: "http://eitanblumin.github.io/CRUDE-ASP"
+baseurl: "/CRUDE-ASP"
 logo: /crude-logo.png
+social-network-links:
+  rss: false
+  email: "eitan@madeiradata.com"
+  google-plus: +EitanBlumin
+  linkedin: eitanblumin
+  github: EitanBlumin
+  twitter: EitanBlumin
+share-links-active:
+  twitter: true
+  facebook: true
+  google: true
+  linkedin: true
 theme: jekyll-theme-minimal
