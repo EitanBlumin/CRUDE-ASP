@@ -1,5 +1,7 @@
 # CRUDE-ASP
 
+![logo](favicon.png "CRUDE ASP Logo")
+
 CRUDE:
 
 - **C**reate
@@ -11,9 +13,11 @@ CRUDE:
 This project aims to implement an easy-to-use platform to create CRUD Application websites using the most-available free technologies (classic ASP, bootstrap, fontawesome, angular, etc.), plus "Execute" functionality to expand database capabilities.
 Using this project you can easily create "Data Views" which would serve as CRUD interfaces where you can manipulate data from a SQL Server database, and to also execute custom database commands (such as stored procedures).
 
-[Please see the Wiki for more info](https://github.com/EitanBlumin/CRUDE-ASP/wiki)
+![Data View Example](images/dataview_basic_toastr.png "Featuring angular datatables and toastr notifications")
 
-![logo](crude-logo.png "CRUDE ASP Logo")
+![Data View Editing Example](images/dataview_editing.png "Bootstrap Modals are supported")
+
+[Please see the Wiki for more info](https://github.com/EitanBlumin/CRUDE-ASP/wiki)
 
 ## Getting Started
 
