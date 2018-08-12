@@ -69,7 +69,6 @@ IF Request.Form("Title") <> "" THEN
     
         IF strMode = "add" THEN
             rsItems.AddNew
-            rsItems("FieldOrder") = nOrdering
         END IF
 
         IF strMode = "edit" AND rsItems.EOF THEN
