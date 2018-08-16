@@ -119,6 +119,7 @@ IF strFilteredValue <> "" THEN strViewQueryString = strViewQueryString & "&seek_
 ' Data Manipulation Section
 '***************************
 IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate AND nItemID <> "")) AND Request.Form("postback") = "true" THEN
+    Response.Write "<!-- Data Manipulation Start -->" & vbCrLf
 	' If stored procedure
     IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
         strSQL = strModificationProcedure
@@ -161,7 +162,8 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
     END IF
 
     IF strError = "" THEN
-	
+	Dim nParamID
+    nParamID = 2
     ON ERROR RESUME NEXT
 
 		FOR nIndex = 0 TO UBound(arrViewFields, 2) 'AND False
@@ -176,19 +178,19 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
                         Case Else
                             IF Len(Request("inputField_" & nIndex)) = 0 AND (arrViewFields(dvfcFieldFlags, nIndex) AND 2) = 0 THEN ' if empty and not required, enter NULL
                                 varCurrFieldValue = NULL
-                                'Response.Write "<!-- setting " & arrViewFields(dvfcFieldSource, nIndex) & " = NULL -->" & vbCrLf
+                                Response.Write "<!-- setting " & arrViewFields(dvfcFieldSource, nIndex) & " = NULL -->" & vbCrLf
                             ELSE
 				                varCurrFieldValue = Request("inputField_" & nIndex)
-                                'Response.Write "<!-- " & arrViewFields(dvfcFieldSource, nIndex) & " is NOT NULL (" & Len(Request("inputField_" & nIndex)) & ", " & (arrViewFields(dvfcFieldFlags, nIndex) AND 2) & ") -->" & vbCrLf
+                                Response.Write "<!-- " & arrViewFields(dvfcFieldSource, nIndex) & " is NOT NULL (" & Len(Request("inputField_" & nIndex)) & ", " & (arrViewFields(dvfcFieldFlags, nIndex) AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
                             END IF
                     End Select
 
                     IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
-                        'Response.Write "Creating parameter for " & arrViewFields(dvfcFieldSource, nIndex) & " = " & rsItems(arrViewFields(dvfcFieldSource, nIndex)) & "<br/>" & vbCrlf
-
-                        cmdStoredProc.Parameters(nIndex + 3).Value = varCurrFieldValue
+                        nParamID = nParamID + 1
+                        Response.Write "<!-- Setting parameter " & nParamID & " = " & varCurrFieldValue & "-->" & vbCrlf
+                        cmdStoredProc.Parameters(nParamID).Value = varCurrFieldValue
                     ELSE
-                        'Response.Write "<!-- setting " & arrViewFields(dvfcFieldSource, nIndex) & " = """ & varCurrFieldValue & """ (isnull: " & IsNull(varCurrFieldValue) & ") ErrCount: " & adoConn.Errors.Count & " -->" & vbCrLf
+                        Response.Write "<!-- setting " & arrViewFields(dvfcFieldSource, nIndex) & " = """ & varCurrFieldValue & """ (isnull: " & IsNull(varCurrFieldValue) & ") ErrCount: " & adoConn.Errors.Count & " -->" & vbCrLf
                         rsItems(arrViewFields(dvfcFieldSource, nIndex)) = varCurrFieldValue
                     END IF
                 END IF
@@ -223,7 +225,7 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
     ' check for errors
     If adoConn.Errors.Count > 0 Then
         DIM Err
-        strError = strError & " Error(s) while performing &quot;" & strMode & "&quot;:<br/>" 
+        strError = strError & " Error(s) while performing """ & strMode & """:<br/>" 
         For Each Err In adoConn.Errors
 			strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
         Next
@@ -285,7 +287,7 @@ END IF
   <title><%= Sanitizer.HTMLFormControl(constPortalTitle) %></title>
 <!--#include file="dist/asp/inc_meta.asp" -->
 </head>
-<body class="hold-transition skin-blue sidebar-mini fixed" ng-app="CrudeApp" ng-controller="CrudeCtrl">
+<body class="<%= globalBodyClass %>"" ng-app="CrudeApp" ng-controller="CrudeCtrl">
 <div class="wrapper">
 <!--#include file="dist/asp/inc_header.asp" -->
 
@@ -307,11 +309,11 @@ END IF
     <!-- Main content -->
     <section class="content container-fluid">
 
-<div class="row">
+<!--<div class="row">
     <div class="col col-sm-12">
         <a class="btn btn-primary" role="button" href="#"><i class="fas fa-arrow-left"></i> Back</a>
     </div>
-</div>
+</div>-->
 <div class="row">
     <div class="col col-sm-12"><br />
         <small><%= Sanitizer.HTMLDisplay(strDataViewDescription) %></small>
@@ -406,7 +408,7 @@ END IF
 				    IF arrViewFields(dvfcFieldType, nIndex) = "multicombo" THEN Response.Write "<small class=""form-text form-text-sm text-muted"">Hold Ctrl to select multiple values</small>"
 				END IF
 			Case 7, 8 '"date", "datetime"
-			%><input class="form-control" type="datetime" name="inputField_<%= nIndex %>" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %> <%
+			%><input class="form-control" type="date" name="inputField_<%= nIndex %>" value="{{row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']}}"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %> <%
 				IF arrViewFields(dvfcFieldType, nIndex) = "date" THEN
 				 Response.Write("size=""10"" maxlength=""10""")
 				Else
@@ -414,7 +416,7 @@ END IF
 				END IF %>>
 			<%
 		    Case 13 '"time"
-		    %><input class="form-control form-control-sm" type="time" name="inputField_<%= nIndex %>" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %> step="1">
+		    %><input class="form-control form-control-sm" type="time" name="inputField_<%= nIndex %>" value="{{row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'].substr(0,8)}}"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %> step="1">
 		    <%
 			Case 9 '"boolean"
 				%><input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>1" value="1" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnReadOnly THEN Response.Write(" readonly") %>><label for="inputField_<%= nIndex %>1" class="form-check-label">Yes</label>
@@ -483,6 +485,8 @@ END IF
                     Select Case arrViewFields(dvfcFieldType,nIndex)
 			            Case 5, 6 '"combo", "multicombo"
                         %>{{ row['_resolved_<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}<%
+		                Case 13 '"time"
+                            Response.Write "{{ row['" & Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) & "'].substr(0,8) }}"
                         Case Else
                         %>{{ row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}<%
 		            End Select %></div>
@@ -532,6 +536,8 @@ Dim nIndex2, strCurrLabelBind
             Select Case arrViewFields(dvfcFieldType,nIndex)
 			    Case 5, 6 '"combo", "multicombo"
                     strCurrLabelBind = "row['_resolved_" & arrViewFields(dvfcFieldLabel, nIndex) & "']"
+		        Case 13 '"time"
+                    strCurrLabelBind = "row['" & arrViewFields(dvfcFieldLabel, nIndex) & "'].substr(0,8)"
                  Case Else
                     strCurrLabelBind = "row['" & arrViewFields(dvfcFieldLabel, nIndex) & "']"
 		    End Select

@@ -199,7 +199,7 @@ END IF
   <title><%= Sanitizer.HTMLFormControl(constPortalTitle) %></title>
 <!--#include file="dist/asp/inc_meta.asp" -->
 </head>
-<body class="hold-transition skin-blue sidebar-mini fixed">
+<body class="<%= globalBodyClass %>">
 <div class="wrapper">
 <!--#include file="dist/asp/inc_header.asp" -->
 

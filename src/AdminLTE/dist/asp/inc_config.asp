@@ -21,10 +21,11 @@ adoConn.CommandTimeout = 0
 
 ' Global Variables
 ' ============================
-Dim globalIsAdmin, constPortalTitle, globalToastrOptions
+Dim globalIsAdmin, constPortalTitle, globalToastrOptions, globalBodyClass
 
 constPortalTitle = "CrudeASP"
 globalIsAdmin = True
+globalBodyClass = "hold-transition skin-blue sidebar-collapse sidebar-mini"
 globalToastrOptions = "" & VbCrLf & _
 "   'closeButton': true," & VbCrLf & _
 "   'debug': false," & VbCrLf & _

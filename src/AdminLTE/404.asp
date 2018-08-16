@@ -25,7 +25,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <title><%= constPortalTitle %></title>
 <!--#include file="dist/asp/inc_meta.asp" -->
 </head>
-<body class="hold-transition skin-blue sidebar-mini fixed">
+<body class="<%= globalBodyClass %>">
 <div class="wrapper">
 <!--#include file="dist/asp/inc_header.asp" -->
 
