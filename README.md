@@ -8,6 +8,8 @@ CRUDE:
 - **D**elete
 - **E**xecute
 
+![](/docs/images/dataview_basic_toastr.png)
+
 This project aims to implement an easy-to-use platform to create CRUD Application websites using the most-available free technologies (classic ASP, bootstrap, fontawesome, angular, etc.), plus "Execute" functionality to expand database capabilities.
 Using this project you can easily create "Data Views" which would serve as CRUD interfaces where you can manipulate data from a SQL Server database, and to also execute custom database commands (such as stored procedures).
 
