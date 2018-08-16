@@ -11,7 +11,12 @@ WHERE ViewID = @ViewID
 
 SET @CMD = N'SELECT @Json = ISNULL(@Json + N'', '', N''[ '') + ISNULL(N''{ "_ItemID": "'' + portal.FormatValueForJson(CONVERT(nvarchar(100),' + @PK + N')) + N''"'
 
-SELECT @CMD = @CMD + N', "' + FieldLabel + N'": "'' + portal.FormatValueForJson(' + FieldSource + N') + N''"'
+SELECT @CMD = @CMD + N', "' + FieldLabel + N'": ' 
+	+ CASE 
+		WHEN FieldType IN (3,4) THEN N''' + portal.FormatValueForJson(' + FieldSource + N') + N''' 
+		WHEN FieldType = 9 THEN N''' + CASE WHEN ' + FieldSource + N' = 1 THEN N''true'' ELSE N''false'' END + N''' 
+		WHEN FieldType = 12 THEN N'""' 
+		ELSE N'"'' + portal.FormatValueForJson(' + FieldSource + N') + N''"' END
 	+ CASE WHEN LinkedTable <> '' AND LinkedTableValueField <> '' THEN N',
 	 "_resolved_' + FieldLabel + N'": "'' + STUFF((SELECT N'', '' + portal.FormatValueForJson(labelfield) FROM
 		(SELECT labelfield = ' + ISNULL(NULLIF(LinkedTableTitleField, N''), LinkedTableValueField) + N', valuefield = ' + LinkedTableValueField + N'
