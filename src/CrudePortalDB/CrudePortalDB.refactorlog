@@ -21,4 +21,18 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="DataTablePagingStyle" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="1d025c57-314d-4560-a8e0-a3e0d031d0df" ChangeDateTime="08/16/2018 12:12:46">
+    <Property Name="ElementName" Value="[portal].[DataViewAction].[NgClick]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[portal].[DataViewAction]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="NgClickCode" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="28c4b93d-e3a4-4a9d-a075-1aa8b66638cd" ChangeDateTime="08/16/2018 12:12:53">
+    <Property Name="ElementName" Value="[portal].[DataViewAction].[NgClickCode]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[portal].[DataViewAction]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="NgClickJSCode" />
+  </Operation>
 </Operations>

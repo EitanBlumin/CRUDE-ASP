@@ -99,6 +99,7 @@
     <Build Include="Views\portal.DataViewDataTableFlags.sql" />
     <Build Include="Views\portal.DataViewPagingTypes.sql" />
     <Build Include="Functions\portal.GetNavigationRecursive.sql" />
+    <Build Include="Tables\portal.DataViewActionParameters.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="CrudePortalDB.refactorlog" />
