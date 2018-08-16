@@ -409,7 +409,7 @@ END IF
 				    IF arrViewFields(dvfcFieldType, nIndex) = "multicombo" THEN Response.Write "<small class=""form-text form-text-sm text-muted"">Hold Ctrl to select multiple values</small>"
 				END IF
 			Case 7, 8 '"date", "datetime"
-			%><input class="form-control" type="date" name="inputField_<%= nIndex %>" value="{{row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']}}"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %> <%
+			%><input class="form-control" type="date" name="inputField_<%= nIndex %>" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %> <%
 				IF arrViewFields(dvfcFieldType, nIndex) = "date" THEN
 				 Response.Write("size=""10"" maxlength=""10""")
 				Else
@@ -417,7 +417,7 @@ END IF
 				END IF %>>
 			<%
 		    Case 13 '"time"
-		    %><input class="form-control form-control-sm" type="time" name="inputField_<%= nIndex %>" value="{{row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'].substr(0,8)}}"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %> step="1">
+		    %><input class="form-control form-control-sm" type="time" name="inputField_<%= nIndex %>" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'].substr(0,8)"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %> step="1">
 		    <%
 			Case 9 '"boolean"
 				%><input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>1" value="1" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnReadOnly THEN Response.Write(" readonly") %>><label for="inputField_<%= nIndex %>1" class="form-check-label">Yes</label>
@@ -433,7 +433,7 @@ END IF
 			<%
 			Case 3, 4 '"int", "double"
 			%>
-			<input class="form-control form-control-sm" type="number" name="inputField_<%= nIndex %>" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" value="{{ row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %>>
+			<input class="form-control form-control-sm" type="number" name="inputField_<%= nIndex %>" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %>>
 			<%
 			Case 15 '"email"
 			%>
@@ -537,11 +537,11 @@ Dim nIndex2, strCurrLabelBind
 
             Select Case arrViewFields(dvfcFieldType,nIndex)
 			    Case 5, 6 '"combo", "multicombo"
-                    strCurrLabelBind = "row['_resolved_" & arrViewFields(dvfcFieldLabel, nIndex) & "']"
+                    strCurrLabelBind = "row['_resolved_" & Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) & "']"
 		        Case 13 '"time"
-                    strCurrLabelBind = "row['" & arrViewFields(dvfcFieldLabel, nIndex) & "'].substr(0,8)"
+                    strCurrLabelBind = "row['" & Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) & "'].substr(0,8)"
                  Case Else
-                    strCurrLabelBind = "row['" & arrViewFields(dvfcFieldLabel, nIndex) & "']"
+                    strCurrLabelBind = "row['" & Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) & "']"
 		    End Select
             
             ' if has URI
@@ -614,6 +614,7 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
     $scope.selectedModalTitle = "Adding...";
     $scope.deletingModalTitle = "Deleting...";
     $scope.selectedModalMode = "add"; 
+    $scope.defaultRow = {};
     $scope.row = {};
     $scope.dtOptions = {
             sPaginationType: '<%= strDtPagingStyle %>',<% IF NOT blnDtSort THEN %>
@@ -632,6 +633,21 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
                 }
             ]
         };
+    <%
+    'Init a Row Object with Default Values
+	FOR nIndex = 0 TO UBound(arrViewFields, 2)
+		IF arrViewFields(dvfcDefaultValue, nIndex) <> "" THEN ' has default
+            %>$scope.defaultRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel,nIndex)) %>'] = <%
+                    Select Case arrViewFields(dvfcFieldType, nIndex)
+                            Case 3, 4, 9
+                               Response.Write arrViewFields(dvfcDefaultValue, nIndex) & ";"
+                            Case Else
+                               Response.Write "'" & arrViewFields(dvfcDefaultValue, nIndex) & "';"
+                    End Select
+        END IF
+    NEXT
+                
+    %>
 
     $scope.getAjaxData = function () {
 
@@ -652,13 +668,16 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
         $scope.selectedModalTitle = "Adding New Item";
         $scope.selectedModalMode = "add"; 
         $scope.row = null;
+        $scope.row = angular.copy($scope.defaultRow);
+        $scope.row._ItemID = null;
     }
 
     $scope.dvEdit = function(r) {
         $scope.selectedModalTitle = "Editing Item " + r._ItemID;
         $scope.selectedModalMode = "edit";
+        $scope.row = null;
         $scope.row = angular.copy(r);
-//        $('.textarea').each(function() {
+//        $('.textarea').each(function() { // Issue #48
 //            console.log(this.innerHTML);
 //            console.log($editor);
 //            $editor.html(r.Tooltip);
@@ -668,6 +687,7 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
     $scope.dvClone = function(r) {
         $scope.selectedModalTitle = "Adding New Item";
         $scope.selectedModalMode = "add"; 
+        $scope.row = null;
         $scope.row = angular.copy(r);
         $scope.row._ItemID = null;
     }
