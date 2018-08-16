@@ -9,8 +9,8 @@ Session.CodePage = 1255
 ' Local Constants
 '=======================
 Const constPageScriptName = "admin_dataviewfields.asp"
-Dim constPageTitle
-constPageTitle = "Manage Data View Fields"
+Dim strPageTitle
+strPageTitle = "Manage Data View Fields"
 
 ' Init Variables
 '=======================
@@ -43,7 +43,7 @@ IF nViewID <> "" AND IsNumeric(nViewID) THEN
 END IF
 
 IF nViewID = "" OR NOT IsNumeric(nViewID) THEN Response.Redirect("admin_dataviews.asp?MSG=notfound")
-constPageTitle = constPageTitle & " for " & strDataViewTitle
+strPageTitle = strPageTitle & " for " & strDataViewTitle
 strFieldLabel = Request("FieldLabel")
 strFieldSource = Request("FieldSource")
 nFieldType = Request("FieldType")
@@ -196,7 +196,7 @@ END IF
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= Sanitizer.HTMLFormControl(constPortalTitle) %></title>
+  <title><%= GetPageTitle() %></title>
 <!--#include file="dist/asp/inc_meta.asp" -->
 </head>
 <body class="<%= globalBodyClass %>">
@@ -208,13 +208,13 @@ END IF
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
-        <%= constPageTitle %>
+        <%= strPageTitle %>
       </h1>
 
       <ol class="breadcrumb">
         <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
         <li><a href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"> <%= Sanitizer.HTMLDisplay(strDataViewTitle) %></a></li>
-        <li class="active"><%= Sanitizer.HTMLDisplay(constPageTitle) %></li>
+        <li class="active"><%= Sanitizer.HTMLDisplay(strPageTitle) %></li>
       </ol>
 
     </section>

@@ -9,7 +9,8 @@ Session.CodePage = 1255
 ' Local Constants
 '=======================
 Const constPageScriptName = "admin_dataviews.asp"
-Const constPageTitle = "Manage Data Views"
+Dim strPageTitle
+strPageTitle = "Manage Data Views"
 
 ' Init Variables
 '=======================
@@ -125,7 +126,7 @@ END IF
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= constPortalTitle %></title>
+  <title><%= GetPageTitle() %></title>
 <!--#include file="dist/asp/inc_meta.asp" -->
 </head>
 <body class="<%= globalBodyClass %>">
@@ -137,12 +138,12 @@ END IF
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
-        <%= constPageTitle %>
+        <%= strPageTitle %>
       </h1>
 
       <ol class="breadcrumb">
         <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
-        <li class="active"><%= Sanitizer.HTMLDisplay(constPageTitle) %></li>
+        <li class="active"><%= Sanitizer.HTMLDisplay(strPageTitle) %></li>
       </ol>
 
     </section>

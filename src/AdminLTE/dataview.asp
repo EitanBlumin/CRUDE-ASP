@@ -9,6 +9,8 @@ Session.CodePage = 1255
 ' Local Constants
 '=======================
 Const constPageScriptName = "dataview.asp"
+Dim strPageTitle
+strPageTitle = "Data View"
 
 ' Init Variables
 '=======================
@@ -35,13 +37,12 @@ myRegEx.Global = True
 '[ConfigVars]
 ' Init Form Variables from DB. This will be deleted when generated as a seperate file.
 DIM nViewID, rsFields, arrViewFields, nColSpan
-DIM nFieldsNum, nViewFlags, strPageTitle, strPrimaryKey, strMainTableName, strDataViewDescription, strFilterBackLink
+DIM nFieldsNum, nViewFlags, strPrimaryKey, strMainTableName, strDataViewDescription, strFilterBackLink
 Dim strFilterField, blnFilterRequired, cmdStoredProc, strViewProcedure, strModificationProcedure, strDeleteProcedure, varCurrFieldValue
 Dim paramPK, paramMode, paramFilter, paramOrderBy, blnRequired, blnReadOnly, nDtModBtnStyleIndex, blnShowRowActions
 
 strError = ""
 strSearchFilter = ""
-strPageTitle = "Data View"
 
 nItemID = Request("ItemID")
 IF NOT IsNumeric(nItemID) THEN nItemID = ""
@@ -284,7 +285,7 @@ END IF
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= Sanitizer.HTMLFormControl(constPortalTitle) %></title>
+  <title><%= GetPageTitle() %></title>
 <!--#include file="dist/asp/inc_meta.asp" -->
 </head>
 <body class="<%= globalBodyClass %>"" ng-app="CrudeApp" ng-controller="CrudeCtrl">

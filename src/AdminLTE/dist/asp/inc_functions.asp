@@ -73,6 +73,22 @@ SUB DisplayLookupSelection(ByVal DBTableName, ByVal DBValueCol, ByVal DBIdentCol
 
 END SUB
 
+'==================================================================
+'           Miscelleneous Helper Functions
+'==================================================================
+
+' Function to return the page title to be used as the browser window/tab title
+FUNCTION GetPageTitle()
+
+        GetPageTitle = Sanitizer.HTMLFormControl(strPageTitle) & " | " & Sanitizer.HTMLFormControl(constPortalTitle)
+
+END FUNCTION
+
+
+'==================================================================
+'			Utility Sanitizer Functions
+'==================================================================
+
 ' Function to pad numeric values with zeros
 FUNCTION pd(n, totalDigits) 
     IF totalDigits > len(n) THEN 
@@ -82,17 +98,21 @@ FUNCTION pd(n, totalDigits)
     END IF 
 END FUNCTION
 
+' Function to format a datetime value to be edible by database
 FUNCTION FormatDateForDB(dt)
     FormatDateForDB = YEAR(dt) & "-" & Pd(Month(dt),2) & "-" & Pd(DAY(dt),2) & " " & Pd(Hour(dt),2) & ":" & Pd(Minute(dt),2) & ":" & Pd(Second(dt),2)
 END FUNCTION
 
+' This class object would hold a collection of functions to sanitize input/output
 CLASS SanitizerClass
 
+    ' Sanitize values that would be put inside HTML elements (for example <input ... value="value here"> or <textarea...>value here</textarea>)
     PUBLIC FUNCTION HTMLFormControl(pInput)
         IF IsNull(pInput) THEN pInput = ""
         HTMLFormControl = Server.HTMLEncode(pInput)
     END FUNCTION
  
+    ' Sanitize values that would be visibly displayed to users (for example <p>value here</p> or <div>value here</div>)
     PUBLIC FUNCTION HTMLDisplay(pInput)
         IF IsNull(pInput) THEN pInput = ""
         IF NOT globalIsAdmin THEN
@@ -102,11 +122,13 @@ CLASS SanitizerClass
         END IF
     END FUNCTION
         
+    ' Sanitize values that would be used as part of a URL querystring
     PUBLIC FUNCTION Querystring(pInput)
         IF IsNull(pInput) THEN pInput = ""
         Querystring = Server.URLEncode(pInput)
     END FUNCTION
         
+    ' Sanitize values that would be used in SQL injection
     PUBLIC FUNCTION SQL(pInput)
         IF IsNull(pInput) THEN
             SQL = "NULL"

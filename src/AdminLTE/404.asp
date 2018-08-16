@@ -9,7 +9,8 @@ Session.CodePage = 1255
 ' Local Constants
 '=======================
 Const constPageScriptName = "404.asp"
-Const constPageTitle = "404 Page Not Found"
+Dim strPageTitle
+strPageTitle = "404 Page Not Found"
 
 ' Open DB Connection
 '=======================
@@ -33,11 +34,11 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <section class="content-header">
-      <h1><%= constPageTitle %></h1>
+      <h1><%= strPageTitle %></h1>
 
       <ol class="breadcrumb">
         <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
-        <li class="active"><%= constPageTitle %></li>
+        <li class="active"><%= strPageTitle %></li>
       </ol>
 
     </section>

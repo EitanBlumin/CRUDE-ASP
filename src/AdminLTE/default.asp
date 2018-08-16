@@ -9,7 +9,8 @@ Session.CodePage = 1255
 ' Local Constants
 '=======================
 Const constPageScriptName = "default.asp"
-Const constPageTitle = "Dashboard"
+Dim strPageTitle
+strPageTitle = "Home"
 
 ' Open DB Connection
 '=======================
@@ -18,7 +19,7 @@ adoConn.Open
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= constPortalTitle %></title>
+  <title><%= GetPageTitle() %></title>
 <!--#include file="dist/asp/inc_meta.asp" -->
 </head>
 <body class="<%= globalBodyClass %>">
@@ -30,7 +31,7 @@ adoConn.Open
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
-        <%= constPageTitle %>
+        <%= strPageTitle %>
       </h1>
 
       <ol class="breadcrumb">
