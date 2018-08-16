@@ -512,6 +512,7 @@ END IF
 <div class="box">
 <div class="box-header">
  <a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="#" ng-click="dvAdd(null)" title="Add" data-toggle="modal" data-target="#modal-edit"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="fas fa-plus"></i> <% END IF %>Add</a>
+ <a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="#" ng-click="getAjaxData()" title="Refresh"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="fas fa-sync-alt"></i> <% END IF %>Refresh</a>
 </div>
 <div class="box-body">
 <table datatable="ng" id="DataViewMainTable" dt-options="dtOptions" class="table table-hover table-bordered table-striped">
