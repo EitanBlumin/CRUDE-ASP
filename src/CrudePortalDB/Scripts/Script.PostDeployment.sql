@@ -83,3 +83,6 @@ WHEN NOT MATCHED BY SOURCE THEN
 	DELETE
 ;
 SET IDENTITY_INSERT [portal].[DataViewField] OFF;
+GO
+:r .\RecursiveFunctions.PostDeployment.sql	
+GO

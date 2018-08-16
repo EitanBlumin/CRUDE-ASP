@@ -105,11 +105,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CrudePortalDB.local.publish.xml" />
+    <None Include="Scripts\RecursiveFunctions.PostDeployment.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <PreDeploy Include="Scripts\Script.PreDeployment.sql" />
   </ItemGroup>
 </Project>
