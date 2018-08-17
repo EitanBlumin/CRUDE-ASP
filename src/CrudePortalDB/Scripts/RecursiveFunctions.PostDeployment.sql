@@ -4,26 +4,23 @@ ALTER FUNCTION [portal].[GetNavigationRecursive](@ParentNavId INT)
 RETURNS NVARCHAR(MAX)
 AS
 BEGIN
-DECLARE @Json NVARCHAR(MAX), @MaxCount INT;
-SELECT @MaxCount = COUNT(*) FROM portal.Navigation;
+DECLARE @Json NVARCHAR(MAX);
 ;WITH Nav AS 
 (
-	SELECT TOP(@MaxCount) * FROM portal.Navigation
+	SELECT * FROM portal.Navigation
 	WHERE NavParentId = @ParentNavId
 	OR (@ParentNavId IS NULL AND NavParentId IS NULL) 
-	ORDER BY NavOrder ASC
 )
-SELECT @Json = ISNULL(@Json + N', ', N'[ ') + N' { "NavId": ' + CONVERT(nvarchar(max), NavId) + N',
-"NavLabel": "' + portal.FormatValueForJson(NavLabel) + N'",
-"NavOrder": ' + CONVERT(nvarchar(max), NavOrder) + N',
-"NavUri": "' + ISNULL(portal.FormatValueForJson(NavUri), N'') + N'",
-"NavGlyph": "' + portal.FormatValueForJson(NavGlyph) + N'",
-"NavTooltip": "' + portal.FormatValueForJson(NavTooltip) + N'",
-"ViewID": "' + portal.FormatValueForJson(CONVERT(nvarchar(max), ViewID)) + N'",
-"ChildItems":' + ISNULL(portal.GetNavigationRecursive(ISNULL(NavId, -1)), N'[ ]') + N' }'
+SELECT @Json =
+(SELECT NavId, NavLabel, NavOrder, NavUri, NavGlyph, NavTooltip, ViewID
+,ChildItems = JSON_QUERY (portal.GetNavigationRecursive(NavId))
 FROM Nav
+WHERE NavParentId = @ParentNavId
+OR (@ParentNavId IS NULL AND NavParentId IS NULL)
+ORDER BY NavOrder ASC
+FOR JSON AUTO)
 
-SET @Json = ISNULL(@Json, N'[ ') + N']'
+SET @Json = ISNULL(@Json, N'[ ]')
 RETURN @Json
 
 END
