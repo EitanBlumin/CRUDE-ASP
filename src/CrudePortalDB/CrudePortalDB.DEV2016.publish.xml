@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseName>CrudePortalDB</TargetDatabaseName>
+    <DeployScriptFileName>CrudePortalDB.sql</DeployScriptFileName>
+    <TargetConnectionString>Data Source=.\DEV2016;Integrated Security=True;Persist Security Info=False;Pooling=False;MultipleActiveResultSets=False;Connect Timeout=60;Encrypt=False;TrustServerCertificate=True</TargetConnectionString>
+    <ProfileVersionNumber>1</ProfileVersionNumber>
+    <BlockOnPossibleDataLoss>False</BlockOnPossibleDataLoss>
+    <DropObjectsNotInSource>True</DropObjectsNotInSource>
+    <DoNotDropDatabaseRoles>True</DoNotDropDatabaseRoles>
+    <DoNotDropDatabaseScopedCredentials>True</DoNotDropDatabaseScopedCredentials>
+    <DoNotDropEventNotifications>True</DoNotDropEventNotifications>
+    <DoNotDropEventSessions>True</DoNotDropEventSessions>
+    <DoNotDropLogins>True</DoNotDropLogins>
+    <DoNotDropLinkedServers>True</DoNotDropLinkedServers>
+    <DoNotDropLinkedServerLogins>True</DoNotDropLinkedServerLogins>
+    <DoNotDropPermissions>True</DoNotDropPermissions>
+    <DoNotDropRoleMembership>True</DoNotDropRoleMembership>
+    <DoNotDropServerRoles>True</DoNotDropServerRoles>
+    <DoNotDropServerRoleMembership>True</DoNotDropServerRoleMembership>
+    <DoNotDropUsers>True</DoNotDropUsers>
+  </PropertyGroup>
+</Project>
