@@ -107,7 +107,9 @@
   <ItemGroup>
     <None Include="CrudePortalDB.local.publish.xml" />
     <None Include="Scripts\RecursiveFunctions.PostDeployment.sql" />
-    <None Include="CrudePortalDB.DEV2016.publish.xml" />
+    <None Include="CrudePortalDB.DEV2016.publish.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
