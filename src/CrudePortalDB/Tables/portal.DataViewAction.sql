@@ -8,7 +8,7 @@
     [ActionOrder]         INT             CONSTRAINT [DF_DataViewAction_ActionOrder] DEFAULT ((1)) NOT NULL,
     [RequireConfirmation] BIT             CONSTRAINT [DF_DataViewAction_RequireConfirmation] DEFAULT ((1)) NOT NULL,
     [ActionUri]           NVARCHAR (1000) NULL, 
-    [UriTargetWindow]	  VARCHAR(25) NOT NULL DEFAULT '_blank',
+    [UriTargetWindow]	  VARCHAR(25) NULL DEFAULT '_blank',
     [NgClickJSCode]             NVARCHAR (1000) NULL,
     [GlyphIcon] NVARCHAR(50) NULL, 
     [DatabaseCommand] NVARCHAR(4000) NULL, 

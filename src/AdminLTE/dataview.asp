@@ -657,6 +657,7 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
             console.log("loaded ajax data. num of rows: " + $scope.dataviewContents.data.length);
       }, function(response) {
             alert("Something went wrong: " + response.status + " " + response.statusText);
+            console.log(response);
         });
     }
     
