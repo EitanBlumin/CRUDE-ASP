@@ -235,22 +235,22 @@ function displayNavLink(navLink) {
         txt += ' treeview';
     if (isNavLinkActive(navLink))
         txt += ' active';
-    if (navLink.ViewID.length > 0)
+    if (navLink["ViewID"])
         txt += '" view-id="' + navLink.ViewID;
 
     txt += '"><a href="';
 
     if (navLink.ChildItems.length > 0)
         txt += "javascript:"
-    else if (navLink.NavUri.length > 0)
+    else if (navLink["NavUri"])
         txt += navLink.NavUri;
-    else if (navLink.ViewID.length > 0)
+    else if (navLink["ViewID"])
         txt += "dataview.asp?ViewID=" + navLink.ViewID;
     else
         txt += "#"
 
     txt += '" title="' + navLink.NavTooltip + '"';
-    if (navLink.NavTooltip.length > 0 && navLink.ChildItems.length == 0)
+    if (navLink["NavTooltip"] && navLink.ChildItems.length == 0)
         txt += ' data-toggle="tooltip"';
 
     txt += '><i class="' + navLink.NavGlyph + '"></i> <span>' + navLink.NavLabel + '</span>'

@@ -11,7 +11,7 @@ END IF
 ' Connection string
 ' =====================
 Dim adoConStr, adoConn, strError
-adoConStr = "Provider=SQLOLEDB;Data Source=127.0.0.1;User ID=CrudeLogin;Password=CrudePassword;Initial Catalog=CrudePortalDB;Application Name=" & Request.ServerVariables("SCRIPT_NAME")
+adoConStr = "Provider=SQLOLEDB;Data Source=.\DEV2016;User ID=CrudeLogin;Password=CrudePassword;Initial Catalog=CrudePortalDB;Application Name=" & Request.ServerVariables("SCRIPT_NAME")
 
 ' Define global connection object
 ' ================================
