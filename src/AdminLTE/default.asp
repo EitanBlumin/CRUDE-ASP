@@ -36,7 +36,7 @@ adoConn.Open
 
       <ol class="breadcrumb">
         <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
-        <li class="active"><%= constPageTitle %></li>
+        <li class="active"><%= strPageTitle %></li>
       </ol>
 
     </section>
