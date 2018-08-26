@@ -11,7 +11,7 @@ WHERE ViewID = @ViewID
 
 SET @CMD = N'SET @Json = (SELECT "_ItemID" = ' + @PK
 
-SELECT @CMD = @CMD + N', "' + FieldLabel + N'" = ' + CASE WHEN LinkedTable <> '' AND LinkedTableValueField <> '' THEN N'CONVERT(nvarchar(max), ' + FieldSource + N')' ELSE FieldSource END
+SELECT @CMD = @CMD + N', "' + FieldLabel + N'" = ' + CASE WHEN FieldType = 12 THEN N'''''' WHEN LinkedTable <> '' AND LinkedTableValueField <> '' THEN N'CONVERT(nvarchar(max), ' + FieldSource + N')' ELSE FieldSource END
 	+ CASE WHEN LinkedTable <> '' AND LinkedTableValueField <> '' THEN N',
 	 "_resolved_' + FieldLabel + N'" = + STUFF((SELECT N'', '' + labelfield FROM
 		(SELECT labelfield = ' + ISNULL(NULLIF(LinkedTableTitleField, N''), LinkedTableValueField) + N', valuefield = CONVERT(nvarchar(max), ' + LinkedTableValueField + N')
