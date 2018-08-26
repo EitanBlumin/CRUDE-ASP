@@ -15,7 +15,7 @@ strPageTitle = "Home"
 ' Open DB Connection
 '=======================
 adoConn.Open
-%>
+%><!--#include file="dist/asp/inc_crudeconstants.asp" -->
 <!DOCTYPE html>
 <html>
 <head>

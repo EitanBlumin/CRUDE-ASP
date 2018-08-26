@@ -18,7 +18,7 @@ Response.CacheControl = "No-Store"
 '************************
 
 ' Variable Definition
-Dim strMode, strSQL, rsItems, cmdStoredProc, nItemID, nIndex, blnFound, nColSpan, blnRequiredFieldsFilled, strFormIDString
+Dim strMode, cmdStoredProc, nItemID, nIndex, blnFound, nColSpan, blnRequiredFieldsFilled, strFormIDString
 Dim blnRTEEnabled, blnShowForm, blnShowList, blnAllowUpdate, blnAllowInsert, blnAllowDelete, blnAllowClone, blnAllowSearch, strOrderBy, strSearchFilter, strCurrFilter
 Dim strLastOptGroup, blnOptGroupStarted, strJsonOutput
 Set rsItems = Server.CreateObject("ADODB.Recordset")
