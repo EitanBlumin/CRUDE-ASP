@@ -14,7 +14,7 @@ strPageTitle = "Data View"
 
 ' Init Variables
 '=======================
-Dim strSQL, rsItems, nItemID, strMode, nCount, nIndex
+Dim nItemID, strMode, nCount, nIndex
 
 ' Open DB Connection
 '=======================
@@ -417,12 +417,12 @@ END IF
 				END IF %>>
 			<%
 		    Case 13 '"time"
-		    %><input class="form-control form-control-sm" type="time" name="inputField_<%= nIndex %>" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'].substr(0,8)"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %> step="1">
+		    %><input class="form-control form-control-sm" type="time" name="inputField_<%= nIndex %>" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %> step="1">
 		    <%
 			Case 9 '"boolean"
-				%><input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>1" value="1" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnReadOnly THEN Response.Write(" readonly") %>><label for="inputField_<%= nIndex %>1" class="form-check-label">Yes</label>
+				%><input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>1" value="1" ng-checked="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnReadOnly THEN Response.Write(" readonly") %>><label for="inputField_<%= nIndex %>1" class="form-check-label">Yes</label>
 				&nbsp;
-				<input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>0" value="0" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnReadOnly THEN Response.Write(" readonly") %>><label for="inputField_<%= nIndex %>0" class="form-check-label">No</label>
+				<input type="radio" class="form-check-input" name="inputField_<%= nIndex %>" id="inputField_<%= nIndex %>0" value="0" ng-checked="!row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"<% IF blnReadOnly THEN Response.Write(" readonly") %>><label for="inputField_<%= nIndex %>0" class="form-check-label">No</label>
 				<%
 			Case 10 '"link"
 				%><span ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']"></span>
@@ -433,7 +433,7 @@ END IF
 			<%
 			Case 3, 4 '"int", "double"
 			%>
-			<input class="form-control form-control-sm" type="number" name="inputField_<%= nIndex %>" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" ng-model="row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>']" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %>>
+			<input class="form-control form-control-sm" type="number" name="inputField_<%= nIndex %>" placeholder="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>" value="{{ row['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel, nIndex)) %>'] }}" size="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcWidth, nIndex)) %>" maxlength="<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcMaxLength, nIndex)) %>"<% IF blnRequired THEN Response.Write(" required") %><% IF blnReadOnly THEN Response.Write(" readonly") %>>
 			<%
 			Case 15 '"email"
 			%>
@@ -634,17 +634,28 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
             ]
         };
     <%
-    'Init a Row Object with Default Values
+    Dim strFieldsJSReinitScript
+    strFieldsJSReinitScript = ""
+
 	FOR nIndex = 0 TO UBound(arrViewFields, 2)
+        'Init a Row Object with Default Values
 		IF arrViewFields(dvfcDefaultValue, nIndex) <> "" THEN ' has default
             %>$scope.defaultRow['<%= Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel,nIndex)) %>'] = <%
                     Select Case arrViewFields(dvfcFieldType, nIndex)
                             Case 3, 4, 9
-                               Response.Write arrViewFields(dvfcDefaultValue, nIndex) & ";"
+                               Response.Write arrViewFields(dvfcDefaultValue, nIndex) & ";" & vbCrLf
                             Case Else
-                               Response.Write "'" & arrViewFields(dvfcDefaultValue, nIndex) & "';"
+                               Response.Write "'" & arrViewFields(dvfcDefaultValue, nIndex) & "';" & vbCrLf
                     End Select
         END IF
+        Select Case arrViewFields(dvfcFieldType, nIndex)
+                Case 7, 8 ' "date", "datetime"
+                    strFieldsJSReinitScript = strFieldsJSReinitScript & "$scope.row['" & Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel,nIndex)) & "'] = new Date($scope.row['" & Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel,nIndex)) & "']);" & vbCrLf
+    
+		        Case 13 '"time"
+                    strFieldsJSReinitScript = strFieldsJSReinitScript & "$scope.row['" & Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel,nIndex)) & "'] = new Date('1970-01-01 ' + $scope.row['" & Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel,nIndex)) & "']);" & vbCrLf
+                    strFieldsJSReinitScript = strFieldsJSReinitScript & "console.log($scope.row['" & Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel,nIndex)) & "']);" & vbCrLf
+        End Select
     NEXT
                 
     %>
@@ -657,6 +668,7 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
             console.log("loaded ajax data. num of rows: " + $scope.dataviewContents.data.length);
       }, function(response) {
             alert("Something went wrong: " + response.status + " " + response.statusText);
+            console.log(response);
         });
     }
     
@@ -670,6 +682,7 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
         $scope.row = null;
         $scope.row = angular.copy($scope.defaultRow);
         $scope.row._ItemID = null;
+        <%= strFieldsJSReinitScript %>
     }
 
     $scope.dvEdit = function(r) {
@@ -677,6 +690,7 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
         $scope.selectedModalMode = "edit";
         $scope.row = null;
         $scope.row = angular.copy(r);
+        <%= strFieldsJSReinitScript %>
 //        $('.textarea').each(function() { // Issue #48
 //            console.log(this.innerHTML);
 //            console.log($editor);
@@ -690,6 +704,7 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
         $scope.row = null;
         $scope.row = angular.copy(r);
         $scope.row._ItemID = null;
+        <%= strFieldsJSReinitScript %>
     }
 
     $scope.dvDelete = function(r) {

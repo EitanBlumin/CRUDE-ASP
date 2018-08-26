@@ -14,7 +14,7 @@ strPageTitle = "Manage Data Views"
 
 ' Init Variables
 '=======================
-Dim strSQL, rsItems, nItemID, strMode, nCount, nIndex
+Dim nItemID, strMode, nCount, nIndex
 
 ' Open DB Connection
 '=======================

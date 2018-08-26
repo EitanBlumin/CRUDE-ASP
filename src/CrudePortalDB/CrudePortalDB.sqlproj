@@ -8,7 +8,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
     <ProjectGuid>{247ca1a3-3b86-46c9-b470-aa4940a41511}</ProjectGuid>
-    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql100DatabaseSchemaProvider</DSP>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootPath>
     </RootPath>
@@ -99,6 +99,8 @@
     <Build Include="Views\portal.DataViewDataTableFlags.sql" />
     <Build Include="Views\portal.DataViewPagingTypes.sql" />
     <Build Include="Functions\portal.GetNavigationRecursive.sql" />
+    <Build Include="Tables\portal.DataViewActionParameters.sql" />
+    <Build Include="Stored Procedures\portal.GetDataViewInfo.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="CrudePortalDB.refactorlog" />
@@ -106,6 +108,9 @@
   <ItemGroup>
     <None Include="CrudePortalDB.local.publish.xml" />
     <None Include="Scripts\RecursiveFunctions.PostDeployment.sql" />
+    <None Include="CrudePortalDB.DEV2016.publish.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />

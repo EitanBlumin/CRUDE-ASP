@@ -14,7 +14,7 @@ strPageTitle = "Manage Data View Fields"
 
 ' Init Variables
 '=======================
-Dim strSQL, rsItems, nItemID, strMode, nCount, nIndex
+Dim nItemID, strMode, nCount, nIndex
 
 ' Open DB Connection
 '=======================
