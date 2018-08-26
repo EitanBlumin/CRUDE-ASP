@@ -11,10 +11,10 @@ WHERE ViewID = @ViewID
 
 SET @CMD = N'SET @Json = (SELECT "_ItemID" = ' + @PK
 
-SELECT @CMD = @CMD + N', "' + FieldLabel + N'" = ' + FieldSource
+SELECT @CMD = @CMD + N', "' + FieldLabel + N'" = ' + CASE WHEN LinkedTable <> '' AND LinkedTableValueField <> '' THEN N'CONVERT(nvarchar(max), ' + FieldSource + N')' ELSE FieldSource END
 	+ CASE WHEN LinkedTable <> '' AND LinkedTableValueField <> '' THEN N',
 	 "_resolved_' + FieldLabel + N'" = + STUFF((SELECT N'', '' + labelfield FROM
-		(SELECT labelfield = ' + ISNULL(NULLIF(LinkedTableTitleField, N''), LinkedTableValueField) + N', valuefield = ' + LinkedTableValueField + N'
+		(SELECT labelfield = ' + ISNULL(NULLIF(LinkedTableTitleField, N''), LinkedTableValueField) + N', valuefield = CONVERT(nvarchar(max), ' + LinkedTableValueField + N')
 		 FROM ' + LinkedTable + N' ' + ISNULL(LinkedTableAddition,N'') + N') AS t
 			WHERE (t.valuefield = ' + FieldSource + N') OR (t.valuefield IS NULL AND ' + FieldSource + N' IS NULL)
 		 FOR XML PATH('''')
