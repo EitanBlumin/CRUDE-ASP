@@ -176,6 +176,14 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
                     Select Case arrViewFields(dvfcFieldType, nIndex)
                         Case 12, 1, 2, 6, 14 '"password", "text", "textarea", "multicombo", "rte"
                             varCurrFieldValue = Request("inputField_" & nIndex)
+                        Case 13 '"time"
+                            IF Len(Request("inputField_" & nIndex)) = 0 AND (arrViewFields(dvfcFieldFlags, nIndex) AND 2) = 0 THEN ' if empty and not required, enter NULL
+                                varCurrFieldValue = NULL
+                                Response.Write "<!-- setting [time] field " & arrViewFields(dvfcFieldSource, nIndex) & " = NULL -->" & vbCrLf
+                            ELSE
+				                varCurrFieldValue = Mid(Request("inputField_" & nIndex), 1, 8)
+                                Response.Write "<!-- [time] field " & arrViewFields(dvfcFieldSource, nIndex) & " is NOT NULL (" & Len(Request("inputField_" & nIndex)) & ", " & (arrViewFields(dvfcFieldFlags, nIndex) AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+                            END IF
                         Case Else
                             IF Len(Request("inputField_" & nIndex)) = 0 AND (arrViewFields(dvfcFieldFlags, nIndex) AND 2) = 0 THEN ' if empty and not required, enter NULL
                                 varCurrFieldValue = NULL
@@ -201,11 +209,11 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
         IF strError = "" THEN
             IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
 	            cmdStoredProc.Execute
-	
-	            IF Err.Number <> 0 THEN
-		            strError = strError & Err.Description & "<br/>"
-	            END IF
-	
+
+	            IF adoConn.Errors.Count > 0 THEN
+		            strError = strError & " Executed Stored Procedure " & strModificationProcedure & " With Errors</br>"
+    		    END IF
+
 	            SET cmdStoredProc = Nothing
             ELSE
                 'strError = strError & "Attempting rs.Update<br/>"
