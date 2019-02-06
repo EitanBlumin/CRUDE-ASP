@@ -59,6 +59,8 @@ function displayNavLink(navLink) {
 
     if (navLink.ChildItems.length > 0)
         txt += "javascript:"
+    else if (navLink["OpenUriInIFRAME"])
+        txt += "view.asp?NavID=" + navLink.NavId;
     else if (navLink["NavUri"])
         txt += navLink.NavUri;
     else if (navLink["ViewID"])

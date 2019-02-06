@@ -13,6 +13,7 @@ DECLARE @Json NVARCHAR(MAX);
 )
 SELECT @Json =
 (SELECT NavId, NavLabel, NavOrder, NavUri, NavGlyph, NavTooltip, ViewID
+,OpenUriInIFRAME
 ,ChildItems = JSON_QUERY (portal.GetNavigationRecursive(NavId))
 FROM Nav
 WHERE NavParentId = @ParentNavId

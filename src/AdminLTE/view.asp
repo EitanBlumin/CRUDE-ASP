@@ -25,7 +25,12 @@ IF nNavID <> "" THEN
     rsItems.Open strSQL, adoConn
 
     IF NOT rsItems.EOF THEN
-        strPageURL = rsItems("NavUri")
+        IF IsNumeric(rsItems("ViewID")) THEN
+            strPageURL = "dataview.asp?ViewID=" & rsItems("ViewID")
+        ELSE
+            strPageURL = rsItems("NavUri")
+        END IF
+
         strPageTitle = rsItems("NavLabel")
     END IF
 
@@ -63,7 +68,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
     <!-- Main content -->
     <section class="content container-fluid">
-        <iframe width="100%" height="100%" style="overflow: auto" src="<%= strPageURL %>"></iframe>
+        <iframe width="100%" style="height: auto; margin: 10px auto 0px auto; min-height: 400px; overflow: auto" scrolling="yes" src="<%= strPageURL %>"></iframe>
     </section>
     <!-- /.content -->
   </div>

@@ -123,7 +123,7 @@ $('li.nav-link a').each(function() {
     //console.log("examining link: " + getPageName($(this).attr('href')));
     if (getPageName($(this).attr('href')) == currFileName){
 
-        if (currFileName == "dataview.asp")
+        if (currFileName == "dataview.asp" || currFileName == "view.asp")
         {
             if ($(this).parent().attr("view-id") == currViewID)
             {
