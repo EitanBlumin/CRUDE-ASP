@@ -684,7 +684,10 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
       $http.get("ajax_dataview.asp?mode=dataviewcontents&ViewID=<%= nViewID %>")
       .then(function(response) {
             $scope.dataviewContents = response.data;
-            console.log("loaded ajax data. num of rows: " + $scope.dataviewContents.data.length);
+            if ($scope.dataviewContents.data['length'])
+                console.log("loaded ajax data. num of rows: " + $scope.dataviewContents.data.length);
+            else
+                console.log("no ajax data received");
       }, function(response) {
             alert("Something went wrong: " + response.status + " " + response.statusText);
             console.log(response);

@@ -34,8 +34,8 @@ WHEN MATCHED THEN
 WHEN NOT MATCHED BY TARGET THEN
 	INSERT ([ViewID],[Title],[MainTable],[Primarykey],[ModificationProcedure],[ViewProcedure],[DeleteProcedure],[ViewDescription],[OrderBy],[Flags])
 	VALUES ([ViewID],[Title],[MainTable],[Primarykey],[ModificationProcedure],[ViewProcedure],[DeleteProcedure],[ViewDescription],[OrderBy],[Flags])
-WHEN NOT MATCHED BY SOURCE THEN
-	DELETE
+--WHEN NOT MATCHED BY SOURCE THEN
+--	DELETE
 ;
 SET IDENTITY_INSERT [portal].[DataView] OFF;
 GO
@@ -80,8 +80,8 @@ WHEN MATCHED THEN
 WHEN NOT MATCHED BY TARGET THEN
 	INSERT ([ViewID],[FieldID],[FieldLabel],[FieldSource],[FieldType],[FieldFlags],[FieldOrder],[DefaultValue],[MaxLength],[UriPath],[UriStyle],[LinkedTable],[LinkedTableGroupField],[LinkedTableTitleField],[LinkedTableValueField],[LinkedTableAddition],[Width],[Height])
 	VALUES ([ViewID],[FieldID],[FieldLabel],[FieldSource],[FieldType],[FieldFlags],[FieldOrder],[DefaultValue],[MaxLength],[UriPath],[UriStyle],[LinkedTable],[LinkedTableGroupField],[LinkedTableTitleField],[LinkedTableValueField],[LinkedTableAddition],[Width],[Height])
-WHEN NOT MATCHED BY SOURCE THEN
-	DELETE
+--WHEN NOT MATCHED BY SOURCE THEN
+--	DELETE
 ;
 SET IDENTITY_INSERT [portal].[DataViewField] OFF;
 GO
