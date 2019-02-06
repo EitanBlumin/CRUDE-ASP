@@ -20,7 +20,7 @@ Dim nItemID, strMode, nCount, nIndex
 '=======================
 adoConn.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
-Dim strTitle, strMainTable, strPrimaryKey, strModificationProcedure, strViewProcedure, strDeleteProcedure
+Dim strTitle, strDataSource, strMainTable, strPrimaryKey, strModificationProcedure, strViewProcedure, strDeleteProcedure
 Dim strDescription, strOrderBy, nFlags
 Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle
     
@@ -28,6 +28,8 @@ strMode = Request("mode")
 nItemID = Request("ItemID")
 IF NOT IsNumeric(nItemID) THEN nItemID = ""
 strTitle = Request("Title")
+strDataSource = Request("DataSource")
+IF strDataSource = "" THEN strDataSource = "Default"
 strMainTable = Request("MainTable")
 strPrimaryKey = Request("PrimaryKey")
 strModificationProcedure = Request("ModificationProcedure")
@@ -77,6 +79,7 @@ IF Request.Form("Title") <> "" THEN
             rsItems.Close    
         ELSE
             rsItems("Title") = strTitle
+            rsItems("DataSource") = strDataSource
             rsItems("MainTable") = strMainTable
             rsItems("Primarykey") = strPrimaryKey
             rsItems("ModificationProcedure") = strModificationProcedure
@@ -162,6 +165,7 @@ IF strMode = "edit" AND nItemID <> "" Then
 	rsItems.Open strSQL, adoConn
 	IF NOT rsItems.EOF THEN
 		strTitle = rsItems("Title")
+        strDataSource = rsItems("DataSource")
 		strMainTable = rsItems("MainTable")
 		strPrimaryKey = rsItems("PrimaryKey")
 		strOrderBy = rsItems("OrderBy")
@@ -217,6 +221,23 @@ END IF
         <textarea class="textarea" name="ViewDescription" placeholder="Description" data-toggle="tooltip" title="This richly-formatted text will be displayed below the title, before the datatable"
                     style="width: 100%; height: 200px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;"><%= Sanitizer.HTMLFormControl(strDescription) %></textarea>
     </div></div>
+    <div class="form-group">
+        <label for="inputDataSource" class="col-sm-3 control-label">Data Source</label>
+
+        <div class="col-sm-9">
+            <select class="form-control" id="inputDataSource" name="DataSource" data-toggle="tooltip" title="Choose the Connection String to use (from web.config)">
+                <%
+                    Dim csoNode, csoChild, csoAttr
+                    Set csoNode = CONFIG_FILE_XML.GetElementsByTagName("connectionStrings").Item(0) 
+                    Set csoChild = csoNode.GetElementsByTagName("add")
+                    For Each csoAttr in csoChild
+                    %><option value="<%= csoAttr.getAttribute("name") %>"<%
+                        If csoAttr.getAttribute("name") = strDataSource then Response.Write " selected"
+                        %>><%= csoAttr.getAttribute("name") %></option>
+                    <% Next %>
+            </select>
+        </div>
+    </div>
     <div class="form-group">
         <label for="inputMainTable" class="col-sm-3 control-label">Main Table Name</label>
 

@@ -101,6 +101,7 @@
     <Build Include="Functions\portal.GetNavigationRecursive.sql" />
     <Build Include="Tables\portal.DataViewActionParameters.sql" />
     <Build Include="Stored Procedures\portal.GetDataViewInfo.sql" />
+    <Build Include="Stored Procedures\portal.GetDataViewContentsCommand.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="CrudePortalDB.refactorlog" />

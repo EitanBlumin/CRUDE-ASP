@@ -36,11 +36,12 @@ myRegEx.Global = True
 
 '[ConfigVars]
 ' Init Form Variables from DB. This will be deleted when generated as a seperate file.
-DIM nViewID, rsFields, arrViewFields, nColSpan
-DIM nFieldsNum, nViewFlags, strPrimaryKey, strMainTableName, strDataViewDescription, strFilterBackLink
+DIM adoConnSrc, adoConnSource, nViewID, rsFields, arrViewFields, nColSpan
+DIM nFieldsNum, nViewFlags, strPrimaryKey, strDataSource, strMainTableName, strDataViewDescription, strFilterBackLink
 Dim strFilterField, blnFilterRequired, cmdStoredProc, strViewProcedure, strModificationProcedure, strDeleteProcedure, varCurrFieldValue
 Dim paramPK, paramMode, paramFilter, paramOrderBy, blnRequired, blnReadOnly, nDtModBtnStyleIndex, blnShowRowActions
 
+strDataSource = "Default"
 strError = ""
 strSearchFilter = ""
 
@@ -55,6 +56,8 @@ IF nViewID <> "" AND IsNumeric(nViewID) THEN
 	strSQL = "SELECT * FROM portal.DataView WHERE ViewID = " & nViewID
 	rsItems.Open strSQL, adoConn
 	IF NOT rsItems.EOF THEN
+        strDataSource = rsItems("DataSource")
+        IF strDataSource = "" OR strDataSource = Null THEN strDataSource = "Default"
 		strPageTitle = rsItems("Title")
         strDataViewDescription = rsItems("ViewDescription")
         strViewProcedure = rsItems("ViewProcedure")
@@ -115,6 +118,12 @@ END IF
 Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
 strViewQueryString = "&ViewID=" & nViewID
 IF strFilteredValue <> "" THEN strViewQueryString = strViewQueryString & "&seek_" & Sanitizer.Querystring(strFilterField) & "=" & Sanitizer.Querystring(strFilteredValue)
+IF strDataSource <> "" THEN adoConnSource = GetConfigValue("connectionStrings", "name", "connectionString", strDataSource, adoConStr)
+
+Set adoConnSrc = Server.CreateObject("ADODB.Connection")
+adoConnSrc.ConnectionString = adoConnSource
+adoConnSrc.CommandTimeout = 0
+adoConnSrc.Open
 
 '***************************
 ' Data Manipulation Section
@@ -126,7 +135,7 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
         strSQL = strModificationProcedure
 
 	    SET cmdStoredProc = Server.CreateObject("ADODB.Command")
-	    cmdStoredProc.ActiveConnection = adoConn
+	    cmdStoredProc.ActiveConnection = adoConnSrc
 	    cmdStoredProc.CommandText = strSQL
 	    cmdStoredProc.CommandType = adCmdStoredProc
     
@@ -151,7 +160,7 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
         rsItems.CursorLocation = adUseClient
         rsItems.CursorType = adOpenKeyset
         rsItems.LockType = adLockOptimistic
-        rsItems.Open strSQL, adoConn
+        rsItems.Open strSQL, adoConnSrc
 
         IF strMode = "add" THEN
             rsItems.AddNew
@@ -210,18 +219,18 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
             IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
 	            cmdStoredProc.Execute
 
-	            IF adoConn.Errors.Count > 0 THEN
+	            IF adoConnSrc.Errors.Count > 0 THEN
 		            strError = strError & " Executed Stored Procedure " & strModificationProcedure & " With Errors</br>"
     		    END IF
 
 	            SET cmdStoredProc = Nothing
             ELSE
                 'strError = strError & "Attempting rs.Update<br/>"
-                'Response.Write "<!-- ErrCount before Update: " & adoConn.Errors.Count & " -->" & vbCrLf
+                'Response.Write "<!-- ErrCount before Update: " & adoConnSrc.Errors.Count & " -->" & vbCrLf
                 rsItems.Update
-                'Response.Write "<!-- ErrCount after Update: " & adoConn.Errors.Count & " -->" & vbCrLf
+                'Response.Write "<!-- ErrCount after Update: " & adoConnSrc.Errors.Count & " -->" & vbCrLf
                 rsItems.Close    
-                'Response.Write "<!-- ErrCount after Close: " & adoConn.Errors.Count & " -->" & vbCrLf
+                'Response.Write "<!-- ErrCount after Close: " & adoConnSrc.Errors.Count & " -->" & vbCrLf
             END IF
         ELSE
             rsItems.Close    
@@ -232,16 +241,17 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
     ON ERROR GOTO 0
 
     ' check for errors
-    If adoConn.Errors.Count > 0 Then
+    If adoConnSrc.Errors.Count > 0 Then
         DIM Err
         strError = strError & " Error(s) while performing """ & strMode & """:<br/>" 
-        For Each Err In adoConn.Errors
+        For Each Err In adoConnSrc.Errors
 			strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
         Next
         IF globalIsAdmin THEN strError = strError & "While trying to run:<br/><b>" & strSQL & "</b>"
     End If
 	
 	IF strError = "" THEN 
+        adoConnSrc.Close
         adoConn.Close
 	    Response.Redirect(constPageScriptName & "?MSG=" & strMode & strViewQueryString)
     END IF
@@ -253,7 +263,7 @@ ELSEIF strMode = "delete" AND nItemID <> "" AND IsNumeric(nItemID) AND blnAllowD
         strSQL = strDeleteProcedure
 
 	    SET cmdStoredProc = Server.CreateObject("ADODB.Command")
-	    cmdStoredProc.ActiveConnection = adoConn
+	    cmdStoredProc.ActiveConnection = adoConnSrc
 	    cmdStoredProc.CommandText = strSQL
 	    cmdStoredProc.CommandType = adCmdStoredProc
     
@@ -276,11 +286,12 @@ ELSEIF strMode = "delete" AND nItemID <> "" AND IsNumeric(nItemID) AND blnAllowD
         ON ERROR GOTO 0
     Else
         strSQL = "DELETE FROM " & strMainTableName & " WHERE " & strPrimaryKey & " = " & nItemID
-	    adoConn.Execute strSQL
+	    adoConnSrc.Execute strSQL
     End If
 
 	IF strError = "" Then
-    	adoConn.Close
+    	adoConnSrc.Close
+        adoConn.Close
         Response.Redirect(constPageScriptName & "?MSG=delete" & strViewQueryString)
     End If
 END IF
@@ -378,7 +389,7 @@ END IF
 				END IF %>>
 				<%
 					SET rsFields = Server.CreateObject("ADODB.Recordset")
-					rsFields.Open strSQL, adoConn
+					rsFields.Open strSQL, adoConnSrc
 					
                     blnOptGroupStarted = False
 					strLastOptGroup = ""

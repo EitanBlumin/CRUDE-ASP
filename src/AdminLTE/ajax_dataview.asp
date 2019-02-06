@@ -18,7 +18,7 @@ Response.CacheControl = "No-Store"
 '************************
 
 ' Variable Definition
-Dim strMode, cmdStoredProc, nItemID, nIndex, blnFound, nColSpan, blnRequiredFieldsFilled, strFormIDString
+Dim strMode, adoConnSrc, adoConnSource, cmdStoredProc, nItemID, nIndex, blnFound, nColSpan, blnRequiredFieldsFilled, strFormIDString
 Dim blnRTEEnabled, blnShowForm, blnShowList, blnAllowUpdate, blnAllowInsert, blnAllowDelete, blnAllowClone, blnAllowSearch, strOrderBy, strSearchFilter, strCurrFilter
 Dim strLastOptGroup, blnOptGroupStarted, strJsonOutput
 Set rsItems = Server.CreateObject("ADODB.Recordset")
@@ -56,7 +56,7 @@ IF strMode = "dataviewcontents" AND Request("ViewID") <> "" AND IsNumeric(Reques
 
     SET cmdStoredProc = Server.CreateObject("ADODB.Command")
     cmdStoredProc.ActiveConnection = adoConn
-    cmdStoredProc.CommandText = "portal.GetDataViewContents"
+    cmdStoredProc.CommandText = "portal.GetDataViewContentsCommand"
     cmdStoredProc.CommandType = adCmdStoredProc  
     cmdStoredProc.Parameters.Refresh
     
@@ -67,21 +67,47 @@ IF strMode = "dataviewcontents" AND Request("ViewID") <> "" AND IsNumeric(Reques
     SET rsItems = cmdStoredProc.Execute
 	
     IF Err.Number <> 0 THEN
-	    strError = "<!-- ERROR:<br>" & REPLACE(Err.Description, """", "\""") & "-->"
+	    strError = "ERROR at " & Err.Source & ":<br>" & REPLACE(Err.Description, """", "\""")
     ELSE
-        Do While Not rsItems.EOF  
-            strJsonOutput = strJsonOutput & rsItems("Json")
-            rsItems.MoveNext  
-        Loop  
-
+        IF NOT rsItems.EOF THEN
+            strSQL = rsItems("Command")
+            adoConnSource = GetConfigValue("connectionStrings", "name", "connectionString", rsItems("DataSource"), adoConStr)
+        END IF
         rsItems.Close
     END IF
-	
+    
+    Set adoConnSrc = Server.CreateObject("ADODB.Connection")
+    adoConnSrc.ConnectionString = adoConnSource
+    adoConnSrc.CommandTimeout = 0
+    adoConnSrc.Open
+
+    IF strError = "" AND strSQL <> "" THEN
+        SET rsItems = Nothing
+        SET rsItems = Server.CreateObject("ADODB.Recordset")
+        rsItems.Open strSQL, adoConnSrc
+        
+        IF Err.Number <> 0 THEN
+	        strError = "ERROR at " & Err.Source & ":<br>" & REPLACE(Err.Description, """", "\""") 
+        ELSE
+            WHILE NOT rsItems.EOF
+                strJsonOutput = strJsonOutput & rsItems("Json")
+                rsItems.MoveNext  
+            WEND
+
+            rsItems.Close
+        END IF
+	END IF
     ON ERROR GOTO 0
 	
     SET cmdStoredProc = Nothing
     
-    Response.Write "{ ""data"": " & strJsonOutput & " }"
+    IF strJsonOutput = "" THEN strJsonOutput = "[ ]" 
+
+    Response.Write "{ ""data"": " & strJsonOutput
+
+    IF strError <> "" THEN Response.Write ", ""error"": """ & strError & """"
+
+    Response.Write " }"
 END IF
 
 Set rsItems = Nothing

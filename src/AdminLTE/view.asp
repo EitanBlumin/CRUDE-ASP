@@ -8,13 +8,31 @@ Session.CodePage = 1255
 
 ' Local Constants
 '=======================
-Const constPageScriptName = "blank.asp"
-Dim strPageTitle
-strPageTitle = "New Page"
+Const constPageScriptName = "view.asp"
+Dim strPageTitle, nNavID, strPageURL
+strPageTitle = ""
+strPageURL = "404.asp"
+nNavID = Request("NavID")
+IF NOT IsNumeric(nNavID) THEN nNavID = ""
 
 ' Open DB Connection
 '=======================
 adoConn.Open
+    
+IF nNavID <> "" THEN
+    strSQL = "SELECT * FROM portal.Navigation WHERE NavId = " & nNavID
+    SET rsItems = Server.CreateObject("ADODB.Recordset")
+    rsItems.Open strSQL, adoConn
+
+    IF NOT rsItems.EOF THEN
+        strPageURL = rsItems("NavUri")
+        strPageTitle = rsItems("NavLabel")
+    END IF
+
+    rsItems.Close
+    SET rsItems = Nothing
+
+END IF
 %>
 <!DOCTYPE html>
 <!--
@@ -45,7 +63,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
     <!-- Main content -->
     <section class="content container-fluid">
-        Hello, World! Put your content here.
+        <iframe width="100%" height="100%" style="overflow: auto" src="<%= strPageURL %>"></iframe>
     </section>
     <!-- /.content -->
   </div>

@@ -7,5 +7,6 @@
     [NavUri] NVARCHAR(1000) NULL, 
     [NavGlyph] NVARCHAR(100) NULL, 
     [NavTooltip] NVARCHAR(300) NULL, 
-    [ViewID] INT NULL
+    [ViewID] INT NULL, 
+    [OpenUriInIFRAME] BIT NOT NULL DEFAULT 0
 )

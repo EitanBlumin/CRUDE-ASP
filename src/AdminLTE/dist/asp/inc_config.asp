@@ -1,5 +1,36 @@
 <%
 Option Explicit
+'******************************GetConfigValue*******************************
+' Purpose:      Utility function to get value from a configuration file.
+' Conditions:   CONFIG_FILE_PATH must be refer to a valid XML file
+' Input:        sectionName - a section in the file, eg, appSettings
+'               attrName - refers to the "key" attribute of an entry
+' Output:       A string containing the value of the appropriate entry
+'***************************************************************************
+Dim CONFIG_FILE_PATH 
+CONFIG_FILE_PATH = "web.config" 'if no qualifier, refers to this directory. can point elsewhere.
+
+Dim CONFIG_FILE_XML ' load config file only once    
+Set CONFIG_FILE_XML=Server.CreateObject("Microsoft.XMLDOM")
+CONFIG_FILE_XML.Async = "false"
+CONFIG_FILE_XML.Load(Server.MapPath(CONFIG_FILE_PATH))
+
+Function GetConfigValue(sectionName, keyAttrName, valAttrName, attrName, defaultValue)
+    Dim oNode, oChild, oAttr, val
+    Set oNode = CONFIG_FILE_XML.GetElementsByTagName(sectionName).Item(0) 
+    Set oChild = oNode.GetElementsByTagName("add")
+    ' Get the first match
+    For Each oAttr in oChild 
+        If oAttr.getAttribute(keyAttrName) = attrName then
+            val = oAttr.getAttribute(valAttrName)
+            GetConfigValue = val
+            Exit Function
+        End If
+    Next
+
+    GetConfigValue = defaultValue
+End Function
+
 ' Enforce Local access only
 ' ============================
 IF Right(Request.ServerVariables("SCRIPT_NAME"), Len("/restricted.asp")) <> "/restricted.asp" THEN
@@ -11,7 +42,7 @@ END IF
 ' Connection string
 ' =====================
 Dim adoConStr, adoConn, strError
-adoConStr = "Provider=SQLOLEDB;Data Source=.;User ID=CrudeLogin;Password=CrudePassword;Initial Catalog=CrudePortalDB;Application Name=" & Request.ServerVariables("SCRIPT_NAME")
+adoConStr = GetConfigValue("connectionStrings", "name", "connectionString", "Default", "Provider=SQLOLEDB;Data Source=.\DEV2016;User ID=CrudeLogin;Password=CrudePassword;Initial Catalog=CrudePortalDB;Application Name=" & Request.ServerVariables("SCRIPT_NAME"))
 
 ' Define global connection object
 ' ================================
@@ -22,9 +53,10 @@ adoConn.CommandTimeout = 0
 ' Global Variables
 ' ============================
 Dim rsItems, strSQL
-Dim globalIsAdmin, constPortalTitle, globalToastrOptions, globalBodyClass
+Dim globalIsAdmin, constPortalTitle, globalToastrOptions, globalBodyClass, globalWebPortalAdminEnabled
+globalWebPortalAdminEnabled = CBool(GetConfigValue("appSettings", "key", "value", "WebPortalAdminEnabled", "False"))
 
-constPortalTitle = "CrudeASP"
+constPortalTitle = GetConfigValue("appSettings", "key", "value", "PortalTitle", "CrudeASP")
 globalIsAdmin = True
 globalBodyClass = "hold-transition skin-blue sidebar-fixed sidebar-mini"
 globalToastrOptions = "" & VbCrLf & _

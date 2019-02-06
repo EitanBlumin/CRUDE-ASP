@@ -52,7 +52,8 @@ USING	(VALUES
 		(1,4,N'Link URI',N'NavUri',N'1',1,6,N'',2000,N'',1,N'',N'',N'',N'',N'',NULL,NULL),
 		(1,5,N'Glyph Icon',N'NavGlyph',N'1',1,3,N'',200,N'',1,N'',N'',N'',N'',N'',NULL,NULL),
 		(1,6,N'Tooltip',N'NavTooltip',N'1',1,5,N'',600,N'',1,N'',N'',N'',N'',N'',NULL,NULL),
-		(1,7,N'Data View',N'ViewID',N'5',1,7,N'',4,N'',1,N'portal.DataView',N'',N'Title',N'ViewId',N' UNION ALL SELECT ''-- None --'',NULL',0,0)
+		(1,7,N'Data View',N'ViewID',N'5',1,8,N'',4,N'',1,N'portal.DataView',N'',N'Title',N'ViewId',N' UNION ALL SELECT ''-- None --'',NULL',0,0),
+		(1,8,N'Open URI in IFRAME',N'OpenUriInIFRAME',N'9',11,7,N'false',5,N'',1,N'',N'',N'',N'',N'',NULL,NULL)
 		) AS src([ViewID],[FieldID],[FieldLabel],[FieldSource],[FieldType],[FieldFlags],[FieldOrder],[DefaultValue],[MaxLength],[UriPath],[UriStyle],[LinkedTable],[LinkedTableGroupField],[LinkedTableTitleField],[LinkedTableValueField],[LinkedTableAddition],[Width],[Height])
 ON
 	trgt.[ViewID] = src.[ViewID]

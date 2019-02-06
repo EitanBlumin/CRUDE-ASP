@@ -1,6 +1,7 @@
 ﻿CREATE TABLE [portal].[DataView] (
     [ViewID]                INT             IDENTITY (1, 1) NOT NULL,
     [Title]                 NVARCHAR (100)  NOT NULL,
+    [DataSource]			NVARCHAR(100) NULL, 
     [MainTable]             NVARCHAR (300)  NULL,
     [Primarykey]            NVARCHAR (300)  NULL,
     [ModificationProcedure] NVARCHAR (300)  NULL,

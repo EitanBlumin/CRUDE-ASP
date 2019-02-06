@@ -20,10 +20,12 @@ Dim nItemID, strMode, nCount, nIndex
 '=======================
 adoConn.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
+DIM adoConnSrc, adoConnSource, strDataSource, strPK, strMainTableName
 Dim strFieldLabel, strFieldSource, strDataViewTitle, nViewID, strDefaultValue, strUriPath, strLinkedTable, strLinkedTableGroupField
 Dim strLinkedTableTitleField, strLinkedTableAddition, strLinkedTableValueField, nFlags, nFieldType, nOrdering
 Dim nUriStyle, nMaxLength, nWidth, nHeight, strFieldDescription
     
+strDataSource = "Default"
 strMode = Request("mode")
 nItemID = Request("ItemID")
 IF NOT IsNumeric(nItemID) THEN nItemID = ""
@@ -32,15 +34,21 @@ IF NOT IsNumeric(nViewID) THEN nItemID = ""
 
     
 IF nViewID <> "" AND IsNumeric(nViewID) THEN
-	strSQL = "SELECT Title FROM portal.DataView WHERE ViewID = " & nViewID
+	strSQL = "SELECT Title, DataSource, PrimaryKey, MainTable FROM portal.DataView WHERE ViewID = " & nViewID
 	rsItems.Open strSQL, adoConn
 	IF NOT rsItems.EOF THEN
 		strDataViewTitle = rsItems("Title")
+        strPK = rsItems("PrimaryKey")
+        strMainTableName = rsItems("MainTable")
+        strDataSource = rsItems("DataSource")
+        IF strDataSource = "" OR strDataSource = Null THEN strDataSource = "Default"
 	Else
 		nViewID = ""
 	END IF
 	rsItems.Close
 END IF
+
+IF strDataSource <> "" THEN adoConnSource = GetConfigValue("connectionStrings", "name", "connectionString", strDataSource, adoConStr)
 
 IF nViewID = "" OR NOT IsNumeric(nViewID) THEN Response.Redirect("admin_dataviews.asp?MSG=notfound")
 strPageTitle = strPageTitle & " for " & strDataViewTitle
@@ -174,12 +182,103 @@ ELSEIF strMode = "sortFields" THEN
 	
 	Response.Redirect(constPageScriptName & "?ViewID=" & nViewID & "&MSG=sorted")
 
-ELSEIF strMode = "autoinit" THEN
-		
-	adoConn.Execute "EXEC portal.AutoInitDataViewFields @ViewID = " & nViewID & ";"
+ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) THEN
+	Dim srcCMD, rsTarget
+
+    Set adoConnSrc = Server.CreateObject("ADODB.Connection")
+    adoConnSrc.ConnectionString = adoConnSource
+    adoConnSrc.CommandTimeout = 0
+    adoConnSrc.Open
+
+    SET srcCMD = Server.CreateObject("ADODB.Command")
+    srcCMD.ActiveConnection= adoConnSrc
+    srcCMD.CommandType = adCmdText
+    srcCMD.CommandText = "SELECT c.name AS ColumnName, " & vbCrLf & _
+"	CASE WHEN fk.REFERENCED_COLUMN IS NOT NULL THEN 5 " & vbCrLf & _
+"       WHEN t.name LIKE '%char' THEN 1 " & vbCrLf & _
+"		WHEN t.name LIKE '%text' THEN 2 " & vbCrLf & _
+"		WHEN t.name LIKE '%int' THEN 3 " & vbCrLf & _
+"		WHEN t.name IN ('real', 'decimal', 'numeric', 'float', 'double') THEN 4 " & vbCrLf & _
+"		WHEN t.name = 'date' THEN 7 " & vbCrLf & _
+"		WHEN t.name LIKE '%datetime%' THEN 8 " & vbCrLf & _
+"		WHEN t.name = 'bit' THEN 9 " & vbCrLf & _
+"		WHEN t.name = 'time' THEN 13 " & vbCrLf & _
+"		ELSE 1 " & vbCrLf & _
+"	END AS fieldtype, " & vbCrLf & _
+"	9 + CASE WHEN c.is_nullable = 1 THEN 0 ELSE 2 END AS fieldflags, " & vbCrLf & _
+"	fieldorder = ROW_NUMBER() OVER (ORDER BY c.column_id ASC), " & vbCrLf & _
+"	'' AS fielddefault, c.max_length, QUOTENAME(fk.REFERENCED_SCHEMA) + '.' + QUOTENAME(fk.REFERENCED_TABLE) AS LinkedTable " & vbCrLf & _
+"   , fk.REFERENCED_COLUMN AS LinkedColumnValue, ISNULL(fk_table.REFERENCED_COLUMN_TEXT, fk.REFERENCED_COLUMN) AS LinkedColumnLabel " & vbCrLf & _
+"FROM sys.columns c INNER JOIN sys.types t " & vbCrLf & _
+"ON c.user_type_id = t.user_type_id AND c.system_type_id = t.system_type_id " & vbCrLf & _
+"OUTER APPLY ( " & vbCrLf & _
+"	SELECT " & vbCrLf & _
+"	  OBJECT_SCHEMA_NAME(fkc.referenced_object_id) AS REFERENCED_SCHEMA " & vbCrLf & _
+"	, OBJECT_NAME(fkc.referenced_object_id) AS REFERENCED_TABLE " & vbCrLf & _
+"	, refc.name AS REFERENCED_COLUMN " & vbCrLf & _
+"	FROM sys.foreign_keys AS fk " & vbCrLf & _
+"	INNER JOIN sys.foreign_key_columns AS fkc " & vbCrLf & _
+"	ON fkc.constraint_object_id = fk.object_id " & vbCrLf & _
+"	INNER JOIN sys.columns AS refc " & vbCrLf & _
+"	ON fkc.referenced_object_id = refc.object_id " & vbCrLf & _
+"	AND fkc.referenced_column_id = refc.column_id " & vbCrLf & _
+"	WHERE fk.parent_object_id = c.object_id " & vbCrLf & _
+"	AND fkc.parent_column_id = c.column_id " & vbCrLf & _
+") AS fk OUTER APPLY ( " & vbCrLf & _
+"	SELECT TOP (1) refcol.COLUMN_NAME AS REFERENCED_COLUMN_TEXT " & vbCrLf & _
+"	FROM INFORMATION_SCHEMA.COLUMNS AS refcol " & vbCrLf & _
+"	WHERE refcol.TABLE_SCHEMA = fk.REFERENCED_SCHEMA " & vbCrLf & _
+"	AND refcol.TABLE_NAME = fk.REFERENCED_TABLE " & vbCrLf & _
+"	AND refcol.COLUMN_NAME <> fk.REFERENCED_COLUMN " & vbCrLf & _
+"	AND (refcol.DATA_TYPE LIKE '%char' OR refcol.DATA_TYPE LIKE '%text') " & vbCrLf & _
+"	ORDER BY refcol.ORDINAL_POSITION ASC " & vbCrLf & _
+") AS fk_table " & vbCrLf & _
+"WHERE object_id = OBJECT_ID(?) AND c.name <> ?"
+    
+    srcCMD.Parameters.Append srcCMD.CreateParameter("@TableName", adVarChar, adParamInput, 255, strMainTableName)
+    srcCMD.Parameters.Append srcCMD.CreateParameter("@PK", adVarChar, adParamInput, 255, strPK)
+    
+    SET rsItems = srcCMD.Execute
+
+    strSQL = "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID
+
+    SET rsTarget = Server.CreateObject("ADODB.Recordset")
+    rsTarget.CursorLocation = adUseClient
+    rsTarget.CursorType = adOpenKeyset
+    rsTarget.LockType = adLockOptimistic
+    rsTarget.Open strSQL, adoConn
+
+    WHILE NOT rsItems.EOF
+        rsTarget.AddNew
+
+        rsTarget("ViewID") = nViewID
+        rsTarget("FieldLabel") = rsItems("ColumnName")
+        rsTarget("FieldSource") = rsItems("ColumnName")
+        rsTarget("FieldType") = rsItems("fieldtype")
+        rsTarget("FieldFlags") = rsItems("fieldflags")
+        rsTarget("FieldOrder") = rsItems("fieldorder")
+        rsTarget("DefaultValue") = rsItems("fielddefault")
+        rsTarget("MaxLength") = rsItems("max_length")
+        rsTarget("LinkedTable") = rsItems("LinkedTable")
+        rsTarget("LinkedTableValueField") = rsItems("LinkedColumnValue")
+        rsTarget("LinkedTableTitleField") = rsItems("LinkedColumnLabel")
+
+        rsTarget.Update
+
+        rsItems.MoveNext
+    WEND
+
+    rsItems.Close
+    SET rsItems = Nothing
+    rsTarget.Close
+    SET rsTarget = Nothing
+	
+	'adoConn.Execute "EXEC portal.AutoInitDataViewFields @ViewID = " & nViewID & ";"
 	
 	adoConn.Close
 	SET adoConn = Nothing
+    adoConnSrc.Close
+    SET adoConnSrc = Nothing
 	
 	Response.Redirect(constPageScriptName & "?ViewID=" & nViewID & "&MSG=autoinit")
 
