@@ -1,7 +1,8 @@
-<%@ LANGUAGE="VBSCRIPT" CODEPAGE="1255" %>
+<%@ LANGUAGE="VBSCRIPT" CODEPAGE="65001" %>
 <%
-Response.CodePage = 1255
-Session.CodePage = 1255
+Response.CodePage = 65001
+Session.CodePage = 65001
+Response.CharSet = "UTF-8"
 
 ' Local Constants
 '=======================

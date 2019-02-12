@@ -3,8 +3,9 @@
 <%' use this meta tag instead of adovbs.inc%>
 <!--METADATA TYPE="typelib" uuid="00000205-0000-0010-8000-00AA006D2EA4" -->
 <%
-Response.CodePage = 1255
-Session.CodePage = 1255
+Response.CodePage = 65001
+Session.CodePage = 65001
+Response.CharSet = "UTF-8"
 
 ' Local Constants
 '=======================

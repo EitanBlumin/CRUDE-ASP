@@ -1,10 +1,11 @@
-<%@ LANGUAGE="VBSCRIPT" CODEPAGE="1255" %>
+<%@ LANGUAGE="VBSCRIPT" CODEPAGE="65001" %>
 <!--#include file="dist/asp/inc_config.asp" -->
 <%' use this meta tag instead of adovbs.inc%>
 <!--METADATA TYPE="typelib" uuid="00000205-0000-0010-8000-00AA006D2EA4" -->
 <%
 Response.CodePage = 65001
 Session.CodePage = 65001
+Response.CharSet = "UTF-8"
 Response.Expires = -1
 Response.ExpiresAbsolute = Now() - 2
 Response.AddHeader "pragma","no-cache"
