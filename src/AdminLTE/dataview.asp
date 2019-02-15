@@ -103,17 +103,19 @@ IF nViewID <> "" AND IsNumeric(nViewID) THEN
 		rsFields.Open "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID & " ORDER BY FieldOrder ASC", adoConStr
 		IF NOT rsFields.EOF THEN
 			arrViewFields = rsFields.GetRows()
+        ELSE
+            strError = GetWord("No Fields defined for this Data View")
 		END IF
 		rsFields.Close
 		SET rsFields = Nothing
 		
 	ELSE
-		strError = "ViewID Not Found!"
+		strError = GetWord("ViewID Not Found!")
 		nViewID = ""
 	END IF
 	rsItems.Close
 ELSE
-	strError = "ViewID Invalid!"
+	strError = GetWord("ViewID Invalid!")
 END IF
 
 Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
@@ -124,12 +126,21 @@ IF strDataSource <> "" THEN adoConnSource = GetConfigValue("connectionStrings", 
 Set adoConnSrc = Server.CreateObject("ADODB.Connection")
 adoConnSrc.ConnectionString = adoConnSource
 adoConnSrc.CommandTimeout = 0
+
+ON ERROR RESUME NEXT
+
 adoConnSrc.Open
+    
+IF Err.Number <> 0 THEN
+	strError = "ERROR while tring to open data source " & adoConnSource & ":<br>" & REPLACE(Err.Description, """", "\""") 
+END IF
+
+ON ERROR GOTO 0
 
 '***************************
 ' Data Manipulation Section
 '***************************
-IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate AND nItemID <> "")) AND Request.Form("postback") = "true" THEN
+IF strError = "" AND ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate AND nItemID <> "")) AND Request.Form("postback") = "true" THEN
     Response.Write "<!-- Data Manipulation Start -->" & vbCrLf
 	' If stored procedure
     IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
@@ -257,7 +268,7 @@ IF ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate
 	    Response.Redirect(constPageScriptName & "?MSG=" & strMode & strViewQueryString)
     END IF
 
-ELSEIF strMode = "delete" AND nItemID <> "" AND IsNumeric(nItemID) AND blnAllowDelete THEN
+ELSEIF strError = "" AND strMode = "delete" AND nItemID <> "" AND IsNumeric(nItemID) AND blnAllowDelete THEN
 	
 	' If stored procedure
     IF NOT IsNull(strDeleteProcedure) AND strDeleteProcedure <> "" THEN
@@ -335,13 +346,29 @@ END IF
         <a class="btn btn-primary" role="button" href="#"><i class="fas fa-arrow-left"></i> Back</a>
     </div>
 </div>-->
+      
+<%
+IF strError <> "" THEN
+%>
+    <div class="callout callout-danger">
+    <h4><%= GetWord("Critical Error!") %></h4>
+
+    <p><%= strError %></p>
+    </div>
+        
+        <div class="alert alert-danger" ng-show="dataviewerror" ng-bind="dataviewerror"></div>
+  
+<% ELSE %>
+
 <div class="row">
     <div class="col col-sm-12"><br />
         <small><%= Sanitizer.HTMLDisplay(strDataViewDescription) %></small>
     </div>
 </div>
-        <!-- Data Manipulation Modals -->
         
+        <div class="alert alert-danger" ng-show="dataviewerror" ng-bind="dataviewerror"></div>
+  
+        <!-- Data Manipulation Modals -->
 <!-- Edit/Update/Clone Modal -->
 <div class="modal fade" id="modal-edit" role="dialog">
     <div class="modal-dialog">
@@ -600,7 +627,7 @@ Dim nIndex2, strCurrLabelBind
 <!-- /.box-body -->
 </div>
 <!-- /.box -->
-
+<% END IF %>
     </section>
     <!-- /.content -->
   </div>
@@ -634,8 +661,10 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
     $scope.selectedModalTitle = "Adding...";
     $scope.deletingModalTitle = "Deleting...";
     $scope.selectedModalMode = "add"; 
+    $scope.dataviewerror = "";
     $scope.defaultRow = {};
     $scope.row = {};
+    <% IF strError = "" THEN %>
     $scope.dtOptions = {
             sPaginationType: '<%= strDtPagingStyle %>',<% IF NOT blnDtSort THEN %>
             bSort: false,<% END IF %><% IF NOT blnDtQuickSearch THEN %>
@@ -654,9 +683,11 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
             ]
         };
     <%
+    END IF
+
     Dim strFieldsJSReinitScript
     strFieldsJSReinitScript = ""
-
+IF strError = "" THEN
 	FOR nIndex = 0 TO UBound(arrViewFields, 2)
         'Init a Row Object with Default Values
 		IF arrViewFields(dvfcDefaultValue, nIndex) <> "" THEN ' has default
@@ -677,21 +708,32 @@ app.controller("CrudeCtrl", function($scope, $http, $interval, $window) {
                     strFieldsJSReinitScript = strFieldsJSReinitScript & "console.log($scope.row['" & Sanitizer.HTMLFormControl(arrViewFields(dvfcFieldLabel,nIndex)) & "']);" & vbCrLf
         End Select
     NEXT
-                
+END IF      
     %>
 
     $scope.getAjaxData = function () {
-
-      $http.get("ajax_dataview.asp?mode=dataviewcontents&ViewID=<%= nViewID %>")
-      .then(function(response) {
-            $scope.dataviewContents = response.data;
-            if ($scope.dataviewContents.data['length'])
-                console.log("loaded ajax data. num of rows: " + $scope.dataviewContents.data.length);
-            else
-                console.log("no ajax data received");
-      }, function(response) {
-            alert("Something went wrong: " + response.status + " " + response.statusText);
+        $http.get("ajax_dataview.asp?mode=dataviewcontents&ViewID=<%= nViewID %>")
+        .then(function(response) {
+            if (response['error'])
+            {
+                $scope.dataviewerror = response.error;
+                console.log(response.error);
+                toastr.error(response.error, '<h3><%= GetWord("Error!") %></h3>');
+            } else {
+                $scope.dataviewContents = response.data;
+                if ($scope.dataviewContents.data['length'])
+                    console.log("loaded ajax data. num of rows: " + $scope.dataviewContents.data.length);
+                else
+                    console.log("no ajax data received");
+            }
+        }, function(response) {
             console.log(response);
+            var msg = "";
+            if (response['status']) msg = response['status'] + " ";
+            if (response['statusText']) msg = msg + response['statusText'];
+            if (msg == "") msg = response;
+            $scope.dataviewerror = msg;
+            toastr.error("Something went wrong: " + msg, '<h3><%= GetWord("Error!") %></h3>');
         });
     }
     

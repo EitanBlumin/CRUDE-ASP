@@ -30,15 +30,18 @@ function getCookie(cname) {
     var name = cname + "=";
     var decodedCookie = decodeURIComponent(document.cookie);
     var ca = decodedCookie.split(';');
+    console.log(ca);
     for(var i = 0; i <ca.length; i++) {
         var c = ca[i];
         while (c.charAt(0) == ' ') {
             c = c.substring(1);
         }
         if (c.indexOf(name) == 0) {
+            console.log("cookie: " + name);
             return c.substring(name.length, c.length);
         }
     }
+    console.log("cookie not found: " + cname);
     return "";
 }
 function isNavLinkActive(navLink) {
@@ -88,31 +91,6 @@ function displayNavLink(navLink) {
     txt += '</li>'
     return txt;
 }
-function loadSideNav()
-{
-    var nav = getCookie('SiteNav').replace(/\\n/g, "\\n")  
-               .replace(/\\'/g, "\\'")
-               .replace(/\\"/g, '\\"')
-               .replace(/\\&/g, "\\&")
-               .replace(/\\r/g, "\\r")
-               .replace(/\\t/g, "\\t")
-               .replace(/\+/g, " ")
-               .replace(/\\b/g, "\\b")
-               .replace(/\\f/g, "\\f");
-    nav = nav.replace(/[\u0000-\u0019]+/g,"");
-    nav = JSON.parse(nav);
-    //console.log(nav);
-    
-    var navTxt = '<li class="header">Menu</li>';
-
-    for (x in nav) {
-        navTxt += displayNavLink(nav[x]);
-    }
-
-    document.getElementById("sideNavMenu").innerHTML = navTxt;
-}
-
-loadSideNav();
 </script>
       <!-- /.sidebar-menu -->
     </section>

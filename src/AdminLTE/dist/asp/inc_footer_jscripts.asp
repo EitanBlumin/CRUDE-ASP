@@ -99,6 +99,48 @@ function getParameterByName(name, url) {
      if (!results[2]) return '';
      return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
+    
+function loadSideNav()
+{
+    var nav = "[]";
+    $.get('ajax_dataview.asp?mode=getSiteNav', "", function(response) {
+     //console.log(response);
+     nav = response;
+    
+    var navTxt = '<li class="header">Menu</li>';
+
+    for (x in nav) {
+        navTxt += displayNavLink(nav[x]);
+    }
+
+    document.getElementById("sideNavMenu").innerHTML = navTxt;
+    
+    $('li.nav-link a').each(function() {
+        //console.log("examining link: " + getPageName($(this).attr('href')));
+        if (getPageName($(this).attr('href')) == currFileName){
+
+            if (currFileName == "dataview.asp" || currFileName == "view.asp")
+            {
+                if ($(this).parent().attr("view-id") == currViewID)
+                {
+                    //console.log("found match (ViewID)");
+                    //console.log($(this).parent());
+                    setActiveAndBubbleUp(this);
+                }
+            }
+            else
+            { 
+                //console.log("found match (URI)");
+                //console.log($(this).parent());
+                setActiveAndBubbleUp(this);
+            }
+
+        }
+    });
+});
+}
+
+loadSideNav();
 
 var currFileName = getPageName();
 var currViewID = getParameterByName("ViewID");
@@ -118,27 +160,4 @@ function setActiveAndBubbleUp(element) {
         }
     }
 }
-
-$('li.nav-link a').each(function() {
-    //console.log("examining link: " + getPageName($(this).attr('href')));
-    if (getPageName($(this).attr('href')) == currFileName){
-
-        if (currFileName == "dataview.asp" || currFileName == "view.asp")
-        {
-            if ($(this).parent().attr("view-id") == currViewID)
-            {
-                //console.log("found match (ViewID)");
-                //console.log($(this).parent());
-                setActiveAndBubbleUp(this);
-            }
-        }
-        else
-        { 
-            //console.log("found match (URI)");
-            //console.log($(this).parent());
-            setActiveAndBubbleUp(this);
-        }
-
-    }
-});
 </script>

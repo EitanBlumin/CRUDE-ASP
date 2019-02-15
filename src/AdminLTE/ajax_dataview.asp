@@ -50,7 +50,16 @@ END IF
 
 adoConn.Open
 
-IF strMode = "dataviewcontents" AND Request("ViewID") <> "" AND IsNumeric(Request("ViewID")) THEN
+IF strMode = "getSiteNav" THEN
+    strSQL = "SELECT [Json] = portal.GetNavigationRecursive(NULL)"
+    rsItems.Open strSQL, adoConn
+    IF NOT rsItems.EOF THEN
+        Response.Write rsItems("Json")
+    ELSE
+        Response.Write "[ ]"
+    END IF
+    rsItems.Close
+ELSEIF strMode = "dataviewcontents" AND Request("ViewID") <> "" AND IsNumeric(Request("ViewID")) THEN
     nItemID = Request("ViewID")
 
     strJsonOutput = ""
@@ -77,31 +86,37 @@ IF strMode = "dataviewcontents" AND Request("ViewID") <> "" AND IsNumeric(Reques
         rsItems.Close
     END IF
     
-    Set adoConnSrc = Server.CreateObject("ADODB.Connection")
-    adoConnSrc.ConnectionString = adoConnSource
-    adoConnSrc.CommandTimeout = 0
-    adoConnSrc.Open
-
+    SET cmdStoredProc = Nothing
+    SET rsItems = Nothing
+    
     IF strError = "" AND strSQL <> "" THEN
-        SET rsItems = Nothing
-        SET rsItems = Server.CreateObject("ADODB.Recordset")
-        rsItems.Open strSQL, adoConnSrc
-        
-        IF Err.Number <> 0 THEN
-	        strError = "ERROR at " & Err.Source & ":<br>" & REPLACE(Err.Description, """", "\""") 
-        ELSE
-            WHILE NOT rsItems.EOF
-                strJsonOutput = strJsonOutput & rsItems("Json")
-                rsItems.MoveNext  
-            WEND
+        Set adoConnSrc = Server.CreateObject("ADODB.Connection")
+        adoConnSrc.ConnectionString = adoConnSource
+        adoConnSrc.CommandTimeout = 0
 
-            rsItems.Close
+        adoConnSrc.Open
+    
+        IF Err.Number <> 0 THEN
+	        strError = "ERROR while tring to open data source " & adoConStr & ":<br>" & REPLACE(Err.Description, """", "\""") 
+        ELSE
+            SET rsItems = Server.CreateObject("ADODB.Recordset")
+            rsItems.Open strSQL, adoConnSrc
+        
+            IF Err.Number <> 0 THEN
+	            strError = "ERROR while running command at " & Err.Source & ":<br>" & REPLACE(Err.Description, """", "\""") 
+            ELSE
+                WHILE NOT rsItems.EOF
+                    strJsonOutput = strJsonOutput & rsItems("Json")
+                    rsItems.MoveNext  
+                WEND
+
+                rsItems.Close
+            END IF
         END IF
 	END IF
+
     ON ERROR GOTO 0
 	
-    SET cmdStoredProc = Nothing
-    
     IF strJsonOutput = "" THEN strJsonOutput = "[ ]" 
 
     Response.Write "{ ""data"": " & strJsonOutput
