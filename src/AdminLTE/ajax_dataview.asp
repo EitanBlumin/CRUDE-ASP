@@ -96,8 +96,11 @@ ELSEIF strMode = "dataviewcontents" AND Request("ViewID") <> "" AND IsNumeric(Re
 
         adoConnSrc.Open
     
-        IF Err.Number <> 0 THEN
-	        strError = "ERROR while tring to open data source " & adoConStr & ":<br>" & REPLACE(Err.Description, """", "\""") 
+        IF adoConnSrc.Errors.Count > 0 THEN
+	        strError = "ERROR while tring to open data source " & strDataSource & ":<br/>"
+            For Each Err In adoConnSrc.Errors
+		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+            Next
         ELSE
             SET rsItems = Server.CreateObject("ADODB.Recordset")
             rsItems.Open strSQL, adoConnSrc

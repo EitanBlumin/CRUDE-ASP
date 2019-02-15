@@ -53,7 +53,7 @@ IF strMode = "" THEN strMode = "none"
 
 nViewID = Request("ViewID")
 
-IF nViewID <> "" AND IsNumeric(nViewID) THEN
+IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
 	strSQL = "SELECT * FROM portal.DataView WHERE ViewID = " & nViewID
 	rsItems.Open strSQL, adoConn
 	IF NOT rsItems.EOF THEN
@@ -130,9 +130,12 @@ adoConnSrc.CommandTimeout = 0
 ON ERROR RESUME NEXT
 
 adoConnSrc.Open
-    
-IF Err.Number <> 0 THEN
-	strError = "ERROR while tring to open data source " & adoConnSource & ":<br>" & REPLACE(Err.Description, """", "\""") 
+
+IF adoConnSrc.Errors.Count > 0 THEN
+	strError = "ERROR while tring to open data source " & strDataSource & ":<br>"
+    For Each Err In adoConnSrc.Errors
+		strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+    Next
 END IF
 
 ON ERROR GOTO 0
@@ -288,10 +291,15 @@ ELSEIF strError = "" AND strMode = "delete" AND nItemID <> "" AND IsNumeric(nIte
         ON ERROR RESUME NEXT
 
 	    cmdStoredProc.Execute
-
-	    IF Err.Number <> 0 THEN
+    
+        IF Err.Number <> 0 THEN
 		    strError = Err.Description
-	    END IF
+	    ELSEIF adoConnSrc.Errors.Count > 0 THEN
+	        strError = "ERROR while tring to open data source " & strDataSource & ":<br/>"
+            For Each Err In adoConnSrc.Errors
+		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+            Next
+        END IF
 	
 	    SET cmdStoredProc = Nothing
 
