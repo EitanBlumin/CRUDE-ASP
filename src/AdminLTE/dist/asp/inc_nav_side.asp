@@ -57,6 +57,8 @@ function displayNavLink(navLink) {
         txt += ' active';
     if (navLink["ViewID"])
         txt += '" view-id="' + navLink.ViewID;
+    if (navLink["OpenUriInIFRAME"])
+        txt += '" nav-id="' + navLink.NavId;
 
     txt += '"><a href="';
 
