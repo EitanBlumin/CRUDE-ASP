@@ -368,7 +368,7 @@ END IF
 </div>
 
         <!-- Items List -->
-        
+<div class="table-responsive">
 <table class="table table-hover">
 <tr>
     <th>ID</th>
@@ -415,7 +415,7 @@ WHILE NOT rsItems.EOF
     rsItems.MoveNext
 WEND %>
 </table>
-
+</div>
     </section>
     <!-- /.content -->
   </div>

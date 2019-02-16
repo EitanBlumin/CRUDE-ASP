@@ -537,7 +537,7 @@ END IF
         <a class="btn btn-primary btn-sm" role="button" href="<%= constPageScriptName %>?mode=add&ViewID=<%= nViewID %>"><i class="fas fa-plus"></i> Add Field</a>
     </div>
 </div>
-
+<div class="table-responsive">
 <table class="table table-hover">
 <tr>
     <th>Order</th>
@@ -593,6 +593,7 @@ WHILE NOT rsItems.EOF
 WEND %>
 </tbody>
 </table>
+</div>
 <input type="hidden" name="mode" value="sortFields" />
 </form>
 

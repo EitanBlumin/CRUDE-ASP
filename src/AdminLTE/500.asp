@@ -7,9 +7,13 @@ Response.CharSet = "UTF-8"
 ' Local Constants
 '=======================
 Const constPageScriptName = "500.asp"
-Dim strPageTitle
+Dim strPageTitle, errObj, errDescription
 strPageTitle = "500 Server Error"
 
+Set errObj = Server.GetLastError()
+IF errObj <> Nothing THEN
+        errDescription = errObj.Description
+END IF
 %>
 <!DOCTYPE html>
 <html>
@@ -41,7 +45,9 @@ strPageTitle = "500 Server Error"
 
         <div class="error-content">
           <h3><i class="fas fa-exclamation-triangle text-red"></i> Oops! Something went wrong.</h3>
-
+        <% IF errDescription <> "" THEN %>
+            <p>Last Error:<br /><%= errDescription %></p>
+        <% END IF %>
           <p>
             We will work on fixing that right away.
             Meanwhile, you may <a href="default.asp">return to dashboard</a> or try using the search form.

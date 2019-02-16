@@ -570,6 +570,7 @@ IF strError <> "" THEN
  <a class="<%= arrDataTableModifierButtonStyles(dtbsClass, nDtModBtnStyleIndex) %>" role="button" href="#" ng-click="getAjaxData()" title="Refresh"><% IF arrDataTableModifierButtonStyles(dtbsShowGlyph,nDtModBtnStyleIndex) THEN  %><i class="fas fa-sync-alt"></i> <% END IF %>Refresh</a>
 </div>
 <div class="box-body">
+<div class="table-responsive">
 <table datatable="ng" id="DataViewMainTable" dt-options="dtOptions" class="table table-hover table-bordered table-striped">
 <thead>
 <tr><%
@@ -631,7 +632,7 @@ Dim nIndex2, strCurrLabelBind
 </tr>
 </tfoot><% END IF %>
 </table>
-</div>
+</div></div>
 <!-- /.box-body -->
 </div>
 <!-- /.box -->
