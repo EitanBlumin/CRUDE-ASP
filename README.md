@@ -85,5 +85,5 @@ This project is licensed under the Mozilla Public License 2.0 - see the [LICENSE
 
 ## Future Plans
 
-A new project is in the works, to utilize modern web technologies such as .NET, Angular and Material.
+A new project is in the works, to utilize modern web technologies such as .NET, Angular and Bootstrap 4.
 You can find it here: https://github.com/EitanBlumin/CRUDE-NET
