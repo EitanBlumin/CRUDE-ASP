@@ -327,7 +327,7 @@ END IF
   <title><%= GetPageTitle() %></title>
 <!--#include file="dist/asp/inc_meta.asp" -->
 </head>
-<body class="<%= globalBodyClass %>"" ng-app="CrudeApp" ng-controller="CrudeCtrl">
+<body class="<%= globalBodyClass %>" ng-app="CrudeApp" ng-controller="CrudeCtrl">
 <div class="wrapper">
 <!--#include file="dist/asp/inc_header.asp" -->
 

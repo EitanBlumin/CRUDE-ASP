@@ -17,9 +17,7 @@
 <!-- page script -->
 <script type="text/javascript">
   // To make Pace works on Ajax calls
-  $(document).ajaxStart(function () {
-    Pace.restart()
-  })
+  $(document).ajaxStart(function () { Pace.restart(); });
   $('.ajax').click(function () {
     $.ajax({
       url: '#', success: function (result) {
@@ -32,21 +30,6 @@
   $(function () {
     //bootstrap WYSIHTML5 - text editor
     $editor = $('.textarea').wysihtml5();
-//    console.log($editor.val());
-//    $('.textarea').each(function () {
-//        var disabled = this.textareaElement.disabled;
-//        var readonly = !!this.textareaElement.getAttribute('readonly');
-
-//        if (readonly) {
-//            this.composer.element.setAttribute('contenteditable', false);
-//            this.toolbar.commandsDisabled = true;
-//        }
-
-//        if (disabled) {
-//            this.composer.disable();
-//            this.toolbar.commandsDisabled = true;
-//        }
-//    })
   })
 </script>
 <script type="text/javascript">
@@ -104,6 +87,22 @@ var currFileName = getPageName();
 var currViewID = getParameterByName("ViewID");
 var currNavID = getParameterByName("NavID");
 
+function setActiveAndBubbleUp(element) {
+    //console.log($(element).parent().get(0).tagName);
+    if (!$(element).parent().hasClass("active")) {
+        if ($(element).parent().get(0).tagName == "LI" && $(element).parent().hasClass("nav-link"))
+        {
+            $(element).parent().addClass('active');
+            setActiveAndBubbleUp($(element).parent());
+        }
+        else if ($(element).parent().get(0).tagName == "UL" && $(element).parent().hasClass("treeview-menu"))
+        {
+            $(element).parent().addClass('active');
+            setActiveAndBubbleUp($(element).parent());
+        }
+    }
+}
+
 function loadSideNav()
 {
     var nav = "[]";
@@ -155,19 +154,4 @@ function loadSideNav()
 
 loadSideNav();
 
-function setActiveAndBubbleUp(element) {
-    //console.log($(element).parent().get(0).tagName);
-    if (!$(element).parent().hasClass("active")) {
-        if ($(element).parent().get(0).tagName == "LI" && $(element).parent().hasClass("nav-link"))
-        {
-            $(element).parent().addClass('active');
-            setActiveAndBubbleUp($(element).parent());
-        }
-        else if ($(element).parent().get(0).tagName == "UL" && $(element).parent().hasClass("treeview-menu"))
-        {
-            $(element).parent().addClass('active');
-            setActiveAndBubbleUp($(element).parent());
-        }
-    }
-}
 </script>
