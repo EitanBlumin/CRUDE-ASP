@@ -132,7 +132,7 @@ ON ERROR RESUME NEXT
 adoConnSrc.Open
 
 IF adoConnSrc.Errors.Count > 0 THEN
-	strError = "ERROR while tring to open data source " & strDataSource & ":<br>"
+	strError = "ERROR while tring to open data source """ & strDataSource & """:<br>"
     For Each Err In adoConnSrc.Errors
 		strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
     Next
@@ -295,7 +295,7 @@ ELSEIF strError = "" AND strMode = "delete" AND nItemID <> "" AND IsNumeric(nIte
         IF Err.Number <> 0 THEN
 		    strError = Err.Description
 	    ELSEIF adoConnSrc.Errors.Count > 0 THEN
-	        strError = "ERROR while tring to open data source " & strDataSource & ":<br/>"
+	        strError = "ERROR while tring to open data source """ & strDataSource & """:<br/>"
             For Each Err In adoConnSrc.Errors
 		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
             Next
