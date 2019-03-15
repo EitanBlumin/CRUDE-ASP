@@ -14,6 +14,7 @@
     [DataTableFlags] INT NOT NULL DEFAULT 61, 
     [DataTableDefaultPageSize] INT NOT NULL DEFAULT 25, 
     [DataTablePagingStyle] VARCHAR(20) NOT NULL DEFAULT 'full_numbers', 
+    [Published] BIT NOT NULL DEFAULT (1), 
     CONSTRAINT [PK_DataView] PRIMARY KEY CLUSTERED ([ViewID] ASC)
 );
 
