@@ -129,9 +129,9 @@ SELECT
 		ELSE N''
 	END,
 	@SQLColumns = @SQLColumns + N',
-		' + QUOTENAME(c.DataSrc) + N' = ' + CASE WHEN FieldType = 12 THEN N'''''' ELSE N'ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''')' END
+		' + QUOTENAME(ISNULL(c.DataSrc, 'Field_' + CONVERT(nvarchar,dvf.FieldID))) + N' = ' + CASE WHEN FieldType = 12 THEN N'''''' ELSE N'ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''')' END
 FROM portal.DataViewField AS dvf
-INNER JOIN ColsXML AS c
+LEFT JOIN ColsXML AS c
 ON 'Field_' + CONVERT(nvarchar,dvf.FieldID) = c.ColName
 WHERE ViewID = @ViewID
 --ORDER BY FieldOrder ASC
