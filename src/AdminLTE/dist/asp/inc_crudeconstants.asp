@@ -1,4 +1,57 @@
 <%
+class DataViewLookupClass
+    public Value
+    public Label
+    public Glyph
+    public DefaultValue
+    public Tooltip
+    public CSSClass
+    public ShowText
+    public ShowGlyph
+    public Wrappers
+    public Identifier
+    
+    public default function Init(pValue, pLabel)
+        Value = pValue
+        Label = pLabel
+        SET Init = me
+    end function
+
+end class
+    
+class DataViewLookupCollectionClass
+    private dictObj
+    public Count
+    
+    public property Get UBound
+        UBound = Count - 1
+    end property
+
+    private sub Class_Initialize
+        Count = 0
+        Set dictObj = Server.CreateObject("Scripting.Dictionary")
+    end sub
+
+    public default function GetItem(pKey)
+	    IF NOT dictObj.Exists(pKey) THEN
+		    SET GetItem = Null
+	    Else
+		    SET GetItem = dictObj.Item(pKey)
+	    END IF	
+    end function
+
+    public sub AddItem(pKey, pItem)
+	    IF NOT dictObj.Exists(pKey) THEN
+		    dictObj.Add pKey, pItem
+            Count = Count + 1
+	    Else
+		    SET dictObj.Item(pKey) = pItem
+	    END IF
+    end sub
+
+end class
+Dim luTmpObject, luTmpIndex
+
 SET rsItems = Server.CreateObject("ADODB.Recordset")
 
 '==============================
@@ -11,12 +64,30 @@ Const dvfLabel = 1
 Const dvfGlyph = 2
 Const dvfDefault = 3
 
-strSQL = "SELECT * FROM portal.DataViewFlags ORDER BY FlagValue ASC"
-rsItems.Open strSQL, adoConn
+strSQL = "SELECT * FROM portal.DataViewFlags ORDER BY FlagValue ASC; " & vbCrLf & _
+         "SELECT * FROM portal.DataViewDataTableFlags ORDER BY FlagValue ASC; " & vbCrLf & _
+         "SELECT * FROM portal.DataViewModifierButtonStyles ORDER BY StyleValue ASC; " & vbCrLf & _
+         "SELECT * FROM portal.DataViewPagingTypes ORDER BY StyleValue ASC; " & vbCrLf & _
+         "SELECT * FROM portal.DataViewFieldFlags ORDER BY FlagValue ASC; " & vbCrLf & _
+         "SELECT * FROM portal.DataViewFieldTypes ORDER BY TypeValue ASC;" & vbCrLf & _
+         "SELECT * FROM portal.DataViewUriStyles ORDER BY StyleValue ASC; "
+rsItems.Open strSQL, adoConnCrudeStr
 
 arrDataViewFlags = rsItems.GetRows()
 
-rsItems.Close
+SET rsItems = rsItems.NextRecordset()
+
+Dim luDataViewFlags
+SET luDataViewFlags = new DataViewLookupCollectionClass
+FOR luTmpIndex = 0 TO UBound(arrDataViewFlags, 2)
+    SET luTmpObject = (new DataViewLookupClass)(arrDataViewFlags(dvfValue, luTmpIndex), arrDataViewFlags(dvfLabel, luTmpIndex))
+    luTmpObject.Glyph = arrDataViewFlags(dvfGlyph, luTmpIndex)
+    luTmpObject.DefaultValue = arrDataViewFlags(dvfDefault, luTmpIndex)
+
+    luDataViewFlags.AddItem luTmpIndex, luTmpObject
+NEXT
+
+SET luTmpObject = Nothing
 
 '==============================
 ' Data Table Flags
@@ -29,13 +100,23 @@ Const dtfTooltip = 2
 Const dtfGlyph = 3
 Const dtfDefault = 4
 
-strSQL = "SELECT * FROM portal.DataViewDataTableFlags ORDER BY FlagValue ASC"
-rsItems.Open strSQL, adoConn
-
 arrDataTableFlags = rsItems.GetRows()
-
-rsItems.Close
     
+SET rsItems = rsItems.NextRecordset()
+    
+Dim luDataTableFlags
+SET luDataTableFlags = new DataViewLookupCollectionClass
+FOR luTmpIndex = 0 TO UBound(arrDataTableFlags, 2)
+    SET luTmpObject = (new DataViewLookupClass)(arrDataTableFlags(dtfValue, luTmpIndex), arrDataTableFlags(dtfLabel, luTmpIndex))
+    luTmpObject.Tooltip = arrDataTableFlags(dtfTooltip, luTmpIndex)
+    luTmpObject.Glyph = arrDataTableFlags(dtfGlyph, luTmpIndex)
+    luTmpObject.DefaultValue = arrDataTableFlags(dtfDefault, luTmpIndex)
+
+    luDataTableFlags.AddItem luTmpIndex, luTmpObject
+NEXT
+
+SET luTmpObject = Nothing
+
 '==============================
 ' Data Table Button Styles
 '==============================
@@ -48,12 +129,23 @@ Const dtbsShowText = 3
 Const dtbsShowGlyph = 4
 Const dtbsDefault = 5
 
-strSQL = "SELECT * FROM portal.DataViewModifierButtonStyles ORDER BY StyleValue ASC"
-rsItems.Open strSQL, adoConn
-
 arrDataTableModifierButtonStyles = rsItems.GetRows()
+    
+SET rsItems = rsItems.NextRecordset()
+    
+Dim luDataTableModifierButtonStyles
+SET luDataTableModifierButtonStyles = new DataViewLookupCollectionClass
+FOR luTmpIndex = 0 TO UBound(arrDataTableModifierButtonStyles, 2)
+    SET luTmpObject = (new DataViewLookupClass)(arrDataTableModifierButtonStyles(dtbsValue, luTmpIndex), arrDataTableModifierButtonStyles(dtbsLabel, luTmpIndex))
+    luTmpObject.CSSClass = arrDataTableModifierButtonStyles(dtbsClass, luTmpIndex)
+    luTmpObject.ShowText = arrDataTableModifierButtonStyles(dtbsShowText, luTmpIndex)
+    luTmpObject.ShowGlyph = arrDataTableModifierButtonStyles(dtbsShowGlyph, luTmpIndex)
+    luTmpObject.DefaultValue = arrDataTableModifierButtonStyles(dtbsDefault, luTmpIndex)
 
-rsItems.Close
+    luDataTableModifierButtonStyles.AddItem luTmpIndex, luTmpObject
+NEXT
+
+SET luTmpObject = Nothing
     
 '==============================
 ' Data Table Paging Styles
@@ -64,12 +156,20 @@ Const dtpsValue = 0
 Const dtpsLabel = 1
 Const dtpsDefault = 2
 
-strSQL = "SELECT * FROM portal.DataViewPagingTypes ORDER BY StyleValue ASC"
-rsItems.Open strSQL, adoConn
-
 arrDataTablePagingStyles = rsItems.GetRows()
+    
+SET rsItems = rsItems.NextRecordset()
 
-rsItems.Close
+Dim luDataTablePagingStyles
+SET luDataTablePagingStyles = new DataViewLookupCollectionClass
+FOR luTmpIndex = 0 TO UBound(arrDataTablePagingStyles, 2)
+    SET luTmpObject = (new DataViewLookupClass)(arrDataTablePagingStyles(dtpsValue, luTmpIndex), arrDataTablePagingStyles(dtpsLabel, luTmpIndex))
+    luTmpObject.DefaultValue = arrDataTablePagingStyles(dtpsDefault, luTmpIndex)
+
+    luDataTablePagingStyles.AddItem luTmpIndex, luTmpObject
+NEXT
+
+SET luTmpObject = Nothing
     
 '==============================
 ' Data View Field Flags
@@ -81,12 +181,21 @@ Const dvffLabel = 1
 Const dvffGlyph = 2
 Const dvffDefault = 3
 
-strSQL = "SELECT * FROM portal.DataViewFieldFlags ORDER BY FlagValue ASC"
-rsItems.Open strSQL, adoConn
-
 arrDataViewFieldFlags = rsItems.GetRows()
+    
+SET rsItems = rsItems.NextRecordset()
 
-rsItems.Close
+Dim luDataViewFieldFlags
+SET luDataViewFieldFlags = new DataViewLookupCollectionClass
+FOR luTmpIndex = 0 TO UBound(arrDataViewFieldFlags, 2)
+    SET luTmpObject = (new DataViewLookupClass)(arrDataViewFieldFlags(dvffValue, luTmpIndex), arrDataViewFieldFlags(dvffLabel, luTmpIndex))
+    luTmpObject.Glyph = arrDataViewFieldFlags(dvffGlyph, luTmpIndex)
+    luTmpObject.DefaultValue = arrDataViewFieldFlags(dvffDefault, luTmpIndex)
+
+    luDataViewFieldFlags.AddItem luTmpIndex, luTmpObject
+NEXT
+
+SET luTmpObject = Nothing
 
 '==============================
 ' Data View Field Types
@@ -96,13 +205,23 @@ Dim arrDataViewFieldTypes
 Const dvftValue = 0
 Const dvftLabel = 1
 Const dvftWrappers = 2
-
-strSQL = "SELECT * FROM portal.DataViewFieldTypes ORDER BY TypeValue ASC"
-rsItems.Open strSQL, adoConn
+Const dvftIdentifier = 3
 
 arrDataViewFieldTypes = rsItems.GetRows()
+    
+SET rsItems = rsItems.NextRecordset()
 
-rsItems.Close
+Dim luDataViewFieldTypes
+SET luDataViewFieldTypes = new DataViewLookupCollectionClass
+FOR luTmpIndex = 0 TO UBound(arrDataViewFieldTypes, 2)
+    SET luTmpObject = (new DataViewLookupClass)(arrDataViewFieldTypes(dvftValue, luTmpIndex), arrDataViewFieldTypes(dvftLabel, luTmpIndex))
+    luTmpObject.Wrappers = arrDataViewFieldTypes(dvftWrappers, luTmpIndex)
+    luTmpObject.Identifier = arrDataViewFieldTypes(dvftIdentifier, luTmpIndex)
+
+    luDataViewFieldTypes.AddItem luTmpIndex, luTmpObject
+NEXT
+
+SET luTmpObject = Nothing
     
 '==============================
 ' Uri Link Styles
@@ -115,13 +234,25 @@ Const dvusClass = 2
 Const dvusGlyph = 3
 Const dvusDefault = 4
 
-strSQL = "SELECT * FROM portal.DataViewUriStyles ORDER BY StyleValue ASC"
-rsItems.Open strSQL, adoConn
-
 arrDataViewUriStyles = rsItems.GetRows()
-
-rsItems.Close
     
+SET rsItems = rsItems.NextRecordset()
+    
+Dim luDataViewUriStyles
+SET luDataViewUriStyles = new DataViewLookupCollectionClass
+FOR luTmpIndex = 0 TO UBound(arrDataTableModifierButtonStyles, 2)
+    SET luTmpObject = (new DataViewLookupClass)(arrDataViewUriStyles(dvusValue, luTmpIndex), arrDataViewUriStyles(dvusLabel, luTmpIndex))
+    luTmpObject.CSSClass = arrDataViewUriStyles(dvusClass, luTmpIndex)
+    luTmpObject.Glyph = arrDataViewUriStyles(dvusGlyph, luTmpIndex)
+    luTmpObject.DefaultValue = arrDataViewUriStyles(dvusDefault, luTmpIndex)
+
+    luDataViewUriStyles.AddItem luTmpIndex, luTmpObject
+NEXT
+
+SET luTmpObject = Nothing
+    
+SET rsItems = Server.CreateObject("ADODB.Recordset")
+
 '==============================
 ' Data View Field Columns
 '==============================
