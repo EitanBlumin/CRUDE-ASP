@@ -18,6 +18,7 @@
     [Width]                 INT             NULL,
     [Height]                INT             NULL,
 	[FieldDescription]		NVARCHAR (4000) NULL,
+    [FormatPattern] VARCHAR(100) NULL, 
     CONSTRAINT [PK_DataViewField] PRIMARY KEY CLUSTERED ([ViewID] ASC, [FieldID] ASC),
     CONSTRAINT [FK_DataViewField_DataView] FOREIGN KEY ([ViewID]) REFERENCES [portal].[DataView] ([ViewID]) ON DELETE CASCADE
 );

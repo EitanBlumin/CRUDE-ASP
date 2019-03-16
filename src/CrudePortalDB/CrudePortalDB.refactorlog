@@ -35,4 +35,32 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="NgClickJSCode" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="6a01ecfc-09f2-4418-a6a1-34ccb8a29fd6" ChangeDateTime="03/16/2019 15:38:04">
+    <Property Name="ElementName" Value="[portal].[DataViewAction].[NgClickJSCode]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[portal].[DataViewAction]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ActionExpression" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="9565b819-a6b0-4366-9b5a-d3521c84eabd" ChangeDateTime="03/16/2019 15:38:30">
+    <Property Name="ElementName" Value="[portal].[DataViewAction].[ButtonStyle]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[portal].[DataViewAction]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CSSButton" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="d7cc6d57-89c2-4c8c-93c4-e833c2029c2b" ChangeDateTime="03/16/2019 15:43:34">
+    <Property Name="ElementName" Value="[portal].[DataViewAction].[UriTargetWindow]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[portal].[DataViewAction]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="OpenInNewWindow" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="2070a73b-3b96-4afb-a360-d8053b370cdc" ChangeDateTime="03/16/2019 15:43:59">
+    <Property Name="ElementName" Value="[portal].[DataViewAction].[OpenInNewWindow]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[portal].[DataViewAction]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="OpenURLInNewWindow" />
+  </Operation>
 </Operations>

@@ -24,11 +24,10 @@ SELECT
 		ORDER BY [FieldOrder] ASC
 		FOR JSON AUTO)
 , DataViewActions = (
-		SELECT [ActionID], [ViewID], [ActionLabel]
+		SELECT [ActionID], [ViewID], [IsPerRow]
 		, [ParentActionID] -- TODO: Build recursively using CTE
-		, [ActionTooltip], [ActionDescription], [ActionOrder], [RequireConfirmation]
-		, [ActionUri], [UriTargetWindow], [NgClickJSCode], [GlyphIcon], [DatabaseCommand]
-		, [IsPerRow]
+		, [ActionOrder], [ActionLabel], [ActionTooltip], [ActionDescription], [RequireConfirmation]
+		, [ActionType], [OpenURLInNewWindow], [ActionExpression], [GlyphIcon], [CSSButton]
 		, DataViewActionParameters = (
 				SELECT [ActionParameterId], [ParamSystemName], [ParamLabel], [ParamOrder]
 				, [ParamIsRequired], [ParamDefaultValue], [ParamTooltip], [ParamDescription]

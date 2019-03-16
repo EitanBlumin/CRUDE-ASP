@@ -103,6 +103,8 @@
     <Build Include="Stored Procedures\portal.GetDataViewInfo.sql" />
     <Build Include="Stored Procedures\portal.GetDataViewContentsCommand.sql" />
     <Build Include="Stored Procedures\portal.GetDataViewDataTableCommand.sql" />
+    <Build Include="Views\portal.DataViewActionTypes.sql" />
+    <Build Include="Functions\dbo.GetDataViewLabel.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="CrudePortalDB.refactorlog" />

@@ -15,7 +15,7 @@ strPageTitle = "DataTable View"
 
 ' Init Variables
 '=======================
-Dim nItemID, strMode, nCount, nIndex, dvFields, adoConnCrude, adoConnCrudeStr
+Dim nItemID, strMode, nCount, nIndex, dvFields, dvActionsInline, dvActionsToolbar, adoConnCrude, adoConnCrudeStr
 
 ' Open DB Connection
 '=======================
@@ -104,6 +104,8 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
             END IF
         NEXT
 		SET dvFields = InitDataViewFields(nViewID, adoConnCrude)
+        SET dvActionsInline = InitDataViewActions(nViewID, True, adoConnCrude)
+        SET dvActionsToolbar = InitDataViewActions(nViewID, False, adoConnCrude)
 	ELSE
 		strError = GetWord("ViewID Not Found!")
 		nViewID = ""
@@ -730,7 +732,19 @@ IF strError <> "" THEN
         .addDeSelectAllButton()
         .addDeleteSelectedButton()
         .addToggleColumnsButton()
-        .addExportButton()
+        .addExportButton()<%
+    'TODO: Implement DB Command and URL buttons
+    FOR nIndex = 0 TO dvActionsToolbar.UBound %>
+        .addToolbarActionButton(
+        {
+            text: '<i class="<%= dvActionsToolbar(nIndex)("GlyphIcon") %>"></i> <%= dvActionsToolbar(nIndex)("ActionLabel") %>',
+            className: "btn btn-primary btn-sm",
+            action: function (e, dt, node, config) {
+                <%= dvActionsToolbar(nIndex)("NgClickJSCode") %>
+            }
+        })<%
+    NEXT
+    %>
         /*
         // Custom toolbar buttons example
         .addToolbarActionButton(

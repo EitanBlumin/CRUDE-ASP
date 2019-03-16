@@ -311,22 +311,25 @@ Const dvfcHeight = 17
 Const dvfcFieldDescription = 18
     
 FUNCTION InitDataViewFields (pViewID, pDBConnection)
-    Dim tmpCollection, tmpField, tmpColumn, tmpIndex, tmpRs
+    Dim tmpCollection, tmpObj, tmpColumn, tmpIndex, tmpRs
 
     SET tmpCollection = new DataViewLookupCollectionClass
 
     IF pViewID <> "" AND IsNumeric(pViewID) THEN
-        SET tmpRs = Server.CreateObject("ADODB.Recordset")
-        tmpRs.Open "SELECT * FROM portal.DataViewField WHERE ViewID = " & pViewID & " ORDER BY FieldOrder ASC", pDBConnection
+        SET tmpRs = Server.CreateObject("ADODB.Command")
+        tmpRs.ActiveConnection = pDBConnection
+        tmpRs.CommandText = "SELECT * FROM portal.DataViewField WHERE ViewID = ? ORDER BY FieldOrder ASC"
+        SET tmpRs = tmpRs.Execute (,pViewID,adOptionUnspecified)
+
         tmpIndex = 0
         WHILE NOT tmpRs.EOF
-            SET tmpField = new DataViewLookupClassExtendable
+            SET tmpObj = new DataViewLookupClassExtendable
 
             For Each tmpColumn IN tmpRs.Fields
-                tmpField.SetProp tmpColumn.Name, tmpColumn.Value
+                tmpObj.SetProp tmpColumn.Name, tmpColumn.Value
             Next
 
-            tmpCollection.AddItem tmpIndex, tmpField
+            tmpCollection.AddItem tmpIndex, tmpObj
             tmpIndex = tmpIndex + 1
 
 		    tmpRs.MoveNext()
@@ -336,6 +339,39 @@ FUNCTION InitDataViewFields (pViewID, pDBConnection)
     END IF
 
     SET InitDataViewFields = tmpCollection
+END FUNCTION
+
+
+FUNCTION InitDataViewActions (pViewID, pIsInline, pDBConnection)
+    Dim tmpCollection, tmpObj, tmpColumn, tmpIndex, tmpRs, tmpParams(1)
+    tmpParams(0) = pViewID
+    tmpParams(1) = CBool(pIsInline)
+    SET tmpCollection = new DataViewLookupCollectionClass
+
+    IF pViewID <> "" AND IsNumeric(pViewID) THEN
+        SET tmpRs = Server.CreateObject("ADODB.Command")
+        tmpRs.ActiveConnection = pDBConnection
+        tmpRs.CommandText = "SELECT * FROM portal.DataViewAction WHERE ViewID = ? AND IsPerRow = ? ORDER BY ParentActionID ASC, ActionOrder ASC"
+        SET tmpRs = tmpRs.Execute (,tmpParams,adOptionUnspecified)
+
+        tmpIndex = 0
+        WHILE NOT tmpRs.EOF
+            SET tmpObj = new DataViewLookupClassExtendable
+
+            For Each tmpColumn IN tmpRs.Fields
+                tmpObj.SetProp tmpColumn.Name, tmpColumn.Value
+            Next
+
+            tmpCollection.AddItem tmpIndex, tmpObj
+            tmpIndex = tmpIndex + 1
+
+		    tmpRs.MoveNext()
+        WEND
+        tmpRs.Close
+        SET tmpRs = Nothing
+    END IF
+
+    SET InitDataViewActions = tmpCollection
 END FUNCTION
 
 %>
