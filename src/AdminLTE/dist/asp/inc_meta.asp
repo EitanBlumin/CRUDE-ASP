@@ -18,8 +18,8 @@
   <link rel="stylesheet" href="dist/css/skins/skin-blue.min.css">
   <!-- Pace style -->
   <link rel="stylesheet" href="plugins/pace/pace.min.css">
-  <!-- bootstrap wysihtml5 - text editor -->
-  <link rel="stylesheet" href="plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css">
+<!-- Summernote styles -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.11/summernote.css" integrity="sha256-vHGOIPxeMV4uIsqGDzob0M6Zl8PY5+nJh7m0hJhJXfg=" crossorigin="anonymous" />
   <!-- CodeSeven toastr notifications -->
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
 
@@ -42,8 +42,8 @@
 <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 <!-- PACE -->
 <script src="bower_components/PACE/pace.min.js"></script>
-<!-- Bootstrap WYSIHTML5 -->
-<script src="plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js"></script>
+<!-- Summernote -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.11/summernote.min.js" integrity="sha256-1XDZ8T0bWi65wnqq7bBPK9QrWkE0fg6xLVAVuSqKw/4=" crossorigin="anonymous"></script>
 <!-- CodeSeven toastr notifications -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <!-- DataTables -->

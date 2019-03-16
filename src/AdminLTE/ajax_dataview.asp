@@ -150,7 +150,7 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
     strMsgOutput = ""
 
     IF strError = "" AND ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate AND nItemID <> "")) THEN
-        strMsgOutput = strMsgOutput & "<!-- Data Manipulation Start -->" & vbCrLf
+        'strMsgOutput = strMsgOutput & "<!-- Data Manipulation Start -->" & vbCrLf
 	    ' If stored procedure
         IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
             strSQL = strModificationProcedure
@@ -210,27 +210,27 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
                             Case 13 '"time"
                                 IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
                                     varCurrFieldValue = NULL
-                                    strMsgOutput = strMsgOutput & "<!-- setting [time] field " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
+                                    'strMsgOutput = strMsgOutput & "<!-- setting [time] field " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
                                 ELSE
 				                    varCurrFieldValue = Mid(Request("Field_" & dvFields(nIndex)("FieldID")), 1, 8)
-                                    strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
                                 END IF
                             Case Else
                                 IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
                                     varCurrFieldValue = NULL
-                                    strMsgOutput = strMsgOutput & "<!-- setting " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
+                                    'strMsgOutput = strMsgOutput & "<!-- setting " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
                                 ELSE
 				                    varCurrFieldValue = Request("Field_" & dvFields(nIndex)("FieldID"))
-                                    strMsgOutput = strMsgOutput & "<!-- " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+                                    'strMsgOutput = strMsgOutput & "<!-- " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
                                 END IF
                         End Select
 
                         IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
                             nParamID = nParamID + 1
-                            strMsgOutput = strMsgOutput & "<!-- Setting parameter " & nParamID & " = " & varCurrFieldValue & "-->" & vbCrlf
+                            'strMsgOutput = strMsgOutput & "<!-- Setting parameter " & nParamID & " = " & varCurrFieldValue & "-->" & vbCrlf
                             cmdStoredProc.Parameters(nParamID).Value = varCurrFieldValue
                         ELSE
-                            strMsgOutput = strMsgOutput & "<!-- setting " & dvFields(nIndex)("FieldSource") & " = """ & varCurrFieldValue & """ (isnull: " & IsNull(varCurrFieldValue) & ") ErrCount: " & adoConnCrude.Errors.Count & " -->" & vbCrLf
+                            'strMsgOutput = strMsgOutput & "<!-- setting " & dvFields(nIndex)("FieldSource") & " = """ & varCurrFieldValue & """ (isnull: " & IsNull(varCurrFieldValue) & ") ErrCount: " & adoConnCrude.Errors.Count & " -->" & vbCrLf
                             rsItems(dvFields(nIndex)("FieldSource")) = varCurrFieldValue
                         END IF
                     END IF

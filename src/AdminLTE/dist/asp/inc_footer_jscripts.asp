@@ -4,43 +4,41 @@
   // To make Pace works on Ajax calls
   $(document).ajaxStart(function () { Pace.restart(); });
   $('.ajax').click(function () {
-    $.ajax({
-      url: '#', success: function (result) {
-        $('.ajax-content').html('<hr>Ajax Request Completed !')
-      }
-    })
-  })
-</script>
-<script>
-  $(function () {
-    //bootstrap WYSIHTML5 - text editor
-    $editor = $('.textarea').wysihtml5();
-  })
-</script>
-<script type="text/javascript">
-$(document).ready(function(){
-    $('[data-toggle="tooltip"]').tooltip();
-});
-</script>
-<script>
-toastr.options = {<%= globalToastrOptions %>}
-    <% SELECT CASE Request("MSG")
-        CASE "edit" %>
-            toastr.success('<%= GetWord("Item was successfully updated.") %>', '<h3><%= GetWord("Success!") %></h3>')
+      $.ajax({
+          url: '#', success: function (result) {
+              $('.ajax-content').html('<hr>Ajax Request Completed !')
+          }
+      })
+  });
+  $(document).ready(function () {
+      $('[data-toggle="tooltip"]').tooltip();<% IF constPageScriptName <> "dataview.asp" THEN %>
+      $('.summernote textarea').summernote({
+          placeholder: 'You can enter rich text here. The following placeholders can be used: {ServerName} {ObjectName} {ErrorDescription} {SeverityColor} {Severity} {ObjectType} {SampleID} {LastRunDate} {ExtendedReport}',
+          tabsize: 2,
+          height: 100
+      });<% END IF %>
+  });
+  toastr.options = {<%= globalToastrOptions %>}
+      <% SELECT CASE Request("MSG")
+          CASE "edit" %>
+              toastr.success('<%= GetWord("Item was successfully updated.") %>', '<h3><%= GetWord("Success!") %></h3>');
        <% CASE "add" %>
-            toastr.success('<%= GetWord("Item was successfully added.") %>', '<h3><%= GetWord("Success!") %></h3>')
+            toastr.success('<%= GetWord("Item was successfully added.") %>', '<h3><%= GetWord("Success!") %></h3>');
        <% CASE "delete" %>
-            toastr.warning('<%= GetWord("Item was successfully deleted.") %>', '<h3><%= GetWord("Success!") %></h3>')
+            toastr.warning('<%= GetWord("Item was successfully deleted.") %>', '<h3><%= GetWord("Success!") %></h3>');
        <% CASE "autoinit" %>
-            toastr.success('<%= GetWord("Items have been initialized.") %>', '<h3><%= GetWord("Success!") %></h3>')
+            toastr.success('<%= GetWord("Items have been initialized.") %>', '<h3><%= GetWord("Success!") %></h3>');
        <% CASE "sorted" %>
-            toastr.success('<%= GetWord("Sorting has been updated.") %>', '<h3><%= GetWord("Success!") %></h3>')
+            toastr.success('<%= GetWord("Sorting has been updated.") %>', '<h3><%= GetWord("Success!") %></h3>');
+       <% CASE "actiondone" %>
+            toastr.success('<%= GetWord("Action Completed Successfully") %>', '<h3><%= GetWord("Success!") %></h3>');
        <% CASE "notfound" %>
-            toastr.error('<%= GetWord("Provided item ID was not found.") %>', '<h3><%= GetWord("Error!") %></h3>')
+            toastr.error('<%= GetWord("Provided item ID was not found.") %>', '<h3><%= GetWord("Error!") %></h3>');
     <% END SELECT
     IF strError <> "" THEN %>
-            toastr.error("<%= Sanitizer.HTMLFormControl(strError) %>", '<h3><%= GetWord("Error!") %></h3>')
+            toastr.error("<%= Sanitizer.HTMLFormControl(strError) %>", '<h3><%= GetWord("Error!") %></h3>');
     <% END IF %>
+
 </script>
 
 <script>
