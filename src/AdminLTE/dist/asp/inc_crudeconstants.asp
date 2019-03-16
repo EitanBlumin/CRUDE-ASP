@@ -104,7 +104,7 @@ strSQL = "SELECT * FROM portal.DataViewFlags ORDER BY FlagValue ASC; " & vbCrLf 
          "SELECT * FROM portal.DataViewFieldFlags ORDER BY FlagValue ASC; " & vbCrLf & _
          "SELECT * FROM portal.DataViewFieldTypes ORDER BY TypeValue ASC;" & vbCrLf & _
          "SELECT * FROM portal.DataViewUriStyles ORDER BY StyleValue ASC; "
-rsItems.Open strSQL, adoConnCrudeStr
+rsItems.Open strSQL, adoConn
 
 arrDataViewFlags = rsItems.GetRows()
 
