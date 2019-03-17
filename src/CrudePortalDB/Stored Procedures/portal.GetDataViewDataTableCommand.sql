@@ -112,14 +112,14 @@ SELECT
 	@ParametersDeclaration = @ParametersDeclaration +
 	CASE
 		WHEN SearchVal <> N'' THEN N'
-	DECLARE @p' + CONVERT(nvarchar, c.ColIndex) + N' nvarchar(max);
-	SET @p' + CONVERT(nvarchar, c.ColIndex) + N' = @ColumnsOptions.value(''(Columns/Column[@ColIndex="' + CONVERT(nvarchar, c.ColIndex) + N'"]/text())[1]'', ''nvarchar(max)'');'
+	DECLARE @pFilter' + CONVERT(nvarchar, c.ColIndex) + N' nvarchar(max);
+	SET @pFilter' + CONVERT(nvarchar, c.ColIndex) + N' = @ColumnsOptions.value(''(Columns/Column[@ColIndex="' + CONVERT(nvarchar, c.ColIndex) + N'"]/text())[1]'', ''nvarchar(max)'');'
 		ELSE N''
 	END,
 	@ParametersFilter = @ParametersFilter +
 	CASE
 		WHEN c.SearchVal <> N'' THEN N'
-	AND ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''') LIKE ''%'' + @p' + CONVERT(nvarchar, c.ColIndex) + N' + ''%'''
+	AND ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''') LIKE @pFilter' + CONVERT(nvarchar, c.ColIndex)
 		ELSE N''
 	END,
 	@QuickFilter = @QuickFilter +
