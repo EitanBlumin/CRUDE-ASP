@@ -1,5 +1,5 @@
 <%@ LANGUAGE="VBSCRIPT" CODEPAGE="65001" %>
-<!--#include file="config_inc.asp" -->
+<!--#include file="dist/asp/inc_config.asp" -->
 <%' use this meta tag instead of adovbs.inc%>
 <!--METADATA TYPE="typelib" uuid="00000205-0000-0010-8000-00AA006D2EA4" -->
 <%
@@ -131,17 +131,30 @@ END IF
 <html>
 <head>
   <title><%= GetPageTitle() %></title>
-<!--#include file="inc_metadata.asp" -->
+<!--#include file="dist/asp/inc_meta.asp" -->
 </head>
-<body>
-<!--#include file="inc_nav.asp" -->
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
-        <li class="breadcrumb-item active"><%= Sanitizer.HTMLDisplay(strPageTitle) %></li>
-      </ol>
-    </nav>
+<body class="<%= globalBodyClass %>">
+<div class="wrapper">
+<!--#include file="dist/asp/inc_header.asp" -->
     
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        <%= strPageTitle %>
+      </h1>
+
+      <ol class="breadcrumb">
+        <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
+        <li class="active"><%= Sanitizer.HTMLDisplay(strPageTitle) %></li>
+      </ol>
+
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+
 <%
 
 IF (strMode = "edit" AND nItemID <> "") OR strMode = "add" Then
@@ -173,34 +186,35 @@ END IF
 %>
 <!-- Update/Insert Form -->
 <div class="container">
-<div class="card">
-<div class="card-header">
-    <h3 class="card-title float-left">
-        <% IF strMode = "edit" AND nItemID <> "" THEN Response.Write "Edit" ELSE Response.Write "Add" %> Data View
-
-    </h3><% IF strMode = "edit" AND nItemID <> "" Then %>
-    
+<div class="panel panel-primary">
+<div class="box-header with-border">
     <!-- tools box -->
-    <div class="ml-auto float-right">
+    <div class="box-tools pull-right">
     <a role="button" href="admin_dataviewfields.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fas fa-bars"></i> Manage Fields</a>
     &nbsp;
     <a role="button" href="dataview.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fas fa-eye"></i> Open Data View</a>
     &nbsp;
     <a role="button" class="btn btn-primary btn-sm" title="Cancel" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>"><i class="fas fa-times"></i></a>
     </div>
+
+    <h3 class="box-title pull-left">
+        <% IF strMode = "edit" AND nItemID <> "" THEN Response.Write "Edit" ELSE Response.Write "Add" %> Data View
+
+    </h3><% IF strMode = "edit" AND nItemID <> "" Then %>
+    
     <!-- /. tools -->
     <% END IF %>
 </div>
 <form class="form-horizontal" action="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>" method="post">
-    <div class="card-body">
-    <div class="input-group">
+    <div class="box-body">
+    <div class="form-group">
         <label for="inputTitle" class="col-sm-2 control-label">Title</label>
 
         <div class="col-sm-10">
         <input type="text" class="form-control" id="inputTitle" placeholder="Title" data-toggle="tooltip" name="Title" title="The title will be displayed at the top of the page" value="<%= Sanitizer.HTMLFormControl(strTitle) %>" required="required">
         </div>
     </div>
-    <div class="input-group summernote">
+    <div class="form-group summernote">
         <label for="inputDescription" class="col-sm-2 control-label">Description</label>
 
         <div class="col-sm-10">
@@ -208,7 +222,7 @@ END IF
                     style="width: 100%; height: 200px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;"><%= Sanitizer.HTMLFormControl(strDescription) %></textarea>
         </div>
     </div>
-    <div class="input-group">
+    <div class="form-group">
         <label for="inputDataSource" class="col-sm-2 control-label">Data Source</label>
 
         <div class="col-sm-10">
@@ -225,74 +239,77 @@ END IF
             </select>
         </div>
     </div>
-    <div class="input-group">
+    <div class="form-group">
         <label for="inputMainTable" class="col-sm-2 control-label">Main Table Name</label>
 
         <div class="col-sm-10">
         <input type="text" class="form-control" id="inputMainTable" data-toggle="tooltip" placeholder="Main Database Table Name" title="This is the database table name from which data will be queried and modified in (unless you specified stored procedures below). It can also be a view" name="MainTable" value="<%= Sanitizer.HTMLFormControl(strMainTable) %>">
         </div>
     </div>
-    <div class="input-group">
+    <div class="form-group">
         <label for="inputPrimaryKey" class="col-sm-2 control-label">Primary Key</label>
 
         <div class="col-sm-10">
         <input type="text" class="form-control" id="inputPrimaryKey" data-toggle="tooltip" title="A column name which serves as a primary key in the aforementioned database table" placeholder="Primary Key (must be single numerical column)" name="PrimaryKey" value="<%= Sanitizer.HTMLFormControl(strPrimaryKey) %>">
         </div>
     </div>
-    <div class="input-group">
+    <div class="form-group">
         <label for="inputOrderBy" class="col-sm-2 control-label">Order By</label>
 
         <div class="col-sm-10">
         <input type="text" class="form-control" id="inputOrderBy" data-toggle="tooltip" title="Default sorting expression when querying from the database table" placeholder="Column1 ASC, Column2 DESC" name="OrderBy" value="<%= Sanitizer.HTMLFormControl(strOrderBy) %>">
         </div>
     </div>
-    <div class="input-group">
+    <div class="form-group">
         <label for="inputViewProcedure" class="col-sm-2 control-label">Source Procedure</label>
 
         <div class="col-sm-10">
         <input type="text" class="form-control" id="inputViewProcedure" data-toggle="tooltip" title="Execute this stored procedure instead of querying directly from a table" placeholder="Procedure for View" name="ViewProcedure" value="<%= Sanitizer.HTMLFormControl(strViewProcedure) %>">
         </div>
     </div>
-    <div class="input-group">
+    <div class="form-group">
         <label for="inputModificationProcedure" class="col-sm-2 control-label">Modification Procedure</label>
 
         <div class="col-sm-10">
         <input type="text" class="form-control" id="inputModificationProcedure" data-toggle="tooltip" title="Execute this stored procedure instead of modifying data directly in a table" placeholder="Procedure for Modification" name="ModificationProcedure" value="<%= Sanitizer.HTMLFormControl(strModificationProcedure) %>">
         </div>
     </div>
-    <div class="input-group">
+    <div class="form-group">
         <label for="inputDeleteProcedure" class="col-sm-2 control-label">Deletion Procedure</label>
 
         <div class="col-sm-10">
         <input type="text" class="form-control" id="inputDeleteProcedure" data-toggle="tooltip" title="Execute this stored procedure instead of deleting directly from a table" placeholder="Procedure for Deletion" name="DeleteProcedure" value="<%= Sanitizer.HTMLFormControl(strDeleteProcedure) %>">
         </div>
     </div>
-    <div class="input-group">
+    <div class="form-group">
         <label class="col-sm-2 control-label">Properties</label>
         
         <div class="col-sm-10">
-        <% FOR nIndex = 0 TO luDataViewFlags.UBound %>
+        <div class="form-group">
+        <% Dim objChild
+            For Each objChild IN luDataViewFlags.Items %>
         <div class="input-group">
             <label>
-            <input type="checkbox" name="Flags" value="<%= luDataViewFlags(nIndex).Value %>" <% IF (luDataViewFlags(nIndex).Value AND nFlags) > 0 THEN Response.Write "checked" %> /> 
-                <i class="<%= luDataViewFlags(nIndex).Glyph %>"></i> <%= luDataViewFlags(nIndex).Label %>
+            <input type="checkbox" name="Flags" value="<%= objChild.Value %>" <% IF (objChild.Value AND nFlags) > 0 THEN Response.Write "checked" %> /> 
+                <i class="<%= objChild.Glyph %>"></i> <%= objChild.Label %>
             </label>
         </div>
         <% NEXT %>
         </div>
+        </div>
     </div>
-    <div class="input-group">
+    <div class="form-group">
         <label for="inputDataTableModificationButtonStyle" class="col-sm-2 control-label">DataTable Row Button Style</label>
 
         <div class="col-sm-10">
             <select class="form-control" name="DataTableModificationButtonStyle" id="inputDataTableModificationButtonStyle" data-toggle="tooltip" title="Choose how the Add/Edit/Clone/Delete buttons would look like">
-            <% FOR nIndex = 0 TO luDataTableModifierButtonStyles.UBound %>
-                <option value="<%= luDataTableModifierButtonStyles(nIndex).Value %>" <% IF luDataTableModifierButtonStyles(nIndex).Value = nDtModBtnStyle THEN Response.Write "selected" %>><%= luDataTableModifierButtonStyles(nIndex).Label %></option>
+            <% For Each objChild IN luDataTableModifierButtonStyles.Items %>
+                <option value="<%= objChild.Value %>" <% IF objChild.Value = nDtModBtnStyle THEN Response.Write "selected" %>><%= objChild.Label %></option>
             <% NEXT %>
             </select>
         </div>
     </div>
-    <div class="input-group">
+    <div class="form-group">
         <label for="intpuDataTableDefaultPageSize" class="col-sm-2 control-label">DataTable Default Page Size</label>
 
         <div class="col-sm-10">
@@ -304,40 +321,42 @@ END IF
             </select>
         </div>
     </div>
-    <div class="input-group">
+    <div class="form-group">
         <label for="inputDataTablePagingStyle" class="col-sm-2 control-label">DataTable Paging Style</label>
 
         <div class="col-sm-10">
             <select class="form-control" name="DataTablePagingStyle" id="inputDataTablePagingStyle" data-toggle="tooltip" title="Choose how the pagination buttons would look like (ignored when pagination is disabled)">
-            <% FOR nIndex = 0 TO UBound(arrDataTablePagingStyles, 2) %>
-                <option value="<%= arrDataTablePagingStyles(dtpsValue, nIndex) %>" <% IF arrDataTablePagingStyles(dtpsValue, nIndex) = strDtPagingStyle THEN Response.Write "selected" %>><%= arrDataTablePagingStyles(dtpsLabel, nIndex) %></option>
+            <% For Each objChild IN luDataTablePagingStyles.Items %>
+                <option value="<%= objChild.Value %>" <% IF objChild.Value = strDtPagingStyle THEN Response.Write "selected" %>><%= objChild.Label %></option>
             <% NEXT %>
             </select>
         </div>
     </div>
-    <div class="input-group">
+    <div class="form-group">
         <label class="col-sm-2 control-label">DataTable Options</label>
         
         <div class="col-sm-10">
-        <% FOR nIndex = 0 TO UBound(arrDataTableFlags, 2) %>
+        <div class="form-group">
+        <% FOR Each objChild IN luDataTableFlags.Items %>
         <div class="input-group">
-            <label data-toggle="tooltip" title="<%= arrDataTableFlags(dtfTooltip, nIndex) %>">
-            <input type="checkbox" name="DataTableFlags" value="<%= arrDataTableFlags(dtfValue, nIndex) %>" <% IF (arrDataTableFlags(dtfValue, nIndex) AND nDtFlags) > 0 THEN Response.Write "checked" %> /> 
-                <i class="<%= arrDataTableFlags(dtfGlyph, nIndex) %>"></i> <%= arrDataTableFlags(dtfLabel, nIndex) %>
+            <label data-toggle="tooltip" title="<%= objChild.Tooltip %>">
+            <input type="checkbox" name="DataTableFlags" value="<%= objChild.Value %>" <% IF (objChild.Value AND nDtFlags) > 0 THEN Response.Write "checked" %> /> 
+                <i class="<%= objChild.Glyph %>"></i> <%= objChild.Label %>
             </label>
         </div>
         <% NEXT %>
         </div>
+        </div>
     </div>
     </div>
     <!-- /.panel-body -->
-    <div class="card-footer">
+    <div class="panel-footer">
     <input type="hidden" name="ItemID" value="<%= nItemID %>" />
     <input type="hidden" name="mode" value="<%= strMode %>" />
 
-    <a class="btn btn-secondary" role="button" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>">Cancel</a>
+    <a class="btn btn-default" role="button" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>">Cancel</a>
 
-    <button type="submit" class="btn btn-success float-right">Submit</button>
+    <button type="submit" class="btn btn-success pull-right">Submit</button>
     </div>
     <!-- /.panel-footer -->
 </form>
@@ -346,22 +365,25 @@ END IF
 <!-- /.update-insert-form -->
 <% END IF %>
         
-<div class="row">
-    <div class="col col-sm-12">
+
+        <!-- Items List -->
+<div class="box">
+<div class="box-header">
+    <div class="box-title">
         <a class="btn btn-primary" role="button" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=add"><i class="fas fa-plus"></i> Add Data View</a>
     </div>
 </div>
-
-        <!-- Items List -->
-<div class="table-responsive">
-<table class="table table-hover">
-<tr class="table-primary">
+<div class="box-body table-responsive">
+<table class="table table-border table-hover">
+<thead class="bg-primary">
+<tr>
     <th>ID</th>
     <th>Title</th>
     <th>Properties</th>
     <th>DataTable Options</th>
     <th>Actions</th>
 </tr>
+</thead>
 <%
 Set rsItems = Server.CreateObject("ADODB.Recordset")
 strSQL = "SELECT * FROM portal.DataView ORDER BY Title ASC"
@@ -373,17 +395,17 @@ WHILE NOT rsItems.EOF
     <td><%= rsItems("ViewID") %></td>
     <td><a href="dataview.asp?ViewID=<%= rsItems("ViewID") %>"><%= Sanitizer.HTMLDisplay(rsItems("Title")) %></a></td>
     <td>
-        <% FOR nIndex = 0 TO UBound(arrDataViewFlags, 2)
-            IF (rsItems("Flags") AND arrDataViewFlags(dvfValue, nIndex)) > 0 THEN %>
-        <b data-toggle="tooltip" title="<%= arrDataViewFlags(dvfLabel, nIndex) %>"><i class="<%= arrDataViewFlags(dvfGlyph, nIndex) %>"></i></b>
+        <% FOR Each objChild In luDataViewFlags.Items
+            IF (rsItems("Flags") AND objChild.Value) > 0 THEN %>
+        <b data-toggle="tooltip" title="<%= objChild.Label %>"><i class="<%= objChild.Glyph %>"></i></b>
         &nbsp;
         <% END IF
             NEXT %>
     </td>
     <td>
-        <% FOR nIndex = 0 TO UBound(arrDataTableFlags, 2)
-            IF (rsItems("DataTableFlags") AND arrDataTableFlags(dtfValue, nIndex)) > 0 THEN %>
-        <b data-toggle="tooltip" title="<%= arrDataTableFlags(dtfLabel, nIndex) %>"><i class="<%= arrDataTableFlags(dtfGlyph, nIndex) %>"></i></b>
+        <% FOR Each objChild In luDataTableFlags.Items
+            IF (rsItems("DataTableFlags") AND objChild.Value) > 0 THEN %>
+        <b data-toggle="tooltip" title="<%= objChild.Label %>"><i class="<%= objChild.Glyph %>"></i></b>
         &nbsp;
         <% END IF
             NEXT %>
@@ -401,6 +423,24 @@ WHILE NOT rsItems.EOF
 WEND %>
 </table>
 </div>
-<!--#include file="inc_footer.asp" -->
+</div>
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+<!--#include file="dist/asp/inc_footer.asp" -->
+</div>
+<!-- ./wrapper -->
+
+<!-- REQUIRED JS SCRIPTS -->
+<!--#include file="dist/asp/inc_footer_jscripts.asp" -->
+
+<!-- AdminLTE App -->
+<script src="dist/js/adminlte.min.js"></script>
+
+<!-- Optionally, you can add Slimscroll and FastClick plugins.
+     Both of these plugins are recommended to enhance the
+     user experience. -->
 </body>
 </html>

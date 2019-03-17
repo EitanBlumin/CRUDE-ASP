@@ -19,7 +19,7 @@ Response.CacheControl = "No-Store"
 '************************
 
 ' Variable Definition
-Dim strMode, adoConnCrude, adoConnCrudeSrc, adoConnCrudeSource, cmdStoredProc, nItemID, nIndex, blnFound, nColSpan, blnRequiredFieldsFilled, strFormIDString
+Dim strMode, adoConnCrudeSrc, adoConnCrudeSource, cmdStoredProc, nItemID, nIndex, blnFound, nColSpan, blnRequiredFieldsFilled, strFormIDString
 Dim blnDtInfo, blnDtColumnFooter, blnDtQuickSearch, blnDtSort, blnDtPagination, blnDtPageSizeSelection, blnDtStateSave
 Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle
 Dim blnRTEEnabled, blnShowForm, blnShowList, blnAllowUpdate, blnAllowInsert, blnAllowDelete, blnAllowClone, blnShowCharts, blnAllowCNamee, blnAllowSearch, strOrderBy, strSearchFilter, strCurrFilter
@@ -462,7 +462,7 @@ ELSEIF strError = "" AND strMode = "dataviewcontents" AND Request("ViewID") <> "
         adoConnCrudeSrc.Open
 
         IF adoConnCrudeSrc.Errors.Count > 0 THEN
-	        strError = "ERROR while trying to open data source " & strDataSource & ":<br>"
+	        strError = "ERROR while trying to open data source " & strDataSource & " for dataview:<br>"
             For Each Err In adoConnCrudeSrc.Errors
 		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
             Next
@@ -685,7 +685,7 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
         adoConnCrudeSrc.Open
 
         IF adoConnCrudeSrc.Errors.Count > 0 THEN
-	        strError = "ERROR while trying to open data source " & strDataSource & ":<br>"
+	        strError = "ERROR while trying to open data source " & strDataSource & " for datatable:<br>(" & adoConnCrudeSource & ")"
             For Each Err In adoConnCrudeSrc.Errors
 		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
             Next
@@ -736,7 +736,10 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
             Next
         ELSE
             ON ERROR GOTO 0
-	
+
+	        'Response.Write adoConnCrudeSource & "<br>"
+	        'Response.Write strSQL & "<br><br>"
+
             IF NOT rsItems.EOF THEN
                 recordsTotal = rsItems("recordsTotal")
                 recordsFiltered = rsItems("recordsFiltered")

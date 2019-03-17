@@ -93,7 +93,7 @@ function loadSideNav()
      //console.log(response);
      nav = response;
     
-    var navTxt = '<li class="header"><%= GetWord("Menu") %></li>';
+    var navTxt = '<li class="header">Menu</li>';
 
     for (x in nav) {
         navTxt += displayNavLink(nav[x]);

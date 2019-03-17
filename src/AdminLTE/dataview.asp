@@ -15,7 +15,7 @@ strPageTitle = "DataTable View"
 
 ' Init Variables
 '=======================
-Dim nItemID, strMode, nCount, nIndex, dvFields, dvActionsInline, dvActionsToolbar, adoConnCrude, adoConnCrudeStr
+Dim nItemID, strMode, nCount, nIndex, dvFields, dvActionsInline, dvActionsToolbar
 
 ' Open DB Connection
 '=======================
@@ -508,18 +508,32 @@ IF strError <> "" THEN
             <% IF blnShowRowActions THEN %><th><%= GetWord("Actions") %></th><% END IF 
     FOR nIndex = 0 TO dvFields.UBound
         IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN %>
-            <th class="dt-exportable dt-toggleable"><%= Sanitizer.HTMLDisplay(dvFields(nIndex)("FieldLabel")) %></th><%
+            <th class="dt-exportable dt-toggleable<%
+                ' if search is enabled for this field
+                IF (dvFields(nIndex)("FieldFlags") AND 16) > 0 THEN
+                    ' if field type is dropdown, multi-selection, or boolean, apply dropdown filter, otherwise textual filter
+                    IF dvFields(nIndex)("FieldType") = 5 OR dvFields(nIndex)("FieldType") = 6 OR dvFields(nIndex)("FieldType") = 9 OR (dvFields(nIndex)("FieldType") >= 17 AND dvFields(nIndex)("FieldType") <= 23) THEN Response.Write " dt-searchable-dropdown" ELSE Response.Write " dt-searchable-text"
+                END IF
+                 %>"><%= Sanitizer.HTMLDisplay(dvFields(nIndex)("FieldLabel")) %></th><%
         END IF
      NEXT %>
         </tr>
         </thead>
-        <tbody></tbody><% IF blnDtColumnFooter THEN %>
-        <tfoot>
+        <tbody></tbody><% IF blnDtColumnFooter OR blnAllowSearch THEN %>
+        <tfoot<% IF blnDtColumnFooter THEN Response.Write " class=""dt-keep-footer""" %>>
         <tr>
-    <% IF blnShowRowActions THEN %><th><%= GetWord("Actions") %></th><% END IF 
+    <% IF blnShowRowActions THEN %><th class="dt-non-searchable"><%= GetWord("Actions") %></th><% END IF 
             FOR nIndex = 0 TO dvFields.UBound
                 IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN %>
-            <th class="dt-exportable dt-toggleable"><%= Sanitizer.HTMLDisplay(dvFields(nIndex)("FieldLabel")) %></th><%
+            <th class="dt-exportable dt-toggleable<%
+                ' if search is enabled for this field
+                IF (dvFields(nIndex)("FieldFlags") AND 16) > 0 THEN
+                    ' if field type is dropdown, multi-selection, or boolean, apply dropdown filter, otherwise textual filter
+                    IF dvFields(nIndex)("FieldType") = 5 OR dvFields(nIndex)("FieldType") = 6 OR dvFields(nIndex)("FieldType") = 9 OR (dvFields(nIndex)("FieldType") >= 17 AND dvFields(nIndex)("FieldType") <= 23) THEN Response.Write " dt-searchable-dropdown" ELSE Response.Write " dt-searchable-text"
+                ELSE
+                    Response.Write " dt-non-searchable"
+                END IF
+                 %>"><%= Sanitizer.HTMLDisplay(dvFields(nIndex)("FieldLabel")) %></th><%
                 END IF
              NEXT %>
         </tr>
@@ -640,7 +654,13 @@ IF strError <> "" THEN
             "editor_data": {<% 
     IF (dvFields(nIndex)("FieldFlags") AND 1) = 0 THEN %>
                 "hidden": true,<%
-    END IF%>
+    END IF
+    IF dvFields(nIndex)("UriPath") <> "" THEN %>
+                "wrap_link": {
+                    "href": "<%= dvFields(nIndex)("UriPath") %>",
+                    "css": "<%= luDataViewUriStyles(dvFields(nIndex)("UriStyle")).CSSClass %>"
+                },<%
+    END IF %>
                 "label": "<%= Sanitizer.HTMLFormControl(dvFields(nIndex)("FieldLabel")) %>",
                 "type": "<%
                 Select Case dvFields(nIndex)("FieldType")
@@ -680,7 +700,7 @@ IF strError <> "" THEN
             Response.Write "text"
         End Select                
                 %>",       // field type
-        "default_value": "<%= dvFields(nIndex)("DefaultValue") %>",   // default value
+                "default_value": "<%= dvFields(nIndex)("DefaultValue") %>",   // default value
                 <%
                 IF (dvFields(nIndex)("FieldFlags") AND 16) > 0 THEN %>"searchable": false,<%
                 END IF %>
@@ -725,12 +745,12 @@ IF strError <> "" THEN
 
     // Toolbar and Inline buttons should be added before init
     respite_crud
-        // Toolbar buttons
-        .addAddButton()
-        .addRefreshButton()
+        // Toolbar buttons<% IF blnAllowInsert THEN %>
+        .addAddButton()<% END IF %>
+        .addRefreshButton()<% IF blnAllowDelete THEN %>
         .addSelectAllButton()
         .addDeSelectAllButton()
-        .addDeleteSelectedButton()
+        .addDeleteSelectedButton()<% END IF %>
         .addToggleColumnsButton()
         .addExportButton()<%
     'TODO: Implement DB Command and URL buttons
@@ -764,11 +784,14 @@ IF strError <> "" THEN
                 console.log(r);
             }
         })*/
-        // Inline buttons
-        .addDetailsButton() //formatDetails)
-        .addCloneButton("Clone")
-        .addEditButton("Edit")
-        .addDeleteButton("Delete")
+        // Inline buttons<% IF blnShowForm THEN %>
+        .addDetailsButton() //formatDetails)<% END IF
+            IF blnAllowClone THEN %>
+        .addCloneButton("Clone")<% END IF
+            IF blnAllowUpdate THEN %>
+        .addEditButton("Edit")<% END IF
+            IF blnAllowDelete THEN %>
+        .addDeleteButton("Delete")<% END IF %>
         /*
         // Custom inline buttons example
         .addInlineActionButton(
