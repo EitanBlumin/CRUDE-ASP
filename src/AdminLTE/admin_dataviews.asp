@@ -180,7 +180,11 @@ IF strMode = "edit" AND nItemID <> "" Then
 	END IF
 	rsItems.Close
 ELSE
-	nFlags = 63
+    Dim objFlag
+    nFlags = 0
+    For Each objFlag In luDataViewFieldFlags.Items
+        IF CBool(objFlag.DefaultValue) THEN nFlags = nFlags + CInt(objFlag.Value)
+    Next
 	strMode = "add"
 END IF
 %>
