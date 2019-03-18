@@ -182,7 +182,7 @@ IF strMode = "edit" AND nItemID <> "" Then
 ELSE
     Dim objFlag
     nFlags = 0
-    For Each objFlag In luDataViewFieldFlags.Items
+    For Each objFlag In luDataViewFlags.Items
         IF CBool(objFlag.DefaultValue) THEN nFlags = nFlags + CInt(objFlag.Value)
     Next
 	strMode = "add"
