@@ -41,14 +41,16 @@ END IF
 
 ' Connection string
 ' =====================
-Dim adoConStr, adoConn, strError
+Dim adoConStr, adoConn, strError, adoConnCrudeStr, adoConnCrude
 adoConStr = GetConfigValue("connectionStrings", "name", "connectionString", "Default", "Provider=SQLOLEDB;Data Source=.\DEV2016;User ID=CrudeLogin;Password=CrudePassword;Initial Catalog=CrudePortalDB;Application Name=" & Request.ServerVariables("SCRIPT_NAME"))
+adoConnCrudeStr = adoConStr 'compatibility with respite
 
 ' Define global connection object
 ' ================================
 Set adoConn = Server.CreateObject("ADODB.Connection")
 adoConn.ConnectionString = adoConStr
 adoConn.CommandTimeout = 0
+SET adoConnCrude = adoConn 'compatibility with respite
 
 ' Global Variables
 ' ============================

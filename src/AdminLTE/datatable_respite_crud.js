@@ -85,19 +85,19 @@
             for (var dKey in d) {
                 var col = respite_crud.getColumnByName(dKey);
 
-                if (respite_crud.getColumnByName(dKey) == undefined)
+                if (col == undefined)
                     col = "";
-                else if (respite_crud.getColumnByName(dKey)['editor_data'] == undefined)
+                else if (col['editor_data'] == undefined)
                     col = "";
                 else
-                    col = col['editor_data']['label'];
+                    col = col['editor_data'];
 
                 if (typeof d[dKey] === "object" || typeof d[dKey] === "array") {
                     // recursive:
-                    rv += "<b>" + col + ':</b><div class="container-fluid">' + formatDetailsRow(d[dKey]) + '</div>';
+                    rv += "<b>" + col['label'] + ':</b><div class="container-fluid">' + formatDetailsRow(d[dKey]) + '</div>';
                 } else if (col != "") {
                     // simple string (stop condition):
-                    rv += col + ": " + d[dKey] + "<br/> ";
+                    rv += col['label'] + ": " + respite_crud.renderAutomatic_ed(d[dKey], col, d) + "<br/> ";
                 }
             }
             
@@ -207,15 +207,20 @@
     static escapeHtml(v) {
         return (v != undefined ? $("<div></div>").text(v).html() : '');
     }
-    static renderBoolean(data, type, row, meta) {
+
+    static renderBoolean_ed(data, ed) {
         return (data == "true" || data == "1") ?
           '<i class="fas fa-check-circle text-success" title="' + data + '"></i>' :
           '<i class="fas fa-times-circle text-danger" title="' + data + '"></i>';
     }
-    static renderLookup(data, type, row, meta) {
+    static renderBoolean(data, type, row, meta) {
         var oColumn = meta.settings.aoColumns[meta.col];
-        if (data != '' && data != undefined && oColumn['editor_data'] != undefined && oColumn.editor_data['options'] != undefined) {
-            var opList = oColumn.editor_data.options;
+        return renderBoolean_ed(data, oColumn['editor_data']);
+    }
+
+    static renderLookup_ed(data, ed) {
+        if (data != '' && data != undefined && ed != undefined && ed['options'] != undefined) {
+            var opList = ed.options;
 
             for (var i = 0; i < opList.length; i++) {
                 if (opList[i].value == data) {
@@ -225,12 +230,15 @@
         }
         return data;
     }
-    static renderCSVLookup(data, type, row, meta) {
-        var oColumn = meta.settings.aoColumns[meta.col];
-        var rv = "";
-        if (data != '' && data != undefined && oColumn['editor_data'] != undefined && oColumn.editor_data['options'] != undefined) {
+    static renderLookup(data, type, row, meta) {
+        return renderLookup_ed(data, oColumn['editor_data']);
+    }
 
-            var opList = oColumn.editor_data.options;
+    static renderCSVLookup_ed(data, ed) {
+        var rv = "";
+        if (data != '' && data != undefined && ed != undefined && ed['options'] != undefined) {
+
+            var opList = ed.options;
             var dataList = data.split(",");
 
             for (var j = 0; j < dataList.length; j++) {
@@ -246,6 +254,11 @@
         if (rv.length == 0) rv = data;
         return rv;
     }
+    static renderCSVLookup(data, type, row, meta) {
+        var oColumn = meta.settings.aoColumns[meta.col];
+        return renderCSVLookup_ed(data, oColumn['editor_data']);
+    }
+
     static renderLink_ed(data, ed, id) {
         var rv = "";
         if (((id != null && id != undefined) || (data != '' && data != undefined)) && ed != undefined && ed["label"] != undefined) {
@@ -268,30 +281,53 @@
         var ed = (meta != undefined && meta.settings.aoColumns[meta.col] != undefined ? meta.settings.aoColumns[meta.col]['editor_data'] : undefined);
         return respite_crud.renderLink_ed(data, ed, null);
     }
-    static renderAutomatic(data, type, row, meta) {
-        var oColumn = meta.settings.aoColumns[meta.col];
+
+    static replaceRowPlaceholders(data, row, self) {
+        if (self != undefined && self != null)
+            data = data.replace('{{this}}', self);
+
+        for (var fieldKey in row) {
+            data = data.replace('{{row[' + fieldKey + ']}}', row[fieldKey]);
+        }
+
+        return data;
+    }
+
+    static renderAutomatic_ed(data, ed, row) {
         var rv = "";
-        if (data != undefined && data != '' && oColumn['editor_data'] != undefined) {
-            switch (oColumn.editor_data["type"]) {
+        if (data != undefined && data != '' && ed != undefined) {
+            switch (ed["type"]) {
                 case "boolean":
-                    rv = respite_crud.renderBoolean(data, type, row, meta);
+                    rv = respite_crud.renderBoolean_ed(data, ed);
                     break;
                 case "csv":
-                    rv = respite_crud.renderCSVLookup(data, type, row, meta);
+                    rv = respite_crud.renderCSVLookup_ed(data, ed);
                     break;
                 case "select":
-                    rv = respite_crud.renderLookup(data, type, row, meta);
+                    rv = respite_crud.renderLookup_ed(data, ed);
                     break;
                 case "link":
-                    rv = respite_crud.renderLink(data, type, row, meta);
+                    rv = respite_crud.renderLink_ed(data, ed);
                     break;
                 default:
                     rv = data;
+            }
+
+            if (ed['wrap_link'] != undefined && ed["type"] != 'link' && row != undefined) {
+                var newLink = $('<a></a>').prop('href', respite_crud.replaceRowPlaceholders(ed['wrap_link']['href'], row, data)).addClass(ed['wrap_link']['css'])
+                .append(rv);
+
+                rv = newLink[0].outerHTML;
             }
         }
 
         if (rv.length == 0) rv = data;
         return rv;
+    }
+
+    static renderAutomatic(data, type, row, meta) {
+        var oColumn = meta.settings.aoColumns[meta.col];
+        return respite_crud.renderAutomatic_ed(data, oColumn['editor_data'], row);
     }
             
     // This function runs after the data manipulation form is rendered
@@ -1011,7 +1047,62 @@
             "dom": "Bilfpr<'table-responsive't>p", // TODO: the B section should only be added if toolbar buttons were added
 
             //// Custom Buttons: ////
-            "buttons": respite_crud.dt_Buttons
+            "buttons": respite_crud.dt_Buttons,
+            "initComplete": function () {
+                // save footer
+                var footerBefore = $(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' tfoot tr').clone(true);
+
+                // dropdown filters:
+                this.api().columns('.dt-searchable-dropdown').every(function () {
+                    var column = this;
+                    var select = $('<select class="form-control"><option value="" style="font-weight: bold;">Search</option></select>')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            var val = $.fn.dataTable.util.escapeRegex(
+                                $(this).val()
+                            );
+
+                            column
+                                .search(val ? val : '', true, false)
+                                .draw();
+                        });
+
+                    for (var i = 0; respite_crud.dt_Columns[column[0]]['editor_data'] != undefined && respite_crud.dt_Columns[column[0]].editor_data['options'] != undefined && i < respite_crud.dt_Columns[column[0]].editor_data['options']['length']; i++) {
+                        var d = respite_crud.dt_Columns[column[0]].editor_data['options'][i];
+                        var val = $.fn.dataTable.util.escapeRegex(d.value);
+                        if (column.search() === val) {
+                            select.append(
+                              '<option value="' + val + '" selected="selected">' + d.label + "</option>"
+                            );
+                        } else {
+                            select.append('<option value="' + val + '">' + d.label + "</option>");
+                        }
+                    }
+                });
+                // textual filters
+                this.api().columns('.dt-searchable-text').every(function () {
+                    var column = this;
+                    var txt = $('<input type="search" class="form-control" placeholder="Search" />')
+                        .appendTo($(column.footer()).empty())
+                        .val(column.search().replace("%", "").replace("%", ""))
+                        .on('change', function () {
+                            var val = $.fn.dataTable.util.escapeRegex(
+                                $(this).val()
+                            );
+
+                            column
+                                .search(val ? '%' + val + '%' : '', true, false)
+                                .draw();
+                        });
+                });
+                // Copy footers to right below headers
+                $(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' tfoot tr').clone(true).appendTo(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' thead');
+                $(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' thead tr:eq(1) th.dt-non-searchable').empty();
+
+                // Reset footers
+                $(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' tfoot').empty();
+                footerBefore.appendTo(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' tfoot.dt-keep-footer');
+            }
         }
 
         // apply option overrides
@@ -1026,11 +1117,11 @@
         }
         console.log("initializing datatable. options:");
         console.log(setOptions);
-        console.log($(respite_crud.respite_editor_options.dt_Options.dt_Selector));
+        //console.log($(respite_crud.respite_editor_options.dt_Options.dt_Selector));
 
         $(document).ready(function () {
-            console.log(setOptions);
-            console.log(respite_crud.respite_editor_options.dt_Options.dt_Selector);
+            //console.log(setOptions);
+            //console.log(respite_crud.respite_editor_options.dt_Options.dt_Selector);
             respite_crud.dt = $(respite_crud.respite_editor_options.dt_Options.dt_Selector).DataTable(setOptions);
 
             if (respite_crud.isDetailRowsAdded) {

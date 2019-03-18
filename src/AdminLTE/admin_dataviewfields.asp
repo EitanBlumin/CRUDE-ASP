@@ -365,7 +365,7 @@ END IF
 %>
 
 <!-- Update/Insert Form -->
-<div class="col-md-10 col-lg-8">
+<div class="container">
     <br />
 <div class="panel panel-primary">
 <div class="box-header with-border">
@@ -400,9 +400,10 @@ END IF
 
         <div class="col-sm-9 col-md-9 col-lg-10">
             <select class="form-control" id="inputFieldType" name="FieldType">
-                <% FOR nIndex = 0 TO UBound(arrDataViewFieldTypes,2) %>
-                <option value="<%= arrDataViewFieldTypes(dvftValue, nIndex) %>" <% IF CStr(arrDataViewFieldTypes(dvftValue, nIndex)) = CStr(nFieldType) THEN Response.Write "selected='selected'" %>>
-                    <%= arrDataViewFieldTypes(dvftLabel,nIndex) %>
+                <% Dim objChild
+                    FOR Each objChild In luDataViewFieldTypes.Items %>
+                <option value="<%= objChild.Value %>" <% IF CStr(objChild.Value) = CStr(nFieldType) THEN Response.Write "selected='selected'" %>>
+                    <%= objChild.Label %>
                 </option>
                 <% NEXT %>
             </select>
@@ -455,7 +456,7 @@ END IF
 
         <div class="col-sm-9 col-md-9 col-lg-10">
             <select class="form-control" id="inputUriStyle" name="UriStyle" data-toggle="tooltip" title="Choose how the link would look like">
-                <% FOR nIndex = 0 TO UBound(arrDataViewUriStyles,2) %><option value="<%= arrDataViewUriStyles(dvusValue, nIndex) %>" <% IF arrDataViewUriStyles(dvusValue, nIndex) = nUriStyle THEN Response.Write "selected" %>><%= arrDataViewUriStyles(dvusLabel,nIndex) %></option>
+                <% FOR Each objChild In luDataViewUriStyles.Items %><option value="<%= objChild.Value %>" <% IF objChild.Value = nUriStyle THEN Response.Write "selected" %>><%= objChild.Label %></option>
                 <% NEXT %>
             </select>
         </div>
@@ -499,11 +500,11 @@ END IF
         <label for="inputFlags" class="col-sm-3 col-md-3 col-lg-2 control-label">Properties</label>
         
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <% FOR nIndex = 0 TO UBound(arrDataViewFieldFlags, 2) %>
+        <% FOR Each objChild In luDataViewFieldFlags.Items %>
         <div class="checkbox">
             <label>
-            <input type="checkbox" name="FieldFlags" value="<%= arrDataViewFieldFlags(dvffValue, nIndex) %>" <% IF (arrDataViewFieldFlags(dvffValue, nIndex) AND nFlags) > 0 THEN Response.Write "checked" %> /> 
-                <i class="<%= arrDataViewFieldFlags(dvffGlyph, nIndex) %>"></i> <%= arrDataViewFieldFlags(dvffLabel, nIndex) %>
+            <input type="checkbox" name="FieldFlags" value="<%= objChild.Value %>" <% IF (objChild.Value AND nFlags) > 0 THEN Response.Write "checked" %> /> 
+                <i class="<%= objChild.Glyph %>"></i> <%= objChild.Label %>
             </label>
         </div>
         <% NEXT %>
@@ -530,15 +531,18 @@ END IF
         <!-- Items List -->
         
 <form name="frmFieldSorting" action="<%= constPageScriptName %>?ViewID=<%= nViewID %>" method="post">
-<div class="row">
-    <div class="col col-sm-12"><br />
+<div class="box">
+    
+<div class="box-header">
+    <div class="box-title">
         <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-sort-amount-down"></i> Update Sorting</button>
         &nbsp;
         <a class="btn btn-primary btn-sm" role="button" href="<%= constPageScriptName %>?mode=add&ViewID=<%= nViewID %>"><i class="fas fa-plus"></i> Add Field</a>
     </div>
 </div>
-<div class="table-responsive">
-<table class="table table-hover">
+<div class="box-body table-responsive">
+<table class="table table-bordered table-hover">
+<thead class="bg-primary">
 <tr>
     <th>Order</th>
     <th>Title</th>
@@ -547,6 +551,7 @@ END IF
     <th>Properties</th>
     <th>Actions</th>
 </tr>
+</thead>
 <tbody>
 <%
 Set rsItems = Server.CreateObject("ADODB.Recordset")
@@ -573,11 +578,11 @@ WHILE NOT rsItems.EOF
         </select></td>
     <th><%= Sanitizer.HTMLDisplay(rsItems("FieldLabel")) %></th>
     <td><%= Sanitizer.HTMLDisplay(rsItems("FieldSource")) %></td>
-    <td><%= arrDataViewFieldTypes(dvftLabel,rsItems("FieldType") - 1) %></td>
+    <td><%= luDataViewFieldTypes(rsItems("FieldType")).Label %></td>
     <td>
-        <% FOR nIndex = 0 TO UBound(arrDataViewFieldFlags, 2)
-            IF (rsItems("FieldFlags") AND arrDataViewFieldFlags(dvffValue, nIndex)) THEN %>
-        <b data-toggle="tooltip" title="<%= arrDataViewFieldFlags(dvffLabel, nIndex) %>"><i class="<%= arrDataViewFieldFlags(dvffGlyph, nIndex) %>"></i></b>
+        <% FOR Each objChild In luDataViewFieldFlags.Items
+            IF (rsItems("FieldFlags") AND objChild.Value) THEN %>
+        <b data-toggle="tooltip" title="<%= objChild.Label %>"><i class="<%= objChild.Glyph %>"></i></b>
         &nbsp;
         <% END IF
             NEXT %>
@@ -593,6 +598,7 @@ WHILE NOT rsItems.EOF
 WEND %>
 </tbody>
 </table>
+</div>
 </div>
 <input type="hidden" name="mode" value="sortFields" />
 </form>

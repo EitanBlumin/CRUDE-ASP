@@ -7,6 +7,10 @@ class DataViewLookupClassExtendable
         UBound = Count - 1
     end property
     
+    public property Get Items
+        SET Items = dictProperties.Items
+    end property
+
     private sub Class_Initialize
         Count = 0
         Set dictProperties = Server.CreateObject("Scripting.Dictionary")
@@ -58,6 +62,14 @@ class DataViewLookupCollectionClass
     public property Get UBound
         UBound = Count - 1
     end property
+    
+    public property Get Items
+        Items = dictObj.Items
+    end property
+    
+    public property Get Keys
+        SET Keys = dictObj.Keys
+    end property
 
     private sub Class_Initialize
         Count = 0
@@ -65,19 +77,20 @@ class DataViewLookupCollectionClass
     end sub
 
     public default function GetItem(pKey)
-	    IF NOT dictObj.Exists(pKey) THEN
-		    SET GetItem = Null
+
+	    IF NOT dictObj.Exists(CStr(pKey)) THEN
+		    SET GetItem = Nothing
 	    Else
-		    SET GetItem = dictObj.Item(pKey)
+		    SET GetItem = dictObj.Item(CStr(pKey))
 	    END IF	
     end function
 
     public sub AddItem(pKey, pItem)
-	    IF NOT dictObj.Exists(pKey) THEN
-		    dictObj.Add pKey, pItem
+	    IF NOT dictObj.Exists(CStr(pKey)) THEN
+		    dictObj.Add CStr(pKey), pItem
             Count = Count + 1
 	    Else
-		    SET dictObj.Item(pKey) = pItem
+		    SET dictObj.Item(CStr(pKey)) = pItem
 	    END IF
     end sub
 
@@ -104,7 +117,7 @@ strSQL = "SELECT * FROM portal.DataViewFlags ORDER BY FlagValue ASC; " & vbCrLf 
          "SELECT * FROM portal.DataViewFieldFlags ORDER BY FlagValue ASC; " & vbCrLf & _
          "SELECT * FROM portal.DataViewFieldTypes ORDER BY TypeValue ASC;" & vbCrLf & _
          "SELECT * FROM portal.DataViewUriStyles ORDER BY StyleValue ASC; "
-rsItems.Open strSQL, adoConn
+rsItems.Open strSQL, adoConnCrudeStr
 
 arrDataViewFlags = rsItems.GetRows()
 
@@ -117,7 +130,7 @@ FOR luTmpIndex = 0 TO UBound(arrDataViewFlags, 2)
     luTmpObject.Glyph = arrDataViewFlags(dvfGlyph, luTmpIndex)
     luTmpObject.DefaultValue = arrDataViewFlags(dvfDefault, luTmpIndex)
 
-    luDataViewFlags.AddItem luTmpIndex, luTmpObject
+    luDataViewFlags.AddItem arrDataViewFlags(dvfValue, luTmpIndex), luTmpObject
 NEXT
 
 SET luTmpObject = Nothing
@@ -145,7 +158,7 @@ FOR luTmpIndex = 0 TO UBound(arrDataTableFlags, 2)
     luTmpObject.Glyph = arrDataTableFlags(dtfGlyph, luTmpIndex)
     luTmpObject.DefaultValue = arrDataTableFlags(dtfDefault, luTmpIndex)
 
-    luDataTableFlags.AddItem luTmpIndex, luTmpObject
+    luDataTableFlags.AddItem arrDataTableFlags(dtfValue, luTmpIndex), luTmpObject
 NEXT
 
 SET luTmpObject = Nothing
@@ -175,7 +188,7 @@ FOR luTmpIndex = 0 TO UBound(arrDataTableModifierButtonStyles, 2)
     luTmpObject.ShowGlyph = arrDataTableModifierButtonStyles(dtbsShowGlyph, luTmpIndex)
     luTmpObject.DefaultValue = arrDataTableModifierButtonStyles(dtbsDefault, luTmpIndex)
 
-    luDataTableModifierButtonStyles.AddItem luTmpIndex, luTmpObject
+    luDataTableModifierButtonStyles.AddItem arrDataTableModifierButtonStyles(dtbsValue, luTmpIndex), luTmpObject
 NEXT
 
 SET luTmpObject = Nothing
@@ -199,7 +212,7 @@ FOR luTmpIndex = 0 TO UBound(arrDataTablePagingStyles, 2)
     SET luTmpObject = (new DataViewLookupClass)(arrDataTablePagingStyles(dtpsValue, luTmpIndex), arrDataTablePagingStyles(dtpsLabel, luTmpIndex))
     luTmpObject.DefaultValue = arrDataTablePagingStyles(dtpsDefault, luTmpIndex)
 
-    luDataTablePagingStyles.AddItem luTmpIndex, luTmpObject
+    luDataTablePagingStyles.AddItem arrDataTablePagingStyles(dtpsValue, luTmpIndex), luTmpObject
 NEXT
 
 SET luTmpObject = Nothing
@@ -225,7 +238,7 @@ FOR luTmpIndex = 0 TO UBound(arrDataViewFieldFlags, 2)
     luTmpObject.Glyph = arrDataViewFieldFlags(dvffGlyph, luTmpIndex)
     luTmpObject.DefaultValue = arrDataViewFieldFlags(dvffDefault, luTmpIndex)
 
-    luDataViewFieldFlags.AddItem luTmpIndex, luTmpObject
+    luDataViewFieldFlags.AddItem arrDataViewFieldFlags(dvffValue, luTmpIndex), luTmpObject
 NEXT
 
 SET luTmpObject = Nothing
@@ -250,8 +263,8 @@ FOR luTmpIndex = 0 TO UBound(arrDataViewFieldTypes, 2)
     SET luTmpObject = (new DataViewLookupClass)(arrDataViewFieldTypes(dvftValue, luTmpIndex), arrDataViewFieldTypes(dvftLabel, luTmpIndex))
     luTmpObject.Wrappers = arrDataViewFieldTypes(dvftWrappers, luTmpIndex)
     luTmpObject.Identifier = arrDataViewFieldTypes(dvftIdentifier, luTmpIndex)
-
-    luDataViewFieldTypes.AddItem luTmpIndex, luTmpObject
+    'Response.Write "DV Field Type: " & arrDataViewFieldTypes(dvftValue, luTmpIndex) & " (" & luTmpObject.Label & ")<br>" & vbCrLf
+    luDataViewFieldTypes.AddItem arrDataViewFieldTypes(dvftValue, luTmpIndex), luTmpObject
 NEXT
 
 SET luTmpObject = Nothing
@@ -279,13 +292,11 @@ FOR luTmpIndex = 0 TO UBound(arrDataTableModifierButtonStyles, 2)
     luTmpObject.Glyph = arrDataViewUriStyles(dvusGlyph, luTmpIndex)
     luTmpObject.DefaultValue = arrDataViewUriStyles(dvusDefault, luTmpIndex)
 
-    luDataViewUriStyles.AddItem luTmpIndex, luTmpObject
+    luDataViewUriStyles.AddItem arrDataViewUriStyles(dvusValue, luTmpIndex), luTmpObject
 NEXT
 
 SET luTmpObject = Nothing
     
-SET rsItems = Server.CreateObject("ADODB.Recordset")
-
 '==============================
 ' Data View Field Columns
 '==============================
@@ -319,8 +330,10 @@ FUNCTION InitDataViewFields (pViewID, pDBConnection)
         SET tmpRs = Server.CreateObject("ADODB.Command")
         tmpRs.ActiveConnection = pDBConnection
         tmpRs.CommandText = "SELECT * FROM portal.DataViewField WHERE ViewID = ? ORDER BY FieldOrder ASC"
+    
         SET tmpRs = tmpRs.Execute (,pViewID,adOptionUnspecified)
 
+        'tmpRs.Open "SELECT * FROM portal.DataViewField WHERE ViewID = " & pViewID & " ORDER BY FieldOrder ASC", pDBConnection
         tmpIndex = 0
         WHILE NOT tmpRs.EOF
             SET tmpObj = new DataViewLookupClassExtendable
@@ -340,7 +353,6 @@ FUNCTION InitDataViewFields (pViewID, pDBConnection)
 
     SET InitDataViewFields = tmpCollection
 END FUNCTION
-
 
 FUNCTION InitDataViewActions (pViewID, pIsInline, pDBConnection)
     Dim tmpCollection, tmpObj, tmpColumn, tmpIndex, tmpRs, tmpParams(1)
@@ -373,5 +385,7 @@ FUNCTION InitDataViewActions (pViewID, pIsInline, pDBConnection)
 
     SET InitDataViewActions = tmpCollection
 END FUNCTION
+
+SET rsItems = Server.CreateObject("ADODB.Recordset")
 
 %>
