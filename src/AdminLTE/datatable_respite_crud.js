@@ -1051,7 +1051,14 @@
             "dom": "Bilfpr<'table-responsive't>p", // TODO: the B section should only be added if toolbar buttons were added
 
             //// Custom Buttons: ////
-            "buttons": respite_crud.dt_Buttons,
+            "buttons": {
+                dom: {
+                    button: {
+                        className: '' // remove the default "btn btn-default" class
+                    }
+                },
+                buttons: respite_crud.dt_Buttons
+            },
             "initComplete": function () {
                 // save footer
                 var footerBefore = $(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' tfoot tr').clone(true);
