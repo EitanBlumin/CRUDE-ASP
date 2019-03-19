@@ -1053,13 +1053,14 @@
             //// Custom Buttons: ////
             "buttons": {
                 dom: {
-                    button: {
-                        className: '' // remove the default "btn btn-default" class
-                    }
+                    container: { className: 'dt-buttons' }, // remove the default "btn-group" class
+                    button: { className: '' } // remove the default "btn btn-default" class
                 },
                 buttons: respite_crud.dt_Buttons
             },
             "initComplete": function () {
+                //$('.dt-buttons').removeClass("btn-group");
+
                 // save footer
                 var footerBefore = $(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' tfoot tr').clone(true);
 

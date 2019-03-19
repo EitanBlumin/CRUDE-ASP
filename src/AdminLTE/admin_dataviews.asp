@@ -199,10 +199,9 @@ END IF
     <!-- tools box -->
     <div class="box-tools pull-right">
         <% IF strMode = "edit" AND nItemID <> "" THEN %>
-        <div class="btn-group">
-            <a role="button" href="admin_dataviewfields.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fas fa-bars"></i> Manage Fields</a>
-            <a role="button" href="dataview.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fas fa-eye"></i> Open Data View</a>
-        </div><% END IF %>
+        <a role="button" href="admin_dataviewfields.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fas fa-bars"></i> Manage Fields</a>
+        <a role="button" href="dataview.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fas fa-eye"></i> Open Data View</a>
+        <% END IF %>
         <a role="button" class="btn btn-default btn-sm" title="Cancel" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>"><i class="fas fa-times"></i></a>
     </div>
     <!-- /. tools -->
@@ -416,7 +415,7 @@ WHILE NOT rsItems.EOF
         <% END IF
             NEXT %>
     </td>
-    <td class="btn-group">
+    <td>
         <a data-toggle="tooltip" title="Manage Fields" class="btn btn-primary" href="admin_dataviewfields.asp?ViewID=<%= rsItems("ViewID") %>"><i class="fas fa-bars"></i> Manage Fields</a>
         <a data-toggle="tooltip" title="Edit" class="btn btn-success" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=edit&ItemID=<%= rsItems("ViewID") %>"><i class="fas fa-edit"></i> Edit</a>
         <a data-toggle="tooltip" title="Delete" class="btn btn-danger" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=delete&ItemID=<%= rsItems("ViewID") %>"><i class="far fa-trash-alt"></i> Delete</a>

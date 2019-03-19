@@ -324,7 +324,7 @@ END IF
     <section class="content container-fluid">
 
 <div class="row">
-    <div class="col col-sm-12 btn-group">
+    <div class="col col-sm-12">
         <a class="btn btn-primary" role="button" href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"><i class="fas fa-edit"></i> Edit Data View</a>
         <a class="btn btn-primary" role="button" href="dataview.asp?ViewID=<%= nViewID %>"><i class="fas fa-eye"></i> Open Data View</a>
     </div>
@@ -534,7 +534,7 @@ END IF
 <div class="box">
     
 <div class="box-header">
-    <div class="box-title btn-group">
+    <div class="box-title">
         <a class="btn btn-success btn-sm" role="button" href="<%= constPageScriptName %>?mode=add&ViewID=<%= nViewID %>"><i class="fas fa-plus"></i> Add Field</a>
         <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-sort-amount-down"></i> Update Sorting</button>
     </div>
@@ -586,7 +586,7 @@ WHILE NOT rsItems.EOF
         <% END IF
             NEXT %>
     </td>
-    <td class="btn-group">
+    <td>
         <a data-toggle="tooltip" title="Edit" class="btn btn-success" href="<%= constPageScriptName %>?mode=edit&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="fas fa-edit"></i> Edit</a>
         <a data-toggle="tooltip" title="Delete" class="btn btn-danger" href="<%= constPageScriptName %>?mode=delete&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="far fa-trash-alt"></i> Delete</a>
     </td>
