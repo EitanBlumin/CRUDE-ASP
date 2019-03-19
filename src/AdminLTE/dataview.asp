@@ -25,10 +25,12 @@ adoConnCrude.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
     
 Dim blnFound, blnRequiredFieldsFilled, strViewIDString, strViewQueryString
-Dim blnRTEEnabled, blnShowForm, blnShowList, blnShowCharts, blnAllowUpdate, blnAllowInsert, blnAllowDelete, blnAllowClone, blnAllowSearch, strOrderBy, strSearchFilter, strCurrFilter
+Dim blnShowCustomActions, blnShowForm, blnShowList, blnShowCharts, blnAllowUpdate, blnAllowInsert, blnAllowDelete, blnAllowClone, blnAllowSearch, strOrderBy, strSearchFilter, strCurrFilter
 Dim blnDtInfo, blnDtColumnFooter, blnDtQuickSearch, blnDtSort, blnDtPagination, blnDtPageSizeSelection, blnDtStateSave
 Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle
 Dim strLastOptGroup, blnOptGroupStarted
+Dim blnAllowColumnsToggle, blnAllowRowDetails, blnAllowRowSelection, blnFixedHeaders
+Dim blnExportClipboard, blnExportCSV, blnExportExcel, blnExportPDF, blnExportPrint, blnAllowExport, blnAllowExportAll
 Set rsItems = Server.CreateObject("ADODB.Recordset")
 
 Dim myRegEx
@@ -86,9 +88,8 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
 
         blnShowForm = CBool((nViewFlags AND 16) > 0)
         blnShowList = CBool((nViewFlags AND 32) > 0)
-        blnAllowSearch = CBool((nViewFlags AND 64) > 0)
-        blnRTEEnabled = CBool((nViewFlags AND 128) > 0)
-        blnShowCharts = CBool((nViewFlags AND 256) > 0)
+        blnShowCharts = CBool((nViewFlags AND 64) > 0)
+        blnShowCustomActions = CBool((nViewFlags AND 128) > 0)
 
         blnDtInfo = CBool((nDtFlags AND 1) > 0)
         blnDtColumnFooter = CBool((nDtFlags AND 2) > 0)
@@ -97,6 +98,20 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
         blnDtPagination = CBool((nDtFlags AND 16) > 0)
         blnDtPageSizeSelection = CBool((nDtFlags AND 32) > 0)
         blnDtStateSave = CBool((nDtFlags AND 64) > 0)
+        blnAllowSearch = CBool((nDtFlags AND 128) > 0)
+        blnAllowColumnsToggle = CBool((nDtFlags AND 256) > 0)
+        blnAllowRowDetails = CBool((nDtFlags AND 512) > 0)
+        blnAllowRowSelection = CBool((nDtFlags AND 1024) > 0)
+        blnExportClipboard = CBool((nDtFlags AND 2048) > 0)
+        blnExportCSV = CBool((nDtFlags AND 4096) > 0)
+        blnExportExcel = CBool((nDtFlags AND 8192) > 0)
+        blnExportPDF = CBool((nDtFlags AND 16384) > 0)
+        blnExportPrint = CBool((nDtFlags AND 32768) > 0)
+
+        blnAllowExport = CBool(blnExportClipboard OR blnExportCSV OR blnExportExcel OR blnExportPDF OR blnExportPrint)
+        blnAllowExportAll = CBool(blnExportClipboard AND blnExportCSV AND blnExportExcel AND blnExportPDF AND blnExportPrint)
+
+        blnFixedHeaders = CBool((nDtFlags AND 65536) > 0)
 
         FOR nIndex = 0 TO UBound(arrDataTableModifierButtonStyles, 2)
             IF nDtModBtnStyle = arrDataTableModifierButtonStyles(dtbsValue, nIndex) THEN
@@ -747,12 +762,43 @@ IF strError <> "" THEN
     respite_crud
         // Toolbar buttons<% IF blnAllowInsert THEN %>
         .addAddButton()<% END IF %>
-        .addRefreshButton()<% IF blnAllowDelete THEN %>
+        .addRefreshButton()<% IF blnAllowRowSelection THEN %>
         .addSelectAllButton()
-        .addDeSelectAllButton()
-        .addDeleteSelectedButton()<% END IF %>
-        .addToggleColumnsButton()
-        .addExportButton()<%
+        .addDeSelectAllButton()<% IF blnAllowDelete THEN %>
+        .addDeleteSelectedButton()<% END IF
+        END IF
+        IF blnAllowColumnsToggle THEN %>
+        .addToggleColumnsButton()<% END IF
+        IF blnAllowExport THEN %>
+        .addExportButton(<%
+        IF NOT blnAllowExportAll THEN
+            Dim blnFirstItem
+            blnFirstItem = True
+            %>[<%
+                IF blnExportClipboard THEN
+                    Response.Write "{ extend: 'copy', exportOptions: { columns: '.dt-exportable' } }"
+                    blnFirstItem = False
+                END IF
+                IF blnExportExcel THEN
+                    IF NOT blnFirstItem THEN Response.Write "," & vbCrLf ELSE blnFirstItem = False
+                    Response.Write "{ extend: 'excel', exportOptions: { columns: '.dt-exportable' } }"
+                END IF
+                IF blnExportCSV THEN
+                    IF NOT blnFirstItem THEN Response.Write "," & vbCrLf ELSE blnFirstItem = False
+                    Response.Write "{ extend: 'csv', exportOptions: { columns: '.dt-exportable' } }"
+                END IF
+                IF blnExportPDF THEN
+                    IF NOT blnFirstItem THEN Response.Write "," & vbCrLf ELSE blnFirstItem = False
+                    Response.Write "{ extend: 'pdf', exportOptions: { columns: '.dt-exportable' } }"
+                END IF
+                IF blnExportPrint THEN
+                    IF NOT blnFirstItem THEN Response.Write "," & vbCrLf ELSE blnFirstItem = False
+                    Response.Write "{ extend: 'print', exportOptions: { columns: '.dt-exportable' } }"
+                END IF
+                %>]<%
+        END IF
+        %>)<% END IF
+    IF blnShowCustomActions THEN
     'TODO: Implement DB Command and URL buttons
     FOR nIndex = 0 TO dvActionsToolbar.UBound %>
         .addToolbarActionButton(
@@ -764,6 +810,7 @@ IF strError <> "" THEN
             }
         })<%
     NEXT
+    END IF
     %>
         /*
         // Custom toolbar buttons example
@@ -784,7 +831,8 @@ IF strError <> "" THEN
                 console.log(r);
             }
         })*/
-        // Inline buttons<% IF blnShowForm THEN %>
+        // Inline buttons
+<% IF blnAllowRowDetails THEN %>
         .addDetailsButton() //formatDetails)<% END IF
             IF blnAllowClone THEN %>
         .addCloneButton("Clone")<% END IF
@@ -824,11 +872,16 @@ IF strError <> "" THEN
             searching: false,<% END IF %><% IF NOT blnDtInfo THEN %>
             info: false,<% END IF %><% IF NOT blnDtPageSizeSelection THEN %>
             lengthChange: false,<% END IF %><% IF NOT blnDtPagination THEN %>
-            paging: false,<% END IF %><% IF blnDtStateSave THEN %>
+            scrollY: 390,
+            scrollX: 460,
+            scrollCollapse: true,
+            scroller: { loadingIndicator: true },<% END IF %><% IF blnDtStateSave THEN %>
             stateSave: true,<% END IF %>
             pageLength: <%= nDtDefaultPageSize %>
             });
-        <% END IF %>
+        <% END IF
+        'TODO: blnFixedHeaders
+        %>
 
     </script>
 <!-- /scripts -->

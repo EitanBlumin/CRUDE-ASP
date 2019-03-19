@@ -45,10 +45,10 @@ nDtFlags = 0
 nFlags = 0
 
 For nIndex = 1 TO Request.Form("Flags").Count
-    nFlags= nFlags + CInt(Request.Form("Flags")(nIndex))
+    nFlags= nFlags + CLng(Request.Form("Flags")(nIndex))
 Next
 For nIndex = 1 TO Request.Form("DataTableFlags").Count
-    nDtFlags= nDtFlags + CInt(Request.Form("DataTableFlags")(nIndex))
+    nDtFlags= nDtFlags + CLng(Request.Form("DataTableFlags")(nIndex))
 Next
 
 IF Request.Form("Title") <> "" THEN
@@ -88,10 +88,10 @@ IF Request.Form("Title") <> "" THEN
             rsItems("DeleteProcedure") = strDeleteProcedure
             rsItems("ViewDescription") = strDescription
             rsItems("OrderBy") = strOrderBy
-            rsItems("Flags") = CInt(nFlags)
+            rsItems("Flags") = CLng(nFlags)
             rsItems("DataTableModifierButtonStyle") = CInt(nDtModBtnStyle)
             rsItems("DataTableDefaultPageSize") = CInt(nDtDefaultPageSize)
-            rsItems("DataTableFlags") = CInt(nDtFlags)
+            rsItems("DataTableFlags") = CLng(nDtFlags)
             rsItems("DataTablePagingStyle") = strDtPagingStyle
     
             ON ERROR RESUME NEXT
@@ -183,7 +183,11 @@ ELSE
     Dim objFlag
     nFlags = 0
     For Each objFlag In luDataViewFlags.Items
-        IF CBool(objFlag.DefaultValue) THEN nFlags = nFlags + CInt(objFlag.Value)
+        IF CBool(objFlag.DefaultValue) THEN nFlags = nFlags + CLng(objFlag.Value)
+    Next
+    nDtFlags = 0
+    For Each objFlag In luDataTableFlags.Items
+        IF CBool(objFlag.DefaultValue) THEN nDtFlags = nDtFlags + CLng(objFlag.Value)
     Next
 	strMode = "add"
 END IF

@@ -918,13 +918,10 @@
                 action: respite_crud.showDeleteMultiple
             });
     }
-    static addExportButton(title, glyph, customClass) {
-        return respite_crud.addToolbarActionButton(
-            {
-                extend: 'collection',
-                text: (glyph == undefined || glyph == null ? '<i class="fas fa-download"></i> ' : '<i class="' + glyph + '"></i> ') + (title == undefined || title == null ? 'Export' : title),
-                className: (customClass == undefined || customClass == null ? "btn btn-dark btn-sm" : customClass),
-                buttons: [
+    static addExportButton(arrButtons, title, glyph, customClass) {
+        // if no specific buttons specified, add all of them by default
+        if (arrButtons == undefined)
+            arrButtons = [
                     {
                         extend: 'copy',
                         exportOptions: {
@@ -955,7 +952,14 @@
                             columns: '.dt-exportable'
                         }
                     }
-                ]
+            ];
+
+        return respite_crud.addToolbarActionButton(
+            {
+                extend: 'collection',
+                text: (glyph == undefined || glyph == null ? '<i class="fas fa-download"></i> ' : '<i class="' + glyph + '"></i> ') + (title == undefined || title == null ? 'Export' : title),
+                className: (customClass == undefined || customClass == null ? "btn btn-dark btn-sm" : customClass),
+                buttons: arrButtons
             });
     }
     static addToggleColumnsButton(title, glyph, customClass) {
