@@ -315,7 +315,7 @@ END IF
         <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
         <li><a href="admin_dataviews.asp"><i class="fas fa-th-list"></i> <%= GetWord("Manage Data Views") %></a></li>
         <li><a href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"> <%= Sanitizer.HTMLDisplay(strDataViewTitle) %></a></li>
-        <li class="active"><%= Sanitizer.HTMLDisplay(strPageTitle) %></li>
+        <li class="active"><%= GetWord("Manage Fields") %></li>
       </ol>
 
     </section>
@@ -324,10 +324,9 @@ END IF
     <section class="content container-fluid">
 
 <div class="row">
-    <div class="col col-sm-12">
+    <div class="col col-sm-12 btn-group">
         <a class="btn btn-primary" role="button" href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"><i class="fas fa-edit"></i> Edit Data View</a>
-        &nbsp;
-        <a role="button" href="dataview.asp?ViewID=<%= nViewID %>" class="btn btn-primary"><i class="fas fa-eye"></i> Open Data View</a>
+        <a class="btn btn-primary" role="button" href="dataview.asp?ViewID=<%= nViewID %>"><i class="fas fa-eye"></i> Open Data View</a>
     </div>
 </div>
 
@@ -535,10 +534,9 @@ END IF
 <div class="box">
     
 <div class="box-header">
-    <div class="box-title">
+    <div class="box-title btn-group">
+        <a class="btn btn-success btn-sm" role="button" href="<%= constPageScriptName %>?mode=add&ViewID=<%= nViewID %>"><i class="fas fa-plus"></i> Add Field</a>
         <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-sort-amount-down"></i> Update Sorting</button>
-        &nbsp;
-        <a class="btn btn-primary btn-sm" role="button" href="<%= constPageScriptName %>?mode=add&ViewID=<%= nViewID %>"><i class="fas fa-plus"></i> Add Field</a>
     </div>
 </div>
 <div class="box-body table-responsive">
@@ -588,10 +586,9 @@ WHILE NOT rsItems.EOF
         <% END IF
             NEXT %>
     </td>
-    <td>
-        <a data-toggle="tooltip" title="Edit" class="btn btn-primary" href="<%= constPageScriptName %>?mode=edit&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="fas fa-edit"></i> Edit</a>
-        &nbsp;
-        <a data-toggle="tooltip" title="Delete" class="btn btn-primary" href="<%= constPageScriptName %>?mode=delete&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="far fa-trash-alt"></i> Delete</a>
+    <td class="btn-group">
+        <a data-toggle="tooltip" title="Edit" class="btn btn-success" href="<%= constPageScriptName %>?mode=edit&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="fas fa-edit"></i> Edit</a>
+        <a data-toggle="tooltip" title="Delete" class="btn btn-danger" href="<%= constPageScriptName %>?mode=delete&ViewID=<%= nViewID %>&ItemID=<%= rsItems("FieldID") %>"><i class="far fa-trash-alt"></i> Delete</a>
     </td>
   </tr>
     <% 
