@@ -313,6 +313,7 @@ END IF
 
       <ol class="breadcrumb">
         <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
+        <li><a href="admin_dataviews.asp"><i class="fas fa-th-list"></i> <%= GetWord("Manage Data Views") %></a></li>
         <li><a href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"> <%= Sanitizer.HTMLDisplay(strDataViewTitle) %></a></li>
         <li class="active"><%= Sanitizer.HTMLDisplay(strPageTitle) %></li>
       </ol>
