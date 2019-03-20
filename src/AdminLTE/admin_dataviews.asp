@@ -193,7 +193,7 @@ ELSE
 END IF
 %>
 <!-- Update/Insert Form -->
-<div class="container">
+<div class="container-fluid">
 <div class="panel panel-primary">
 <div class="box-header with-border">
     <!-- tools box -->

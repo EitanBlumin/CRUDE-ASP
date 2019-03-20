@@ -448,13 +448,13 @@
 
             if (ed != undefined && !ed["hidden"]) {
                 content += '<div class="form-group' + (ed['type'] == "rte" ? ' summernote' : '') + '" data-toggle="tooltip" title="' + respite_crud.escapeHtml(ed['tooltip']) + '">';
-                content += '<label for="field_' + i + '" class="control-label col-sm-2 col-md-3 col-lg-4">';
+                content += '<label for="field_' + i + '" class="control-label col-sm-3 col-md-4 col-lg-5">';
 
                 if (ed["help"] != undefined && ed["help"] != "") {
                     content += '<div class="ml-auto float-right"><a class="btn btn-link text-info" data-toggle="collapse" data-target="#help_field_' + i + '" aria-expanded="false" aria-controls="help_field_' + i + '" title="Help"><i class="fas fa-question-circle"></i></a></div>';
                 }
 
-                content += respite_crud.escapeHtml(ed['label']) + '</label>';
+                content += respite_crud.escapeHtml(ed['label']) + '</label><div class="input-group col-sm-9 col-md-8 col-lg-7">';
 
                 // open html element tag
                 switch (ed['type']) {
@@ -598,7 +598,7 @@
                     default:
                 }
                 // close element
-                content += closing_string + '</div>';
+                content += closing_string + '</div></div>';
                 if (ed["help"] != undefined && ed["help"] != "") {
                     content += '<div id="help_field_' + i + '" class="collapse bg-info"><div class="ml-auto float-right"><button type="button" role="button" class="btn btn-secondary btn-sm" data-toggle="collapse" data-target="#help_field_' + i + '" aria-expanded="false" aria-controls="help_field_' + i + '" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button></div>' + ed["help"] + '</div>';
                 }
@@ -730,21 +730,6 @@
 
         if (render_function != undefined)
             respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender = render_function;
-
-        // expose our "editor_data" extra column option using the api:
-        $.fn.dataTable.Api.registerPlural('columns().editor_data()', 'column().editor_data()', function (setter) {
-            return this.iterator('column', function (settings, column) {
-                var col = settings.aoColumns[column];
-
-                if (setter !== undefined) {
-                    col.editor_data = setter;
-                    return this;
-                }
-                else {
-                    return col.editor_data;
-                }
-            }, 1);
-        });
 
         // Array to track the ids of the details displayed rows
         respite_crud.detailRows = [];
@@ -1010,6 +995,22 @@
 
     //// Initialize DataTable ////
     static initDataTable(options) {
+
+        // expose our "editor_data" extra column option using the api:
+        $.fn.dataTable.Api.registerPlural('columns().editor_data()', 'column().editor_data()', function (setter) {
+            return this.iterator('column', function (settings, column) {
+                var col = settings.aoColumns[column];
+
+                if (setter !== undefined) {
+                    col.editor_data = setter;
+                    return this;
+                }
+                else {
+                    return col['editor_data'];
+                }
+            }, 1);
+        });
+
         // prepare default options
         respite_crud.setEditorOptions();
 

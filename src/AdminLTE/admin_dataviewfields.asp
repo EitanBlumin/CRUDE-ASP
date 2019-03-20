@@ -365,8 +365,8 @@ END IF
 %>
 
 <!-- Update/Insert Form -->
-<div class="container">
     <br />
+<div class="container-fluid">
 <div class="panel panel-primary">
 <div class="box-header with-border">
     <h3 class="box-title">
