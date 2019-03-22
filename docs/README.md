@@ -52,8 +52,16 @@ But when there would be a first release, then it would be something like this:
 
 1. Deploy the database using a dacpac file.
 2. Copy the website folder to a subfolder in c:\inetpub\wwwroot
-3. Update the connection string in the configuration file (dist\asp\inc_config.asp)
-4. That's it! The site should be immediately operational and you should be able to start using it.
+3. Update the connection strings in the configuration file (web.config)
+4. If your connection strings use Windows Authentication, you'll need to configure anonymous authentication in IIS manager:
+    1. Open IIS Manager
+    2. Find your site under the sites list
+    3. Under the "IIS" section, open the "Authentication" page
+    4. Make sure "Anonymous Authentication" is enabled
+    5. Click on "Anonymous Authentication" and Edit it
+    6. Configure the username and password of a specific Windows user to be impersonated by every visitor
+    7. In the database, create a Windows Authentication login for the above user, and give it permissions as necessary (i.e. read+write+execute)
+5. That's it! The site should be immediately operational and you should be able to start using it.
 
 ## Built With
 
@@ -74,3 +82,8 @@ This project is licensed under the Mozilla Public License 2.0 - see the [LICENSE
 
 * Hat tip to anyone whose code was used, especially AdminLTE.
 * Do you want to help by participating in the project? [Let me know via LinkedIn](https://www.linkedin.com/in/eitanblumin).
+
+## Future Plans
+
+A new project is in the works, to utilize modern web technologies such as .NET, Angular and Bootstrap 4.
+You can find it here: https://github.com/EitanBlumin/CRUDE-NET
