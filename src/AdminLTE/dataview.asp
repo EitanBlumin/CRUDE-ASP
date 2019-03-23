@@ -806,7 +806,7 @@ IF strError <> "" THEN
     FOR nIndex = 0 TO dvActionsToolbar.UBound %>
         .addToolbarActionButton(
         {
-            text: '<i class="<%= dvActionsToolbar(nIndex)("GlyphIcon") %>"></i> <%= dvActionsToolbar(nIndex)("ActionLabel") %>',
+            text: '<i class="<%= Sanitizer.JSON(dvActionsToolbar(nIndex)("GlyphIcon")) %>"></i> <%= Sanitizer.JSON(dvActionsToolbar(nIndex)("ActionLabel")) %>',
             className: "btn btn-primary btn-sm",
             action: function (e, dt, node, config) {
                 <%= dvActionsToolbar(nIndex)("NgClickJSCode") %>
@@ -838,11 +838,11 @@ IF strError <> "" THEN
 <% IF blnAllowRowDetails THEN %>
         .addDetailsButton() //formatDetails)<% END IF
             IF blnAllowClone THEN %>
-        .addCloneButton("Clone")<% END IF
+        .addCloneButton("<%= GetWord("Clone") %>")<% END IF
             IF blnAllowUpdate THEN %>
-        .addEditButton("Edit")<% END IF
+        .addEditButton("<%= GetWord("Edit") %>")<% END IF
             IF blnAllowDelete THEN %>
-        .addDeleteButton("Delete")<% END IF %>
+        .addDeleteButton("<%= GetWord("Delete") %>")<% END IF %>
         /*
         // Custom inline buttons example
         .addInlineActionButton(
@@ -870,7 +870,7 @@ IF strError <> "" THEN
         // Init DataTable with default options:
         <% IF strError = "" THEN %>
             respite_crud.initDataTable({
-            pagingType: "<%= strDtPagingStyle %>",<% IF NOT blnDtSort THEN %>
+            pagingType: "<%= Sanitizer.JSON(strDtPagingStyle) %>",<% IF NOT blnDtSort THEN %>
             ordering: false,<% END IF %><% IF NOT blnDtQuickSearch THEN %>
             searching: false,<% END IF %><% IF NOT blnDtInfo THEN %>
             info: false,<% END IF %><% IF NOT blnDtPageSizeSelection THEN %>

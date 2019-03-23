@@ -669,7 +669,7 @@
 
         for (var i = 0; respite_crud.dt_InlineActionButtons != undefined && i < respite_crud.dt_InlineActionButtons['length']; i++) {
 
-            rv += ' <a href="' + respite_crud.dt_InlineActionButtons[i]['href'] + '" class="' + respite_crud.dt_InlineActionButtons[i]['class'] + '" role="button" title="' + respite_crud.dt_InlineActionButtons[i]['title'] + '">';
+            rv += ' <a href="' + respite_crud.dt_InlineActionButtons[i]['href'] + '" class="' + respite_crud.dt_InlineActionButtons[i]['class'] + '" role="button" data-toggle="tooltip" data-placement="bottom" title="' + respite_crud.dt_InlineActionButtons[i]['title'] + '">';
 
             if (respite_crud.dt_InlineActionButtons[i]['glyph'] != "" && respite_crud.dt_InlineActionButtons[i]['glyph'] != undefined)
                 rv += '<i class="' + respite_crud.dt_InlineActionButtons[i]['glyph'] + '"></i>';
