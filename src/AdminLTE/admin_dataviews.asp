@@ -97,6 +97,11 @@ IF Request.Form("Title") <> "" THEN
             ON ERROR RESUME NEXT
     
             rsItems.Update
+
+            IF strMode = "add" THEN
+                nItemID = rsItems("ViewID")
+            END IF
+
             rsItems.Close   
             
             ON ERROR GOTO 0
@@ -114,7 +119,12 @@ IF Request.Form("Title") <> "" THEN
 	
 	    IF strError = "" THEN 
             adoConnCrude.Close
-	        Response.Redirect(constPageScriptName & "?MSG=" & strMode)
+            IF strMode = "add" THEN
+                IF nItemID = "" OR NOT IsNumeric(nItemID) THEN nItemID = "latest"
+	            Response.Redirect("admin_dataviewfields.asp?mode=autoinit&ViewID=" & nItemID)
+            ELSE
+	            Response.Redirect(constPageScriptName & "?MSG=" & strMode)
+            END IF
         END IF
 	END IF
 

@@ -196,8 +196,9 @@ ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) THEN
     srcCMD.CommandType = adCmdText
     srcCMD.CommandText = "SELECT c.name AS ColumnName, " & vbCrLf & _
 "	CASE WHEN fk.REFERENCED_COLUMN IS NOT NULL THEN 5 " & vbCrLf & _
+"       WHEN t.name LIKE '%varchar' AND (c.max_length NOT BETWEEN 1 AND 200) THEN 2 " & vbCrLf & _
 "       WHEN t.name LIKE '%char' THEN 1 " & vbCrLf & _
-"		WHEN t.name LIKE '%text' THEN 2 " & vbCrLf & _
+"		WHEN t.name LIKE '%text' OR t.name = 'xml' THEN 2 " & vbCrLf & _
 "		WHEN t.name LIKE '%int' THEN 3 " & vbCrLf & _
 "		WHEN t.name IN ('real', 'decimal', 'numeric', 'float', 'double') THEN 4 " & vbCrLf & _
 "		WHEN t.name = 'date' THEN 7 " & vbCrLf & _
@@ -206,9 +207,9 @@ ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) THEN
 "		WHEN t.name = 'time' THEN 13 " & vbCrLf & _
 "		ELSE 1 " & vbCrLf & _
 "	END AS fieldtype, " & vbCrLf & _
-"	9 + CASE WHEN c.is_nullable = 1 THEN 0 ELSE 2 END AS fieldflags, " & vbCrLf & _
+"	fieldflags = 1 + CASE WHEN c.is_nullable = 1 THEN 0 ELSE 2 END + CASE WHEN c.max_length BETWEEN 1 AND 200 THEN 8 ELSE 0 END, " & vbCrLf & _
 "	fieldorder = ROW_NUMBER() OVER (ORDER BY c.column_id ASC), " & vbCrLf & _
-"	'' AS fielddefault, c.max_length, QUOTENAME(fk.REFERENCED_SCHEMA) + '.' + QUOTENAME(fk.REFERENCED_TABLE) AS LinkedTable " & vbCrLf & _
+"	'' AS fielddefault, max_length = CASE WHEN c.max_length = -1 THEN NULL WHEN t.name IN ('nchar', 'nvarchar') THEN c.max_length / 2 ELSE c.max_length END, QUOTENAME(fk.REFERENCED_SCHEMA) + '.' + QUOTENAME(fk.REFERENCED_TABLE) AS LinkedTable " & vbCrLf & _
 "   , fk.REFERENCED_COLUMN AS LinkedColumnValue, ISNULL(fk_table.REFERENCED_COLUMN_TEXT, fk.REFERENCED_COLUMN) AS LinkedColumnLabel " & vbCrLf & _
 "FROM sys.columns c INNER JOIN sys.types t " & vbCrLf & _
 "ON c.user_type_id = t.user_type_id AND c.system_type_id = t.system_type_id " & vbCrLf & _
