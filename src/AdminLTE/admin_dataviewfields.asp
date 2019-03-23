@@ -196,7 +196,7 @@ ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) THEN
     srcCMD.CommandType = adCmdText
     srcCMD.CommandText = "SELECT c.name AS ColumnName, " & vbCrLf & _
 "	CASE WHEN fk.REFERENCED_COLUMN IS NOT NULL THEN 5 " & vbCrLf & _
-"       WHEN t.name LIKE '%varchar' AND (c.max_length NOT BETWEEN 1 AND 200) THEN 2 " & vbCrLf & _
+"       WHEN t.name LIKE '%varchar' AND (c.max_length NOT BETWEEN 1 AND 400) THEN 2 " & vbCrLf & _
 "       WHEN t.name LIKE '%char' THEN 1 " & vbCrLf & _
 "		WHEN t.name LIKE '%text' OR t.name = 'xml' THEN 2 " & vbCrLf & _
 "		WHEN t.name LIKE '%int' THEN 3 " & vbCrLf & _
@@ -254,8 +254,8 @@ ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) THEN
         rsTarget.AddNew
 
         rsTarget("ViewID") = nViewID
-        rsTarget("FieldLabel") = rsItems("ColumnName")
         rsTarget("FieldSource") = rsItems("ColumnName")
+        rsTarget("FieldLabel") = AutoFormatLabels(rsItems("ColumnName"))
         rsTarget("FieldType") = rsItems("fieldtype")
         rsTarget("FieldFlags") = rsItems("fieldflags")
         rsTarget("FieldOrder") = rsItems("fieldorder")

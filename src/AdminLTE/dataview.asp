@@ -672,11 +672,11 @@ IF strError <> "" THEN
     END IF
     IF dvFields(nIndex)("UriPath") <> "" THEN %>
                 "wrap_link": {
-                    "href": "<%= dvFields(nIndex)("UriPath") %>",
-                    "css": "<%= luDataViewUriStyles(dvFields(nIndex)("UriStyle")).CSSClass %>"
+                    "href": "<%= Sanitizer.JSON(dvFields(nIndex)("UriPath")) %>",
+                    "css": "<%= Sanitizer.JSON(luDataViewUriStyles(dvFields(nIndex)("UriStyle")).CSSClass) %>"
                 },<%
     END IF %>
-                "label": "<%= Sanitizer.HTMLFormControl(dvFields(nIndex)("FieldLabel")) %>",
+                "label": "<%= Sanitizer.JSON(dvFields(nIndex)("FieldLabel")) %>",
                 "type": "<%
                 Select Case dvFields(nIndex)("FieldType")
             Case 1
@@ -715,12 +715,15 @@ IF strError <> "" THEN
             Response.Write "text"
         End Select                
                 %>",       // field type
-                "default_value": "<%= dvFields(nIndex)("DefaultValue") %>",   // default value
+                "default_value": "<%= Sanitizer.JSON(dvFields(nIndex)("DefaultValue")) %>",   // default value
                 <%
                 IF (dvFields(nIndex)("FieldFlags") AND 16) > 0 THEN %>"searchable": false,<%
                 END IF %>
                 // collection of custom attributes to apply to the input field element: { attrName: attrValue, ... }
-                "attributes": { "placeholder": "<%= Sanitizer.HTMLFormControl(dvFields(nIndex)("FieldLabel")) %>" , "maxlength": <%= dvFields(nIndex)("MaxLength") %><%
+                "attributes": { "placeholder": "<%= Sanitizer.JSON(dvFields(nIndex)("FieldLabel")) %>"<%
+                    IF dvFields(nIndex)("MaxLength") <> "" AND dvFields(nIndex)("MaxLength") <> Null THEN
+                    %>, "maxlength": <%= dvFields(nIndex)("MaxLength") %><%
+                    END IF
                     IF (dvFields(nIndex)("FieldFlags") AND 2) > 0 THEN
                     %>, "required": true<%
                     END IF
@@ -741,7 +744,7 @@ IF strError <> "" THEN
 
                 rsOptions.Open strSQL, adoConnCrudeSrc
                 WHILE NOT rsOptions.EOF
-            %>{ "group": "<%= rsOptions("group") %>", "value": "<%= rsOptions("value") %>", "label": "<%= rsOptions("title") %>" }<%
+            %>{ "group": "<%= Sanitizer.JSON(rsOptions("group")) %>", "value": "<%= Sanitizer.JSON(rsOptions("value")) %>", "label": "<%= Sanitizer.JSON(rsOptions("title")) %>" }<%
                 rsOptions.MoveNext
                 IF NOT rsOptions.EOF THEN Response.Write ", "
                 WEND

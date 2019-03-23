@@ -103,8 +103,31 @@ FUNCTION FormatDateForDB(dt)
     FormatDateForDB = YEAR(dt) & "-" & Pd(Month(dt),2) & "-" & Pd(DAY(dt),2) & " " & Pd(Hour(dt),2) & ":" & Pd(Minute(dt),2) & ":" & Pd(Second(dt),2)
 END FUNCTION
 
+FUNCTION AutoFormatLabels(colName)
+    Dim strLabel, regEx
+    Set regEx = New RegExp
+
+    ' BB code urls
+    With regEx
+        .Pattern = "([^A-Za-z0-9\.\$])|([A-Z])(?=[A-Z][a-z])|([^\-\$\.0-9])(?=\$?[0-9]+(?:\.[0-9]+)?)|([0-9])(?=[^\.0-9])|([a-z])(?=[A-Z])"
+        .IgnoreCase = False
+        .Global = True
+        .MultiLine = True
+    End With
+
+    strLabel = regEx.Replace(colName, "$2$3$4$5 ")
+
+    set regEx = nothing
+    AutoFormatLabels = strLabel
+END FUNCTION
+
 ' This class object would hold a collection of functions to sanitize input/output
 CLASS SanitizerClass
+    Private m_RegExp
+        
+    private sub Class_Initialize
+        Set m_RegExp = New RegExp
+    end sub
 
     ' Sanitize values that would be put inside HTML elements (for example <input ... value="value here"> or <textarea...>value here</textarea>)
     PUBLIC FUNCTION HTMLFormControl(pInput)
@@ -135,6 +158,47 @@ CLASS SanitizerClass
         ELSE
             SQL = REPLACE(pInput, "'", "''")
         END IF
+    END FUNCTION
+        
+    ' Sanitize values that would be put inside JSON strings
+    PUBLIC FUNCTION JSON(ByVal Str)
+        Dim Parts(): ReDim Parts(3)
+        Dim NextPartIndex: NextPartIndex = 0
+        Dim AnchorIndex: AnchorIndex = 1
+        Dim CharCode, Escaped
+        Dim Match, MatchIndex
+        Dim RegExp: Set RegExp = m_RegExp
+        If RegExp Is Nothing Then
+            Set RegExp = New RegExp
+            Set m_RegExp = RegExp
+        End If
+        
+        ' See https://github.com/douglascrockford/JSON-js/blob/43d7836c8ec9b31a02a31ae0c400bdae04d3650d/json2.js#L196
+        RegExp.Pattern = "[\\\""\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]"
+        RegExp.Global = True
+
+        For Each Match In RegExp.Execute(Str)
+            MatchIndex = Match.FirstIndex + 1
+            If NextPartIndex > UBound(Parts) Then ReDim Preserve Parts(UBound(Parts) * 2)
+            Parts(NextPartIndex) = Mid(Str, AnchorIndex, MatchIndex - AnchorIndex): NextPartIndex = NextPartIndex + 1
+            CharCode = AscW(Mid(Str, MatchIndex, 1))
+            Select Case CharCode
+                Case 34  : Escaped = "\"""
+                Case 10  : Escaped = "\n"
+                Case 13  : Escaped = "\r"
+                Case 92  : Escaped = "\\"
+                Case 8   : Escaped = "\b"
+                Case Else: Escaped = "\u" & Right("0000" & Hex(CharCode), 4)
+            End Select
+            If NextPartIndex > UBound(Parts) Then ReDim Preserve Parts(UBound(Parts) * 2)
+            Parts(NextPartIndex) = Escaped: NextPartIndex = NextPartIndex + 1
+            AnchorIndex = MatchIndex + 1
+        Next
+        If AnchorIndex = 1 Then JSON = Str: Exit Function
+        If NextPartIndex > UBound(Parts) Then ReDim Preserve Parts(UBound(Parts) * 2)
+        Parts(NextPartIndex) = Mid(Str, AnchorIndex): NextPartIndex = NextPartIndex + 1
+        ReDim Preserve Parts(NextPartIndex - 1)
+        JSON = Join(Parts, "")
     END FUNCTION
 
 END CLASS

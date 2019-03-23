@@ -21,7 +21,7 @@ Dim nItemID, strMode, nCount, nIndex
 '=======================
 adoConnCrude.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
-Dim strTitle, strDataSource, strMainTable, strPrimaryKey, strModificationProcedure, strViewProcedure, strDeleteProcedure
+Dim adoConnCrudeSource, adoConnCrudeSrc, strTitle, strDataSource, strMainTable, strPrimaryKey, strModificationProcedure, strViewProcedure, strDeleteProcedure
 Dim strDescription, strOrderBy, nFlags
 Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle
     
@@ -53,6 +53,39 @@ Next
 
 IF Request.Form("Title") <> "" THEN
 	
+    ' Check if Primary Key needs to be automatically inferred
+    IF strPrimaryKey = "" THEN
+        IF strDataSource <> "" THEN adoConnCrudeSource = GetConfigValue("connectionStrings", "name", "connectionString", strDataSource, adoConStr)
+    
+        Set adoConnCrudeSrc = Server.CreateObject("ADODB.Connection")
+        adoConnCrudeSrc.ConnectionString = adoConnCrudeSource
+        adoConnCrudeSrc.CommandTimeout = 0
+        adoConnCrudeSrc.Open
+
+        SET rsItems = Server.CreateObject("ADODB.Command")
+        rsItems.ActiveConnection= adoConnCrudeSrc
+        rsItems.CommandType = adCmdText
+        rsItems.CommandText = "SELECT c.name FROM sys.indexes AS ix JOIN sys.index_columns AS ic " & vbCrLf & _
+                              " ON ix.object_id = ic.object_id AND ix.index_id = ic.index_id " & vbCrLf & _
+                              " JOIN sys.columns AS c ON ix.object_id = c.object_id AND ic.column_id = c.column_id" & vbCrLf & _
+                              " WHERE ix.object_id = OBJECT_ID(?) AND ix.is_primary_key = 1 AND ic.key_ordinal = 1"
+    
+        rsItems.Parameters.Append rsItems.CreateParameter("@TableName", adVarChar, adParamInput, 255, strMainTable)
+    
+        SET rsItems = rsItems.Execute
+
+        IF NOT rsItems.EOF THEN
+            strPrimaryKey = rsItems("name")
+        END IF
+
+        IF strPrimaryKey = "" OR strPrimaryKey = Null THEN strError = GetWord("Primary Key must be specified for this table!")
+
+        rsItems.Close
+        adoConnCrudeSrc.Close
+        SET adoConnCrudeSrc = Nothing
+
+    END IF
+
     strSQL = "SELECT * FROM portal.DataView WHERE "
     
     IF strMode = "add" THEN
@@ -64,7 +97,7 @@ IF Request.Form("Title") <> "" THEN
         strSQL = ""
     END IF
     
-	IF strSQL <> "" THEN
+	IF strError = "" AND strSQL <> "" THEN
         SET rsItems = Server.CreateObject("ADODB.Recordset")
         rsItems.CursorLocation = adUseClient
         rsItems.CursorType = adOpenKeyset
