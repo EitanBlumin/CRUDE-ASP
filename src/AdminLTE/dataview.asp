@@ -740,7 +740,7 @@ IF strError <> "" THEN
                 ELSE
                     strSQL = strSQL & "''"
                 END IF
-                strSQL = strSQL & " AS [group] FROM " & dvFields(nIndex)("LinkedTable") '& dvFields(nIndex)("LinkedTableAddition")
+                strSQL = strSQL & " AS [group] FROM " & dvFields(nIndex)("LinkedTable") & " " & dvFields(nIndex)("LinkedTableAddition")
 
                 rsOptions.Open strSQL, adoConnCrudeSrc
                 WHILE NOT rsOptions.EOF

@@ -314,7 +314,7 @@
             }
 
             if (ed['wrap_link'] != undefined && ed["type"] != 'link' && row != undefined) {
-                var newLink = $('<a></a>').prop('href', respite_crud.replaceRowPlaceholders(ed['wrap_link']['href'], row, data)).addClass(ed['wrap_link']['css'])
+                var newLink = $('<a></a>').attr('href', respite_crud.replaceRowPlaceholders(ed['wrap_link']['href'], row, data)).addClass(ed['wrap_link']['css'])
                 .append(rv);
 
                 rv = newLink[0].outerHTML;
@@ -440,6 +440,7 @@
     static renderDMFormFields(d) {
         var content = "";
         var closing_string = "";
+        var element = "";
         //console.log(d);
         for (var i = 0; i < respite_crud.dt.columns()[0].length; i++) {
             var ed = respite_crud.dt.column(i).editor_data();
@@ -447,14 +448,16 @@
             //console.log("column " + i + " (" + cn + "): " + d[cn]);
 
             if (ed != undefined && !ed["hidden"]) {
+                element = $('<label>ERROR Column ' + i + '</label>');
+                closing_string = "";
                 content += '<div class="form-group' + (ed['type'] == "rte" ? ' summernote' : '') + '" data-toggle="tooltip" title="' + respite_crud.escapeHtml(ed['tooltip']) + '">';
-                content += '<label for="field_' + i + '" class="control-label col-sm-3 col-md-4 col-lg-5">';
+                content += '<label for="field_' + i + '" class="control-label col-sm-3 col-md-4 col-lg-4">';
 
                 if (ed["help"] != undefined && ed["help"] != "") {
                     content += '<div class="ml-auto float-right"><a class="btn btn-link text-info" data-toggle="collapse" data-target="#help_field_' + i + '" aria-expanded="false" aria-controls="help_field_' + i + '" title="Help"><i class="fas fa-question-circle"></i></a></div>';
                 }
 
-                content += respite_crud.escapeHtml(ed['label']) + '</label><div class="input-group col-sm-9 col-md-8 col-lg-7">';
+                content += respite_crud.escapeHtml(ed['label']) + '</label><div class="input-group col-sm-9 col-md-8 col-lg-8">';
 
                 // open html element tag
                 switch (ed['type']) {
@@ -463,42 +466,60 @@
                     case "integer":
                     case "numeric":
                     case "number":
-                        content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="number" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]) + '" step="1"';
+                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="number" id="field_' + i + '" name="' + cn + '" step="1" />');
+                        element.attr('value', d[cn]);
+                        //content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="number" id="field_' + i + '" name="' + cn + '" step="1" value="' + respite_crud.escapeHtml(d[cn]) + '"';
                         // TODO: add format validation based on type (using the "pattern" attribute with regex: https://www.w3schools.com/tags/att_input_pattern.asp )
-                        closing_string = "/>";
+                        //closing_string = "/>";
                         break;
                     case "select":
                     case "csv":
-                        content += '<select tabindex="' + i + '" class="form-control form-control-sm" id="field_' + i + '" name="' + cn + '"';
+                        element = $('<select tabindex="' + i + '" class="form-control form-control-sm" id="field_' + i + '" name="' + cn + '"></select>');
+                        //content += '<select tabindex="' + i + '" class="form-control form-control-sm" id="field_' + i + '" name="' + cn + '"';
                         if (ed['type'] == "csv")
-                            content += ' multiple';
-                        closing_string = '</select>';
+                            element.attr('multiple', 'multiple');
+                            //content += ' multiple';
+                        //closing_string = '</select>';
                         break;
                     case "rte":
                     case "textarea":
-                        content += '<textarea tabindex="' + i + '" class="form-control form-control-sm" id="field_' + i + '" name="' + cn + '"';
-                        closing_string = '</textarea>';
+                        element = $('<textarea tabindex="' + i + '" class="form-control form-control-sm" id="field_' + i + '" name="' + cn + '"></textarea>');
+                        element.text(d[cn]);
+                        //content += '<textarea tabindex="' + i + '" class="form-control form-control-sm" id="field_' + i + '" name="' + cn + '"';
+                        //closing_string = '</textarea>';
                         break;
                     case "boolean":
                         // using bootswatch switch custom control
-                        content += '<div class="custom-control custom-switch"><input tabindex="' + i + '" id="field_' + i + '" type="checkbox" value="true" class="custom-control-input" name="' + cn + '"' + (d[cn] == "true" || d[cn] == true ? ' checked' : '');
-                        closing_string = '><label for="field_' + i + '" class="custom-control-label"></label></div>';
+                        content += '<div class="custom-control custom-switch">';
+                        element = $('<input tabindex="' + i + '" id="field_' + i + '" type="checkbox" value="true" class="custom-control-input" name="' + cn + '"/>');
+                        if (d[cn] == "true" || d[cn] == true)
+                            element.attr('checked', 'checked');
+                        //content += '<div class="custom-control custom-switch"><input tabindex="' + i + '" id="field_' + i + '" type="checkbox" value="true" class="custom-control-input" name="' + cn + '"' + (d[cn] == "true" || d[cn] == true ? ' checked' : '');
+                        //closing_string = '><label for="field_' + i + '" class="custom-control-label"></label></div>';
+                        closing_string = '<label for="field_' + i + '" class="custom-control-label"></label></div>';
                         break;
                     case "password":
-                        content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="password" id="field_' + i + '" name="' + cn + '" value=""';
-                        closing_string = '/>';
+                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="password" id="field_' + i + '" name="' + cn + '" value="" />');
+                        //content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="password" id="field_' + i + '" name="' + cn + '" value=""';
+                        //closing_string = '/>';
                         break;
                     case "time":
-                        content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="time" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]).substr(0, 8) + '" step="1" maxlength="8"';
-                        closing_string = '/>';
+                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="time" id="field_' + i + '" name="' + cn + '" step="1" maxlength="8" />');
+                        element.attr('value', d[cn].substr(0, 8));
+                        //content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="time" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]).substr(0, 8) + '" step="1" maxlength="8"';
+                        //closing_string = '/>';
                         break;
                     case "date":
-                        content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="date" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]).substr(0, 10) + '" step="1" maxlength="10"';
-                        closing_string = '/>';
+                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="date" id="field_' + i + '" name="' + cn + '" step="1" maxlength="10" />');
+                        element.attr('value', d[cn].substr(0, 10));
+                        //content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="date" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]).substr(0, 10) + '" step="1" maxlength="10"';
+                        //closing_string = '/>';
                         break;
                     case "datetime":
-                        content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="datetime-local" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]).substr(0, 20) + '" step="1" maxlength="20"';
-                        closing_string = '/>';
+                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="datetime-local" id="field_' + i + '" name="' + cn + '" step="1" maxlength="20" />');
+                        element.attr('value', d[cn].substr(0, 20));
+                        //content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="datetime-local" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]).substr(0, 20) + '" step="1" maxlength="20"';
+                        //closing_string = '/>';
                         break;
                         // TODO: more field types: formula, image (upload), document (upload), bitwise
                         // some of these field types would also require additional render functions
@@ -507,8 +528,9 @@
                         // TODO: preset column attributes per field type: tooltip, placeholder, min, max, maxlength, format (pattern), required, height, width, read-only, cssEdit
 
                     case "link":
-                        content += respite_crud.renderLink_ed(d[cn], ed, 'field_' + i);
-                        closing_string = "";
+                        element = $(respite_crud.renderLink_ed(d[cn], ed, 'field_' + i));
+                        //content += respite_crud.renderLink_ed(d[cn], ed, 'field_' + i);
+                        //closing_string = "";
                         break;
                     /*case "image":
                         content += '<div class="col"><img id="field_' + i + '_src" src="' + respite_crud.escapeHtml(d[cn]) + '" class="img-fluid"/><br/><br/>';
@@ -523,8 +545,11 @@
                     case "email":
                     case "text":
                     default:
-                        content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="' + respite_crud.escapeHtml(ed['type']) + '" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]) + '"';
-                        closing_string = "/>";
+                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="text" id="field_' + i + '" name="' + cn + '" />');
+                        element.attr('type', ed['type']);
+                        element.attr('value',d[cn]);
+                        //content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="' + respite_crud.escapeHtml(ed['type']) + '" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]) + '"';
+                        //closing_string = "/>";
                 }
 
                 // append any attributes
@@ -532,7 +557,8 @@
                     var attr = ed['attributes'];
                     for (var attrName in attr) {
                         if (ed['type'] != "boolean" || attrName != "required")
-                            content += ' ' + attrName + '="' + respite_crud.escapeHtml(attr[attrName]) + '"';
+                            element.attr(attrName, attr[attrName]);
+                            //content += ' ' + attrName + '="' + respite_crud.escapeHtml(attr[attrName]) + '"';
                     }
                 }
 
@@ -540,8 +566,9 @@
                 switch (ed['type']) {
                     case "select":
                     case "csv":
-                        content += '>';
+                        //content += '>';
                         var dValues = [];
+                        var currOpt = $('<option></option>');
                         if (ed['options'] != undefined) {
 
                             if (d[cn] != undefined && ed['type'] == "csv")
@@ -560,45 +587,67 @@
                                     }
 
                                     if (!bFoundEmptyOpt) {
-                                        content += '<option value=""';
+                                        currOpt = $('<option></option>');
                                         if (d[cn] == '')
-                                            content += ' selected';
-                                        content += '></option>';
+                                            currOpt.attr('selected', 'selected');
+                                        //content += '<option value=""';
+                                        //if (d[cn] == '')
+                                        //    content += ' selected';
+                                        //content += '></option>';
+                                        element.append(currOpt.clone());
                                     }
                                 }
                             }
 
+                            for (var k = 0; k < dValues.length; k++) {
+                                dValues[k] = dValues[k].trim();
+                            }
+
                             var prevOptGroup = undefined;
+                            var currOptGroup = $('<optgroup></optgroup>');
 
                             for (var j = 0; j < ed['options'].length; j++) {
                                 if (prevOptGroup != ed['options'][j]['group']) {
-                                    if (prevOptGroup != undefined)
-                                        content += '</optgroup>';
-                                    if (ed['options'][j]['group'] != '')
-                                        content += '<optgroup label="' + respite_crud.escapeHtml(ed['options'][j]['group']) + '">';
-                                    prevOptGroup = ed['options'][j]['group'];
+                                    if (prevOptGroup != undefined) {
+                                        element.append(currOptGroup.clone());
+                                        //content += '</optgroup>';
+                                    }
+                                    if (ed['options'][j]['group'] != '') {
+                                        currOptGroup = $('<optgroup></optgroup>');
+                                        currOptGroup.attr('label', ed['options'][j]['group']);
+                                        //content += '<optgroup label="' + respite_crud.escapeHtml(ed['options'][j]['group']) + '">';
+                                    }
+                                    prevOptGroup = (ed['options'][j]['group'] == '' ? undefined : ed['options'][j]['group']);
                                 }
-                                content += '<option value="' + respite_crud.escapeHtml(ed['options'][j]['value']) + '"';
+                                currOpt = $('<option></option>');
+                                currOpt.attr('value', ed['options'][j]['value']);
+                                //content += '<option value="' + respite_crud.escapeHtml(ed['options'][j]['value']) + '"';
 
                                 for (var k = 0; k < dValues.length; k++) {
-                                    content += (dValues[k] == ed['options'][j]['value'] ? ' selected' : '');
+                                    if (dValues[k].trim() == ed['options'][j]['value'].trim())
+                                        currOpt.attr('selected', 'selected');
+                                    //content += (dValues[k] == ed['options'][j]['value'] ? ' selected' : '');
                                 }
 
-                                content += '>' + respite_crud.escapeHtml(ed['options'][j]['label']) + '</option>';
+                                currOpt.text(ed['options'][j]['label']);
+                                if (prevOptGroup != undefined)
+                                    currOptGroup.append(currOpt);
+                                else {
+                                    element.append(currOpt.clone());
+                                }
+                                //content += '>' + respite_crud.escapeHtml(ed['options'][j]['label']) + '</option>';
                             }
-                            if (prevOptGroup != undefined && prevOptGroup != '')
-                                content += '</optgroup>';
+                            if (prevOptGroup != undefined && prevOptGroup != '') {
+                                element.append(currOptGroup.clone());
+                                //content += '</optgroup>';
+                            }
                         }
-                        break;
-                    case "rte":
-                    case "textarea":
-                        content += '>' + respite_crud.escapeHtml(d[cn]);
                         break;
                         // TODO: more field types
                     default:
                 }
                 // close element
-                content += closing_string + '</div></div>';
+                content += element.clone().wrap('<div>').parent().html() + closing_string + '</div></div>';
                 if (ed["help"] != undefined && ed["help"] != "") {
                     content += '<div id="help_field_' + i + '" class="collapse bg-info"><div class="ml-auto float-right"><button type="button" role="button" class="btn btn-secondary btn-sm" data-toggle="collapse" data-target="#help_field_' + i + '" aria-expanded="false" aria-controls="help_field_' + i + '" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button></div>' + ed["help"] + '</div>';
                 }
@@ -617,7 +666,7 @@
             if (ed != undefined) {
                 switch (ed['type']) {
                     case "image":
-                        //$('#field_' + i + '_src').prop('src', respite_crud.escapeHtml(d[cn]));
+                        //$('#field_' + i + '_src').attr('src', respite_crud.escapeHtml(d[cn]));
                         //$('#field_' + i, $(form_selector)).val(respite_crud.escapeHtml(d[cn]));
                         //break;
                     case "document":
@@ -627,29 +676,35 @@
                         break;
                     case "csv":
                         // de-select all currently selected options
-                        $('#field_' + i + ' option').prop('selected', false);
+                        $('#field_' + i).val('');
+                        $('#field_' + i + ' option').attr('selected', false);
 
                         // re-select based on row data
                         if (d[cn] != undefined && ed['options'] != undefined) {
                             var dValues = d[cn].split(",");
 
-                            for (var j = 0; j < ed['options'].length; j++) {
-                                for (var k = 0; k < dValues.length; k++) {
-                                    if (dValues[k] == ed['options'][j]['value'])
-                                        $('#field_' + i + ' option[value="' + respite_crud.escapeHtml(ed['options'][j]['value']) + '"]').prop('selected', true);
-                                }
-                            }
+                            for (var j = 0; j < dValues.length; j++)
+                                dValues[j] = dValues[j].trim();
+
+                            $('#field_' + i).val(dValues);
+
+                            //for (var j = 0; j < ed['options'].length; j++) {
+                            //    for (var k = 0; k < dValues.length; k++) {
+                            //        if (dValues[k] == ed['options'][j]['value'])
+                            //            $('#field_' + i + ' option[value="' + respite_crud.escapeHtml(ed['options'][j]['value']) + '"]').attr('selected', true);
+                            //    }
+                            //}
 
                         }
                         break;
                     case "link":
-                        $('#field_' + i).prop('href', d[cn]);
+                        $('#field_' + i).attr('href', d[cn]);
                         break;
                     case "rte":
                         $('#field_' + i).summernote('code', d[cn]);
                         break;
                     case "boolean":
-                        $('#field_' + i, $(form_selector)).prop('checked', (d[cn] == "true" || d[cn] == true));
+                        $('#field_' + i, $(form_selector)).attr('checked', (d[cn] == "true" || d[cn] == true));
                         break;
                     default:
                         $('#field_' + i, $(form_selector)).val(respite_crud.escapeHtml(d[cn]));
