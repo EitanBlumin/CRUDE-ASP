@@ -64,7 +64,7 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
 	SET rsItems = rsItems.Execute (,nViewID,adOptionUnspecified)
 	IF NOT rsItems.EOF THEN
         strDataSource = rsItems("DataSource")
-        IF strDataSource = "" OR strDataSource = Null THEN strDataSource = "Default"
+        IF strDataSource = "" OR IsNull(strDataSource) THEN strDataSource = "Default"
 		strPageTitle = rsItems("Title")
         strDataViewDescription = rsItems("ViewDescription")
         strViewProcedure = rsItems("ViewProcedure")
@@ -718,11 +718,26 @@ IF strError <> "" THEN
                 "default_value": "<%= Sanitizer.JSON(dvFields(nIndex)("DefaultValue")) %>",   // default value
                 <%
                 IF (dvFields(nIndex)("FieldFlags") AND 16) > 0 THEN %>"searchable": false,<%
-                END IF %>
+                END IF
+                %>
                 // collection of custom attributes to apply to the input field element: { attrName: attrValue, ... }
                 "attributes": { "placeholder": "<%= Sanitizer.JSON(dvFields(nIndex)("FieldLabel")) %>"<%
-                    IF dvFields(nIndex)("MaxLength") <> "" AND dvFields(nIndex)("MaxLength") <> Null THEN
+                    IF dvFields(nIndex)("MaxLength") <> "" AND NOT IsNull(dvFields(nIndex)("MaxLength")) THEN
                     %>, "maxlength": <%= dvFields(nIndex)("MaxLength") %><%
+                    END IF
+                    IF dvFields(nIndex)("Height") <> "" AND NOT IsNull(dvFields(nIndex)("Height")) THEN
+                    %>, "<%
+                    IF dvFields(nIndex)("FieldType") = 1 OR dvFields(nIndex)("FieldType") = 2 OR dvFields(nIndex)("FieldType") = 14 THEN
+                        Response.Write "rows"
+                    ELSE
+                        Response.Write "height"
+                    END IF %>": <%= dvFields(nIndex)("Height") %><%
+                    END IF
+                    IF dvFields(nIndex)("Width") <> "" AND NOT IsNull(dvFields(nIndex)("Width")) THEN
+                    %>, "width": <%= dvFields(nIndex)("Width") %><%
+                    END IF
+                    IF dvFields(nIndex)("FormatPattern") <> "" AND NOT IsNull(dvFields(nIndex)("FormatPattern")) THEN
+                    %>, "pattern": "<%= Sanitizer.JSON(dvFields(nIndex)("FormatPattern")) %>"<%
                     END IF
                     IF (dvFields(nIndex)("FieldFlags") AND 2) > 0 THEN
                     %>, "required": true<%

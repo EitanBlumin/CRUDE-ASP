@@ -42,7 +42,7 @@ IF nViewID <> "" AND IsNumeric(nViewID) THEN
         strPK = rsItems("PrimaryKey")
         strMainTableName = rsItems("MainTable")
         strDataSource = rsItems("DataSource")
-        IF strDataSource = "" OR strDataSource = Null THEN strDataSource = "Default"
+        IF strDataSource = "" OR IsNull(strDataSource) THEN strDataSource = "Default"
 	Else
 		nViewID = ""
 	END IF
@@ -264,6 +264,8 @@ ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) THEN
         rsTarget("LinkedTable") = rsItems("LinkedTable")
         rsTarget("LinkedTableValueField") = rsItems("LinkedColumnValue")
         rsTarget("LinkedTableTitleField") = rsItems("LinkedColumnLabel")
+
+        IF rsItems("fieldtype") = 2 AND (IsNull(rsItems("max_length")) OR rsItems("max_length") >= 1000) THEN rsTarget("Height") = 10
 
         rsTarget.Update
 
