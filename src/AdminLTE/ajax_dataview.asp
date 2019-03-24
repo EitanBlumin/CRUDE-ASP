@@ -194,6 +194,7 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
 
         IF strError = "" THEN
 	    Dim nParamID
+        DIM Err
         nParamID = 2
         'ON ERROR RESUME NEXT
             
@@ -239,20 +240,34 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
         
             IF strError = "" THEN
                 IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
-	                cmdStoredProc.Execute
-
-	                IF adoConnCrudeSrc.Errors.Count > 0 THEN
-		                strError = strError & " Executed Stored Procedure " & strModificationProcedure & " With Errors</br>"
-    		        END IF
+                    ON ERROR RESUME NEXT
+	                    cmdStoredProc.Execute
+	                    IF adoConnCrudeSrc.Errors.Count > 0 THEN
+		                    strError = strError & " Executed Stored Procedure " & strModificationProcedure & " With Errors:</br>"
+                            For Each Err In adoConnCrudeSrc.Errors
+			                    strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & "<br/>"
+                            Next
+    		            END IF
+                    ON ERROR GOTO 0
 
 	                SET cmdStoredProc = Nothing
                 ELSE
                     'strError = strError & "Attempting rs.Update<br/>"
                     'Response.Write "<!-- ErrCount before Update: " & adoConnCrudeSrc.Errors.Count & " -->" & vbCrLf
-                    rsItems.Update
-                    'Response.Write "<!-- ErrCount after Update: " & adoConnCrudeSrc.Errors.Count & " -->" & vbCrLf
-                    rsItems.Close    
+                    ON ERROR RESUME NEXT
+                        rsItems.Update
+                        'Response.Write "<!-- ErrCount after Update: " & adoConnCrudeSrc.Errors.Count & " -->" & vbCrLf
+	                    IF adoConnCrudeSrc.Errors.Count > 0 THEN
+		                    strError = strError & " Database Operation Error while performing """ & UCase(strMode) & """:</br>"
+                            For Each Err In adoConnCrudeSrc.Errors
+			                    strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & "<br/>"
+                            Next
+                        ELSE
+                            rsItems.Close    
+    		            END IF
                     'Response.Write "<!-- ErrCount after Close: " & adoConnCrudeSrc.Errors.Count & " -->" & vbCrLf
+                    ON ERROR GOTO 0
+
                 END IF
             'ELSE
             '    Response.Write vbCrLf & "ERROR: " & strError & vbCrLf
@@ -262,21 +277,20 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
 
 	    END IF
 
-        ON ERROR GOTO 0
+        'ON ERROR GOTO 0
 
         ' check for errors
-        If adoConnCrudeSrc.Errors.Count > 0 Then
-            DIM Err
-            strError = strError & " Error(s) while performing """ & strMode & """:<br/>" 
-            For Each Err In adoConnCrudeSrc.Errors
-			    strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
-            Next
-            IF globalIsAdmin THEN strError = strError & "While trying to run:<br/><b>" & strSQL & "</b>"
-        ELSE
-            strMsgOutput = strMsgOutput & UCase(strMode) & " successful!"
-        End If
+        'If adoConnCrudeSrc.Errors.Count > 0 Then
+        '    DIM Err
+        '    strError = strError & " Error(s) while performing """ & strMode & """:<br/>" 
+        '    For Each Err In adoConnCrudeSrc.Errors
+		'	    strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+        '    Next
+        '    IF globalIsAdmin THEN strError = strError & "While trying to run:<br/><b>" & strSQL & "</b>"
+        'END IF
 	
 	    IF strError = "" THEN 
+            strMsgOutput = strMsgOutput & UCase(strMode) & " successful!"
             adoConnCrudeSrc.Close
             adoConnCrude.Close
 	        'Response.Redirect(constPageScriptName & "?MSG=" & strMode & strViewQueryString)
