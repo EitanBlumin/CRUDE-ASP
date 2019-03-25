@@ -22,7 +22,7 @@ Dim nItemID, strMode, nCount, nIndex
 adoConnCrude.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
 Dim adoConnCrudeSource, adoConnCrudeSrc, strTitle, strDataSource, strMainTable, strPrimaryKey, strModificationProcedure, strViewProcedure, strDeleteProcedure
-Dim strDescription, strOrderBy, nFlags
+Dim strDescription, strOrderBy, nFlags, blnPublished, strRowReorderCol
 Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle
     
 strMode = Request("mode")
@@ -31,6 +31,8 @@ IF NOT IsNumeric(nItemID) THEN nItemID = ""
 strTitle = Request("Title")
 strDataSource = Request("DataSource")
 IF strDataSource = "" THEN strDataSource = "Default"
+blnPublished = Request("Published")
+IF blnPublished = "" THEN blnPublished = False ELSE blnPublished = CBool(blnPublished)
 strMainTable = Request("MainTable")
 strPrimaryKey = Request("PrimaryKey")
 strModificationProcedure = Request("ModificationProcedure")
@@ -38,6 +40,8 @@ strViewProcedure = Request("ViewProcedure")
 strDeleteProcedure = Request("DeleteProcedure")
 strDescription = Request("ViewDescription")
 strOrderBy = Request("OrderBy")
+strRowReorderCol = Request("RowReorderCol")
+IF strRowReorderCol = "" THEN strRowReorderCol = Null
 nDtModBtnStyle = Request("DataTableModificationButtonStyle")
 nDtDefaultPageSize = Request("DataTableDefaultPageSize")
 strDtPagingStyle = Request("DataTablePagingStyle")
@@ -53,7 +57,7 @@ Next
 
 IF Request.Form("Title") <> "" THEN
 	
-    ' Check if Primary Key needs to be automatically inferred
+    ' Check if Primary Key needs to be automatically discovered
     IF strPrimaryKey = "" THEN
         IF strDataSource <> "" THEN adoConnCrudeSource = GetConfigValue("connectionStrings", "name", "connectionString", strDataSource, adoConStr)
     
@@ -65,20 +69,28 @@ IF Request.Form("Title") <> "" THEN
         SET rsItems = Server.CreateObject("ADODB.Command")
         rsItems.ActiveConnection= adoConnCrudeSrc
         rsItems.CommandType = adCmdText
-        rsItems.CommandText = "SELECT c.name FROM sys.indexes AS ix JOIN sys.index_columns AS ic " & vbCrLf & _
+        rsItems.CommandText = "DECLARE @ObjId INT; " & vbCrLf & _
+                              " SET @ObjId = OBJECT_ID(?); " & vbCrLf & _
+                              " SELECT ObjId = @ObjId, q.* " & vbCrLf & _
+                              " FROM (SELECT c.name AS PKCol, MAX(ic.key_ordinal) OVER () AS PKComposite FROM sys.indexes AS ix JOIN sys.index_columns AS ic " & vbCrLf & _
                               " ON ix.object_id = ic.object_id AND ix.index_id = ic.index_id " & vbCrLf & _
                               " JOIN sys.columns AS c ON ix.object_id = c.object_id AND ic.column_id = c.column_id" & vbCrLf & _
-                              " WHERE ix.object_id = OBJECT_ID(?) AND ix.is_primary_key = 1 AND ic.key_ordinal = 1"
+                              " WHERE ix.object_id = @ObjId AND ix.is_primary_key = 1) AS q"
     
         rsItems.Parameters.Append rsItems.CreateParameter("@TableName", adVarChar, adParamInput, 255, strMainTable)
     
         SET rsItems = rsItems.Execute
 
         IF NOT rsItems.EOF THEN
-            strPrimaryKey = rsItems("name")
+            IF IsNull(rsItems("ObjId")) THEN
+                strError = GetWord("Specified table not found! Please make sure you're using the correct data source.")
+            ELSEIF rsItems("PKComposite") > 1 THEN
+                strError = GetWord("Tables with more than one primary key column are unsupported. Please specify PK column manually.")
+            END IF
+            strPrimaryKey = rsItems("PKCol")
         END IF
 
-        IF strPrimaryKey = "" OR strPrimaryKey = Null THEN strError = GetWord("Primary Key must be specified for this table!")
+        IF strError = "" AND (strPrimaryKey = "" OR IsNull(strPrimaryKey)) THEN strError = GetWord("Primary Key must be specified for this table!")
 
         rsItems.Close
         adoConnCrudeSrc.Close
@@ -113,6 +125,7 @@ IF Request.Form("Title") <> "" THEN
             rsItems.Close    
         ELSE
             rsItems("Title") = strTitle
+            rsItems("Published") = blnPublished
             rsItems("DataSource") = strDataSource
             rsItems("MainTable") = strMainTable
             rsItems("Primarykey") = strPrimaryKey
@@ -121,6 +134,7 @@ IF Request.Form("Title") <> "" THEN
             rsItems("DeleteProcedure") = strDeleteProcedure
             rsItems("ViewDescription") = strDescription
             rsItems("OrderBy") = strOrderBy
+            rsItems("RowReorderColumn") = strRowReorderCol
             rsItems("Flags") = CLng(nFlags)
             rsItems("DataTableModifierButtonStyle") = CInt(nDtModBtnStyle)
             rsItems("DataTableDefaultPageSize") = CInt(nDtDefaultPageSize)
@@ -142,10 +156,10 @@ IF Request.Form("Title") <> "" THEN
 
         ' check for errors
         If adoConnCrude.Errors.Count > 0 Then
-            DIM Err
+            DIM CurrErr
             strError = strError & " Error(s) while performing &quot;" & strMode & "&quot;:<br/>" 
-            For Each Err In adoConnCrude.Errors
-			    strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+            For Each CurrErr In adoConnCrude.Errors
+			    strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & " | Native Error: " & CurrErr.NativeError & "<br/>"
             Next
             IF globalIsAdmin THEN strError = strError & "While trying to run:<br/><b>" & strSQL & "</b>"
         End If
@@ -161,9 +175,8 @@ IF Request.Form("Title") <> "" THEN
         END IF
 	END IF
 
-ELSEIF strMode = "delete" AND nItemID <> "" THEN
+ELSEIF strMode = "delete" AND nItemID <> "" AND IsNumeric(nItemID) THEN
 		
-	adoConnCrude.Open
 	adoConnCrude.Execute "DELETE FROM portal.DataViewField WHERE ViewID = " & nItemID & "; DELETE FROM portal.DataView WHERE ViewID = " & nItemID
 	adoConnCrude.Close
 	
@@ -200,17 +213,19 @@ END IF
 
 <%
 
-IF (strMode = "edit" AND nItemID <> "") OR strMode = "add" Then
+IF (strMode = "edit" AND nItemID <> "" AND IsNumeric(nItemID)) OR strMode = "add" Then
 
-IF strMode = "edit" AND nItemID <> "" Then
+IF strMode = "edit" AND nItemID <> "" AND IsNumeric(nItemID) Then
 	strSQL = "SELECT * FROM portal.DataView WHERE ViewID = " & nItemID
 	rsItems.Open strSQL, adoConnCrude
 	IF NOT rsItems.EOF THEN
 		strTitle = rsItems("Title")
         strDataSource = rsItems("DataSource")
 		strMainTable = rsItems("MainTable")
+        blnPublished = rsItems("Published")
 		strPrimaryKey = rsItems("PrimaryKey")
 		strOrderBy = rsItems("OrderBy")
+        strRowReorderCol = rsItems("RowReorderColumn")
 		strDescription = rsItems("ViewDescription")
         strModificationProcedure = rsItems("ModificationProcedure")
         strViewProcedure = rsItems("ViewProcedure")
@@ -256,25 +271,34 @@ END IF
 <form class="form-horizontal" action="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>" method="post">
     <div class="box-body">
     <div class="form-group">
-        <label for="inputTitle" class="col-sm-2 control-label">Title</label>
+        <label for="inputTitle" class="col-sm-2 control-label" data-toggle="tooltip" title="The title will be displayed at the top of the page">Title</label>
 
         <div class="col-sm-10">
-        <input type="text" class="form-control" id="inputTitle" placeholder="Title" data-toggle="tooltip" name="Title" title="The title will be displayed at the top of the page" value="<%= Sanitizer.HTMLFormControl(strTitle) %>" required="required">
+        <input type="text" class="form-control" id="inputTitle" placeholder="Title" name="Title" value="<%= Sanitizer.HTMLFormControl(strTitle) %>" required="required">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputPublished" class="col-sm-2 control-label" data-toggle="tooltip" title="Sets whether this dataview is visible to end-users">
+            Published
+        </label>
+        <div class="custom-control custom-switch col-sm-10">
+        <input type="checkbox" class="custom-control-input" id="inputPublished" name="Published" value="True" <% IF blnPublished THEN Response.Write "checked" %> />
+        <label for="inputPublished" class="custom-control-label"></label>
         </div>
     </div>
     <div class="form-group summernote">
-        <label for="inputDescription" class="col-sm-2 control-label">Description</label>
+        <label for="inputDescription" class="col-sm-2 control-label" data-toggle="tooltip" title="This richly-formatted text will be displayed below the title, before the datatable">Description</label>
 
         <div class="col-sm-10">
-        <textarea name="ViewDescription" placeholder="Description" data-toggle="tooltip" title="This richly-formatted text will be displayed below the title, before the datatable"
+        <textarea name="ViewDescription" placeholder="Rich Text Formatted Description"
                     style="width: 100%; height: 200px; font-size: 14px; line-height: 18px; border: 1px solid #dddddd; padding: 10px;"><%= Sanitizer.HTMLFormControl(strDescription) %></textarea>
         </div>
     </div>
     <div class="form-group">
-        <label for="inputDataSource" class="col-sm-2 control-label">Data Source</label>
+        <label for="inputDataSource" class="col-sm-2 control-label" data-toggle="tooltip" title="Choose the Connection String to use (from web.config)">Data Source</label>
 
         <div class="col-sm-10">
-            <select class="form-control" id="inputDataSource" name="DataSource" data-toggle="tooltip" title="Choose the Connection String to use (from web.config)">
+            <select class="form-control" id="inputDataSource" name="DataSource">
                 <%
                     Dim csoNode, csoChild, csoAttr
                     Set csoNode = CONFIG_FILE_XML.GetElementsByTagName("connectionStrings").Item(0) 
@@ -288,45 +312,52 @@ END IF
         </div>
     </div>
     <div class="form-group">
-        <label for="inputMainTable" class="col-sm-2 control-label">Main Table Name</label>
+        <label for="inputMainTable" class="col-sm-2 control-label" data-toggle="tooltip" title="This is the database table name from which data will be queried and modified in (unless you specified stored procedures below). It can also be a view">Main Table Name</label>
 
         <div class="col-sm-10">
-        <input type="text" class="form-control" id="inputMainTable" data-toggle="tooltip" placeholder="Main Database Table Name" title="This is the database table name from which data will be queried and modified in (unless you specified stored procedures below). It can also be a view" name="MainTable" value="<%= Sanitizer.HTMLFormControl(strMainTable) %>">
+        <input type="text" class="form-control" id="inputMainTable" name="MainTable" placeholder="Main Database Table Name" value="<%= Sanitizer.HTMLFormControl(strMainTable) %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputPrimaryKey" class="col-sm-2 control-label">Primary Key</label>
+        <label for="inputPrimaryKey" class="col-sm-2 control-label" data-toggle="tooltip" title="A column name which serves as a primary key in the aforementioned database table">Primary Key</label>
 
         <div class="col-sm-10">
-        <input type="text" class="form-control" id="inputPrimaryKey" data-toggle="tooltip" title="A column name which serves as a primary key in the aforementioned database table" placeholder="Primary Key (must be single numerical column)" name="PrimaryKey" value="<%= Sanitizer.HTMLFormControl(strPrimaryKey) %>">
+        <input type="text" class="form-control" id="inputPrimaryKey" placeholder="Primary Key (must be single numerical column)" name="PrimaryKey" value="<%= Sanitizer.HTMLFormControl(strPrimaryKey) %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputOrderBy" class="col-sm-2 control-label">Order By</label>
+        <label for="inputOrderBy" class="col-sm-2 control-label" data-toggle="tooltip" title="Default sorting expression when querying from the database table">Order By</label>
 
         <div class="col-sm-10">
-        <input type="text" class="form-control" id="inputOrderBy" data-toggle="tooltip" title="Default sorting expression when querying from the database table" placeholder="Column1 ASC, Column2 DESC" name="OrderBy" value="<%= Sanitizer.HTMLFormControl(strOrderBy) %>">
+        <input type="text" class="form-control" id="inputOrderBy" placeholder="Column1 ASC, Column2 DESC" name="OrderBy" value="<%= Sanitizer.HTMLFormControl(strOrderBy) %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputViewProcedure" class="col-sm-2 control-label">Source Procedure</label>
+        <label for="inputRowReorder" class="col-sm-2 control-label" data-toggle="tooltip" title="If specified, this column will be used for sorting and reordering the rows in the datatable">Row Re-order Column</label>
 
         <div class="col-sm-10">
-        <input type="text" class="form-control" id="inputViewProcedure" data-toggle="tooltip" title="Execute this stored procedure instead of querying directly from a table" placeholder="Procedure for View" name="ViewProcedure" value="<%= Sanitizer.HTMLFormControl(strViewProcedure) %>">
+        <input type="text" class="form-control" id="inputRowReorder" placeholder="Column1" name="RowReorderCol" value="<%= Sanitizer.HTMLFormControl(strRowReorderCol) %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputModificationProcedure" class="col-sm-2 control-label">Modification Procedure</label>
+        <label for="inputViewProcedure" class="col-sm-2 control-label" data-toggle="tooltip" title="Execute this stored procedure instead of querying directly from a table">Source Procedure</label>
 
         <div class="col-sm-10">
-        <input type="text" class="form-control" id="inputModificationProcedure" data-toggle="tooltip" title="Execute this stored procedure instead of modifying data directly in a table" placeholder="Procedure for Modification" name="ModificationProcedure" value="<%= Sanitizer.HTMLFormControl(strModificationProcedure) %>">
+        <input type="text" class="form-control" id="inputViewProcedure" placeholder="Procedure for View" name="ViewProcedure" value="<%= Sanitizer.HTMLFormControl(strViewProcedure) %>">
         </div>
     </div>
     <div class="form-group">
-        <label for="inputDeleteProcedure" class="col-sm-2 control-label">Deletion Procedure</label>
+        <label for="inputModificationProcedure" class="col-sm-2 control-label" data-toggle="tooltip" title="Execute this stored procedure instead of modifying data directly in a table">Modification Procedure</label>
 
         <div class="col-sm-10">
-        <input type="text" class="form-control" id="inputDeleteProcedure" data-toggle="tooltip" title="Execute this stored procedure instead of deleting directly from a table" placeholder="Procedure for Deletion" name="DeleteProcedure" value="<%= Sanitizer.HTMLFormControl(strDeleteProcedure) %>">
+        <input type="text" class="form-control" id="inputModificationProcedure" placeholder="Procedure for Modification" name="ModificationProcedure" value="<%= Sanitizer.HTMLFormControl(strModificationProcedure) %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputDeleteProcedure" class="col-sm-2 control-label" data-toggle="tooltip" title="Execute this stored procedure instead of deleting directly from a table">Deletion Procedure</label>
+
+        <div class="col-sm-10">
+        <input type="text" class="form-control" id="inputDeleteProcedure" placeholder="Procedure for Deletion" name="DeleteProcedure" value="<%= Sanitizer.HTMLFormControl(strDeleteProcedure) %>">
         </div>
     </div>
     <div class="form-group">
@@ -347,10 +378,10 @@ END IF
         </div>
     </div>
     <div class="form-group">
-        <label for="inputDataTableModificationButtonStyle" class="col-sm-2 control-label">DataTable Row Button Style</label>
+        <label for="inputDataTableModificationButtonStyle" class="col-sm-2 control-label" data-toggle="tooltip" title="Choose how the Add/Edit/Clone/Delete buttons would look like">DataTable Row Button Style</label>
 
         <div class="col-sm-10">
-            <select class="form-control" name="DataTableModificationButtonStyle" id="inputDataTableModificationButtonStyle" data-toggle="tooltip" title="Choose how the Add/Edit/Clone/Delete buttons would look like">
+            <select class="form-control" name="DataTableModificationButtonStyle" id="inputDataTableModificationButtonStyle">
             <% For Each objChild IN luDataTableModifierButtonStyles.Items %>
                 <option value="<%= objChild.Value %>" <% IF objChild.Value = nDtModBtnStyle THEN Response.Write "selected" %>><%= objChild.Label %></option>
             <% NEXT %>
@@ -358,10 +389,10 @@ END IF
         </div>
     </div>
     <div class="form-group">
-        <label for="intpuDataTableDefaultPageSize" class="col-sm-2 control-label">DataTable Default Page Size</label>
+        <label for="intpuDataTableDefaultPageSize" class="col-sm-2 control-label" data-toggle="tooltip" title="Choose the default number of rows per page (ignored when pagination is disabled)">DataTable Default Page Size</label>
 
         <div class="col-sm-10">
-            <select class="form-control" name="DataTableDefaultPageSize" id="inputDataTableDefaultPageSize" data-toggle="tooltip" title="Choose the default number of rows per page (ignored when pagination is disabled)">
+            <select class="form-control" name="DataTableDefaultPageSize" id="inputDataTableDefaultPageSize">
                 <option value="10" <% IF nDtDefaultPageSize = 10 THEN Response.Write "selected" %>>10</option>
                 <option value="25" <% IF nDtDefaultPageSize = 25 THEN Response.Write "selected" %>>25</option>
                 <option value="50" <% IF nDtDefaultPageSize = 50 THEN Response.Write "selected" %>>50</option>
@@ -370,10 +401,10 @@ END IF
         </div>
     </div>
     <div class="form-group">
-        <label for="inputDataTablePagingStyle" class="col-sm-2 control-label">DataTable Paging Style</label>
+        <label for="inputDataTablePagingStyle" class="col-sm-2 control-label" data-toggle="tooltip" title="Choose how the pagination buttons would look like (ignored when pagination is disabled)">DataTable Paging Style</label>
 
         <div class="col-sm-10">
-            <select class="form-control" name="DataTablePagingStyle" id="inputDataTablePagingStyle" data-toggle="tooltip" title="Choose how the pagination buttons would look like (ignored when pagination is disabled)">
+            <select class="form-control" name="DataTablePagingStyle" id="inputDataTablePagingStyle">
             <% For Each objChild IN luDataTablePagingStyles.Items %>
                 <option value="<%= objChild.Value %>" <% IF objChild.Value = strDtPagingStyle THEN Response.Write "selected" %>><%= objChild.Label %></option>
             <% NEXT %>
@@ -427,6 +458,7 @@ END IF
 <tr>
     <th>ID</th>
     <th>Title</th>
+    <th>Published</th>
     <th>Properties</th>
     <th>DataTable Options</th>
     <th>Actions</th>
@@ -442,6 +474,7 @@ WHILE NOT rsItems.EOF
 %><tr>
     <td><%= rsItems("ViewID") %></td>
     <td><a href="dataview.asp?ViewID=<%= rsItems("ViewID") %>"><%= Sanitizer.HTMLDisplay(rsItems("Title")) %></a></td>
+    <th><i class="fas fa-<% IF rsItems("Published") THEN Response.Write "check-circle text-success" ELSE Response.Write "times-circle text-danger" %>" data-toggle="tooltip" title="<%= rsItems("Published") %>"></i></th>
     <td>
         <% FOR Each objChild In luDataViewFlags.Items
             IF (rsItems("Flags") AND objChild.Value) > 0 THEN %>
