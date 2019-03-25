@@ -756,7 +756,7 @@
     }
 
     static renderRowReorderCell(data, type, row, meta) {
-        return '<i class="fas fa-sort"></i>';
+        return '<i class="fas fa-grip-vertical text-muted" data-toggle="tooltip" title="Drag to reorder"></i>';
     }
 
     static renderInlineActionButtons(data, type, row, meta) {

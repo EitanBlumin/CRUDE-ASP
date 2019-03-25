@@ -536,7 +536,7 @@ IF strError <> "" THEN
         <thead>
         <tr class="bg-primary">
         <% IF strRowReorderCol <> "" AND Not IsNull(strRowReorderCol) THEN %>
-            <th><%= GetWord("Reorder") %></th>
+            <th></th>
         <% END IF %>
             <% IF blnShowRowActions THEN %><th><%= GetWord("Actions") %></th><% END IF 
     FOR nIndex = 0 TO dvFields.UBound
@@ -557,7 +557,7 @@ IF strError <> "" THEN
         <tfoot<% IF blnDtColumnFooter THEN Response.Write " class=""dt-keep-footer""" %>>
         <tr>
         <% IF strRowReorderCol <> "" AND Not IsNull(strRowReorderCol) THEN %>
-            <th class="dt-non-searchable"><%= GetWord("Reorder") %></th>
+            <th class="dt-non-searchable"></th>
         <% END IF %>
     <% IF blnShowRowActions THEN %><th class="dt-non-searchable"><%= GetWord("Actions") %></th><% END IF 
             FOR nIndex = 0 TO dvFields.UBound
