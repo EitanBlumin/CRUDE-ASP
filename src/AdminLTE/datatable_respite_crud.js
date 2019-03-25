@@ -90,6 +90,24 @@
         //alert('status: ' + statusType + '\n\nresponse: \n' + response['data'] + 
         //    '\n\nThe output div should have already been updated with the responseText.'); 
     }
+
+    // Helper function for retrieving URL Parameters (Querystring)
+    static getUrlParam(sParam) {
+        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : sParameterName[1];
+            }
+        }
+    }
+
+    // Returns datatable column object by name
     static getColumnByName(colName) {
         if (respite_crud.dt_Columns == undefined)
             return undefined;
@@ -1142,6 +1160,21 @@
             }, 1);
         });
 
+        // expose "name" extra column option using the api:
+        $.fn.dataTable.Api.registerPlural('columns().name()', 'column().name()', function (setter) {
+            return this.iterator('column', function (settings, column) {
+                var col = settings.aoColumns[column];
+
+                if (setter !== undefined) {
+                    col.name = setter;
+                    return this;
+                }
+                else {
+                    return col['name'];
+                }
+            }, 1);
+        });
+
         // prepare default options
         respite_crud.setEditorOptions();
 
@@ -1191,7 +1224,7 @@
                 buttons: respite_crud.dt_Buttons
             },
             "initComplete": function () {
-                //$('.dt-buttons').removeClass("btn-group");
+                var urlFilter = false;
 
                 // save footer
                 var footerBefore = $(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' tfoot tr').clone(true);
@@ -1229,7 +1262,16 @@
                             }
                         }
                     }
+
+                    var colED = column.name();
+                    var colSearch = respite_crud.getUrlParam(colED + '[search]');
+                    if (colSearch != undefined) {
+                        console.log('filtering: ' + colED + ' = ' + colSearch);
+                        column.search(colSearch, true, false);
+                        urlFilter = true;
+                    }
                 });
+
                 // textual filters
                 this.api().columns('.dt-searchable-text').every(function () {
                     var column = this;
@@ -1245,6 +1287,14 @@
                                 .search(val ? '%' + val + '%' : '', true, false)
                                 .draw();
                         });
+
+                    var colED = column.name();
+                    var colSearch = respite_crud.getUrlParam(colED + '[search]');
+                    if (colSearch != undefined) {
+                        //console.log('filtering: ' + colED + ' = ' + colSearch);
+                        column.search('%' + colSearch + '%', true, false);
+                        urlFilter = true;
+                    }
                 });
                 // Copy footers to right below headers
                 $(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' tfoot tr').clone(true).appendTo(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' thead');
@@ -1253,6 +1303,12 @@
                 // Reset footers
                 $(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' tfoot').empty();
                 footerBefore.appendTo(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' tfoot.dt-keep-footer');
+
+                // refresh table:
+                if (urlFilter) {
+                    //console.log('url filtering on, refreshing table');
+                    respite_crud.dt.ajax.reload();
+                }
             }
         }
 
@@ -1274,7 +1330,24 @@
             //console.log(setOptions);
             //console.log(respite_crud.respite_editor_options.dt_Options.dt_Selector);
             respite_crud.dt = $(respite_crud.respite_editor_options.dt_Options.dt_Selector).DataTable(setOptions);
+            /*
+            // Find filters from querystring
+            var col, param, usedFilter = false;
 
+            for (var i = 0; i < respite_crud.dt_Columns.length && col == undefined; i++) {
+                param = respite_crud.getUrlParam(respite_crud.dt_Columns[i]['name'] + '[search]');
+                if (param != undefined) {
+                    col = respite_crud.dt.column(respite_crud.dt_Columns[i]['name']);
+                    console.log('filtering from URL: ' + respite_crud.dt_Columns[i]['name'] + ' = ' + param);
+                    col.search(param);
+                    console.log(col);
+                    usedFilter = true;
+                }
+            }
+
+            if (usedFilter) respite_crud.dt.draw();
+            */
+            // If detail rows enabled
             if (respite_crud.isDetailRowsAdded) {
                 // On each draw, loop over the `detailRows` array and show any child rows
                 respite_crud.dt.on('draw', function () {
