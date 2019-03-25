@@ -41,8 +41,8 @@ myRegEx.Global = True
 
 '[ConfigVars]
 ' Init Form Variables from DB. This will be deleted when generated as a seperate file.
-DIM adoConnCrudeSrc, adoConnCrudeSource, nViewID, rsFields, arrViewFields
-DIM nFieldsNum, nViewFlags, strPrimaryKey, strDataSource, strMainTableName, strDataViewDescription, strFilterBackLink
+DIM adoConnCrudeSrc, adoConnCrudeSource, nViewID, blnPublished, rsFields, arrViewFields
+DIM nFieldsNum, nViewFlags, strPrimaryKey, strDataSource, strMainTableName, strDataViewDescription, strFilterBackLink, strRowReorderCol
 Dim strFilterField, blnFilterRequired, cmdStoredProc, strViewProcedure, strModificationProcedure, strDeleteProcedure, varCurrFieldValue
 Dim paramPK, paramMode, paramFilter, paramOrderBy, blnRequired, blnReadOnly, nDtModBtnStyleIndex, blnShowRowActions
 
@@ -66,12 +66,14 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
         strDataSource = rsItems("DataSource")
         IF strDataSource = "" OR IsNull(strDataSource) THEN strDataSource = "Default"
 		strPageTitle = rsItems("Title")
+        blnPublished = rsItems("Published")
         strDataViewDescription = rsItems("ViewDescription")
         strViewProcedure = rsItems("ViewProcedure")
         strModificationProcedure = rsItems("ModificationProcedure")
         strDeleteProcedure = rsItems("DeleteProcedure")
         strMainTableName = rsItems("MainTable")
         strOrderBy = rsItems("OrderBy")
+        strRowReorderCol = rsItems("RowReorderColumn")
         strPrimaryKey = rsItems("PrimaryKey")
         nViewFlags = rsItems("Flags")
         nDtModBtnStyle = rsItems("DataTableModifierButtonStyle")
@@ -129,6 +131,8 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
 ELSE
 	strError = GetWord("ViewID Invalid!")
 END IF
+
+IF NOT blnPublished OR strError <> "" THEN Response.Redirect "404.asp"
 
 Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
 strViewQueryString = "&ViewID=" & nViewID
