@@ -45,11 +45,11 @@
         // if the ajaxForm method was passed an Options Object with the dataType 
         // property set to 'json' then the first argument to the success callback 
         // is the json data object returned by the server 
-        var btnsm = '<div class="ml-auto float-right"><button type="button" role="button" class="btn btn-secondary btn-sm" onclick="respite_crud.dt.buttons.info(false)" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button></div>';
-        var btn = '<br/><br/><button type="" class="btn btn-secondary" onclick="respite_crud.dt.buttons.info(false)">Close</button>';
+        var btnsm = '<div class="ml-auto float-right pull-right"><button type="button" role="button" class="btn btn-secondary btn-sm" onclick="respite_crud.dt.buttons.info(false)" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button></div>';
+        var btn = '<br/><button type="button" role="button" class="btn btn-secondary" onclick="respite_crud.dt.buttons.info(false)">Close</button>';
 
         if (statusType == 'error') {
-            respite_crud.dt.buttons.info('<i class="fas fa-exclamation-triangle"></i> ' + response.status + ' ' + response.statusText + btnsm, 'Response Body:<br/><div class="alert alert-danger">' + respite_crud.escapeHtml(response.responseText) + '</div>' + btn);
+            respite_crud.dt.buttons.info(btnsm + '<i class="fas fa-exclamation-triangle"></i> ' + response.status + ' ' + response.statusText, response.responseText + btn);
         }
         else {
             respite_crud.dt.buttons.info('<i class="fas fa-check-circle"></i> ' + xhr.statusText + btnsm, response['data'] + btn, 10000);
@@ -62,6 +62,34 @@
         //    '\n\nThe output div should have already been updated with the responseText.'); 
     }
 
+    // post-submit callback with fast timeout and simple success message
+    static callbackPostResponseSimple(response, statusType, xhr, $form) {
+        // for normal html responses, the first argument to the success callback 
+        // is the XMLHttpRequest object's responseText property 
+
+        // if the ajaxForm method was passed an Options Object with the dataType 
+        // property set to 'xml' then the first argument to the success callback 
+        // is the XMLHttpRequest object's responseXML property 
+
+        // if the ajaxForm method was passed an Options Object with the dataType 
+        // property set to 'json' then the first argument to the success callback 
+        // is the json data object returned by the server 
+        var btnsm = '<div class="ml-auto float-right pull-right"><button type="button" role="button" class="btn btn-secondary btn-sm" onclick="respite_crud.dt.buttons.info(false)" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button></div>';
+        var btn = '<br/><button type="button" role="button" class="btn btn-secondary" onclick="respite_crud.dt.buttons.info(false)">Close</button>';
+
+        if (statusType == 'error') {
+            respite_crud.dt.buttons.info(btnsm + '<i class="fas fa-exclamation-triangle"></i> ' + response.status + ' ' + response.statusText, response.responseText + btn);
+        }
+        else {
+            respite_crud.dt.buttons.info('<i class="fas fa-check-circle"></i> ' + xhr.statusText, null, 750);
+        }
+
+        // refresh datatable:
+        respite_crud.dt.ajax.reload();
+
+        //alert('status: ' + statusType + '\n\nresponse: \n' + response['data'] + 
+        //    '\n\nThe output div should have already been updated with the responseText.'); 
+    }
     static getColumnByName(colName) {
         if (respite_crud.dt_Columns == undefined)
             return undefined;
@@ -116,7 +144,15 @@
                 dt_Options: {
                     dt_Selector: '#mainGrid', // jquery selector for the <table> element to use for datatable
                     dt_AjaxGet: 'datatable_pilot_backend.asp?mode=datatable', // server-side source for datatable
-                    dt_DetailRowRender: respite_crud.formatDetailsRow // render function to display details of a single record
+                    dt_DetailRowRender: respite_crud.formatDetailsRow, // render function to display details of a single record
+                    dt_RowReorder: {
+                        form_selector: 'form[name=row_reorder_form]',
+                        form_body_selector: '#row_reorder_body',
+                        row_reorder_column: undefined,
+                        pre_submit_callback: function () { return true },
+                        response_success_callback: respite_crud.callbackPostResponseSimple,
+                        response_error_callback: respite_crud.callbackPostResponseSimple
+                    }
                 },
                 modal_Options: {
                     ajax_forms_selector: "form.ajax-form",
@@ -719,6 +755,10 @@
         return (respite_crud.dt_InlineActionButtons == undefined ? 0 : respite_crud.dt_InlineActionButtons.length);
     }
 
+    static renderRowReorderCell(data, type, row, meta) {
+        return '<i class="fas fa-sort"></i>';
+    }
+
     static renderInlineActionButtons(data, type, row, meta) {
         var rv = "<span style=\"white-space: nowrap\">";
 
@@ -740,16 +780,16 @@
         return rv;
     }
 
-    /*
-    objButton: {
-        href: string,
-        class: string,
-        title: string,
-        glyph: string,
-        label: string
-    },
-    onClickFunction: function (e, tr, r) {}
-    */
+        /*
+        objButton: {
+            href: string,
+            class: string,
+            title: string,
+            glyph: string,
+            label: string
+        },
+        onClickFunction: function (e, tr, r) {}
+        */
     static addInlineActionButton(objButton, onClickFunction) {
         if (respite_crud.dt_InlineActionButtons == undefined) {
             respite_crud.dt_InlineActionButtons = [];
@@ -778,7 +818,7 @@
         return respite_crud;
     }
 
-    //// DETAIL ROW Initialization ////
+        //// DETAIL ROW Initialization ////
     static addDetailsButton(render_function) {
         //if (respite_crud.dt == undefined)
         //    throw "Error: addDetailsButton cannot be used before the datatable is initialized!";
@@ -834,7 +874,7 @@
             });
     }
 
-    //// INLINE Data Manipulation Buttons Initialization ////
+        //// INLINE Data Manipulation Buttons Initialization ////
     static addEditButton(title, label, glyph, customClass) {
         var btnClassName = "respite_btn_" + respite_crud.getNextActionButtonIndex();
 
@@ -1015,7 +1055,7 @@
             });
     }
 
-    //// Add Columns ////
+        //// Add Columns ////
     static addColumn(objColumn) {
         if (respite_crud.dt != undefined) {
             throw "Error: New columns cannot be added after the datatable is already initialized!";
@@ -1030,6 +1070,42 @@
         return respite_crud;
     }
 
+    static addRowReorderColumn(dataSrc) {
+        if (respite_crud.respite_editor_options == undefined) {
+            throw "Error: respite_editor_options must be initialized before adding row reorder column";
+        }
+
+        respite_crud.respite_editor_options.dt_Options.dt_RowReorder.row_reorder_column = dataSrc;
+
+        // init defaults
+        var setOptions = {
+            target: null    // target element(s) to be updated with server response
+            , beforeSubmit: respite_crud.respite_editor_options.dt_Options.dt_RowReorder.pre_submit_callback           // pre-submit callback
+            , success: respite_crud.respite_editor_options.dt_Options.dt_RowReorder.response_success_callback          // post-submit callback
+            , error: respite_crud.respite_editor_options.dt_Options.dt_RowReorder.response_error_callback              // post-submit callback
+
+            // other available options:
+            // ,url:       null                                     // override for form's 'action' attribute
+            // ,type:      null                                     // 'get' or 'post', override for form's 'method' attribute
+             , dataType: 'json'                                     // 'xml', 'script', or 'json' (expected server response type)
+            // ,clearForm: true                                     // clear all form fields after successful submit
+            // ,resetForm: true                                     // reset the form after successful submit
+
+            // $.ajax options can be used here too, for example:
+            // ,timeout:   3000
+        }
+
+        $(respite_crud.respite_editor_options.dt_Options.dt_RowReorder.form_selector).ajaxForm(setOptions);
+
+        return respite_crud.addColumn({
+            "class": "reorder",
+            "orderable": true,
+            "searchable": false,
+            "data": dataSrc,
+            "render": respite_crud.renderRowReorderCell
+        });
+    }
+
     static addInlineActionButtonsColumn() {
         return respite_crud.addColumn({
             "class": "actions-control",
@@ -1040,7 +1116,7 @@
         });
     }
 
-    //// Set Columns Order ////
+        //// Set Columns Order ////
     static setColumnsOrder(options) {
         respite_crud.dt_Order = options;
 
@@ -1048,7 +1124,7 @@
         return respite_crud;
     }
 
-    //// Initialize DataTable ////
+        //// Initialize DataTable ////
     static initDataTable(options) {
 
         // expose our "editor_data" extra column option using the api:
@@ -1129,21 +1205,28 @@
                             var val = $.fn.dataTable.util.escapeRegex(
                                 $(this).val()
                             );
-
+                            //console.log('searching: ' + val);
                             column
-                                .search(val ? val : '', true, false)
+                                .search(val != undefined && val != null ? val : '', true, false)
                                 .draw();
                         });
 
-                    for (var i = 0; respite_crud.dt_Columns[column[0]]['editor_data'] != undefined && respite_crud.dt_Columns[column[0]].editor_data['options'] != undefined && i < respite_crud.dt_Columns[column[0]].editor_data['options']['length']; i++) {
-                        var d = respite_crud.dt_Columns[column[0]].editor_data['options'][i];
-                        var val = $.fn.dataTable.util.escapeRegex(d.value);
-                        if (column.search() === val) {
-                            select.append(
-                              '<option value="' + val + '" selected="selected">' + d.label + "</option>"
-                            );
-                        } else {
-                            select.append('<option value="' + val + '">' + d.label + "</option>");
+                    // if boolean
+                    if (respite_crud.dt_Columns[column[0]]['editor_data'] != undefined && respite_crud.dt_Columns[column[0]].editor_data['type'] == "boolean") {
+                        select.append('<option value="1"' + (column.search() == '1' ? ' selected="selected"' : '') + '>True</option>');
+                        select.append('<option value="0"' + (column.search() == '0' ? ' selected="selected"' : '') + '>False</option>');
+                    } else {
+                        // otherwise, it's csv or select
+                        for (var i = 0; respite_crud.dt_Columns[column[0]]['editor_data'] != undefined && respite_crud.dt_Columns[column[0]].editor_data['options'] != undefined && i < respite_crud.dt_Columns[column[0]].editor_data['options']['length']; i++) {
+                            var d = respite_crud.dt_Columns[column[0]].editor_data['options'][i];
+                            var val = $.fn.dataTable.util.escapeRegex(d.value);
+                            if (column.search() === val) {
+                                select.append(
+                                  '<option value="' + val + '" selected="selected">' + d.label + "</option>"
+                                );
+                            } else {
+                                select.append('<option value="' + val + '">' + d.label + "</option>");
+                            }
                         }
                     }
                 });
@@ -1199,8 +1282,45 @@
                         $('#' + id + ' td a.details-control').trigger('click');
                     });
                 });
-
             }
+
+            // Implement row reordering event
+            respite_crud.dt.on('row-reorder', function (e, diff, edit) {
+                var changed = false;
+                var inputList = $('<select name="DT_RowId" multiple="multiple"></select>');
+                var options = respite_crud.respite_editor_options.dt_Options.dt_RowReorder;
+                var frm = $(options.form_selector).hide();
+                var frmBody = $(options.form_body_selector).empty();
+
+                //console.log('Reorder started on row:');
+                //console.log(edit.triggerRow.data());
+
+                for (var i = 0, ien = diff.length ; i < ien ; i++) {
+                    // if data indeed changed
+                    if (diff[i].newData != diff[i].oldData) {
+                        changed = true;
+
+                        // get row data
+                        var rowData = respite_crud.dt.row(diff[i].node).data();
+
+                        // generate hidden input
+                        var inputField = $('<input type="hidden" />');
+                        inputField.attr('name', 'DT_RowId[' + rowData['DT_RowId'] + ']');
+                        inputField.attr('value', diff[i].newData);
+
+                        frmBody.append(inputField.clone());
+                        inputList.append($('<option selected="selected">ID</option>').attr('value', rowData['DT_RowId']));
+
+                        //console.log('updated: DT_RowId[' + rowData['DT_RowId'] + '] new value: ' + diff[i].newData + ' (was ' + diff[i].oldData + ')');
+                    }
+                }
+
+                if (changed) {
+                    frmBody.append(inputList);
+                    //console.log(frmBody.html());
+                    frm.submit();
+                }
+            });
         });
     }
-}
+    }

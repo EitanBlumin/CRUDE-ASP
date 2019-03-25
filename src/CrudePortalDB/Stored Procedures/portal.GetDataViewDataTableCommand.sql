@@ -43,10 +43,10 @@ CREATE PROCEDURE [portal].[GetDataViewDataTableCommand]
 	@ColumnsOrder XML = NULL
 AS
 SET NOCOUNT ON;
-DECLARE @DataSource NVARCHAR(100), @TableName NVARCHAR(300), @PK NVARCHAR(300), @Flags INT
+DECLARE @DataSource NVARCHAR(100), @TableName NVARCHAR(300), @PK NVARCHAR(300), @Flags INT, @RowReorder NVARCHAR(200)
 DECLARE @CMD NVARCHAR(MAX), @SQLColumns NVARCHAR(MAX)
 
-SELECT @DataSource = DataSource, @TableName = MainTable, @PK = Primarykey, @Flags = Flags
+SELECT @DataSource = DataSource, @TableName = MainTable, @PK = Primarykey, @Flags = Flags, @RowReorder = NULLIF(RowReorderColumn, '')
 FROM portal.DataView
 WHERE ViewID = @ViewID
 
@@ -72,13 +72,23 @@ BEGIN
 			IsRegEx = X.value('(@RegEx)[1]', 'bit'),
 			SearchVal = X.value('(text())[1]', 'nvarchar(max)')
 		FROM @ColumnsOptions.nodes('/Columns/Column') AS T(X)
+		WHERE @RowReorder IS NULL
+		UNION ALL
+		SELECT
+			ColIndex = 0,
+			ColName = @RowReorder,
+			DataSrc = @RowReorder,
+			IsRegEx = 0,
+			SearchVal = NULL
+		WHERE @RowReorder IS NOT NULL
 	)
 	SELECT
 		@SQLColumns = @SQLColumns + N'
 				ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''') ' + CASE co.ColDir WHEN 'desc' THEN 'DESC' ELSE 'ASC' END + N', '
 	FROM  portal.DataViewField AS dvf
 	INNER JOIN ColsXML AS c
-	ON 'Field_' + CONVERT(nvarchar,dvf.FieldID) = c.ColName
+	ON (@RowReorder IS NULL AND 'Field_' + CONVERT(nvarchar,dvf.FieldID) = c.ColName)
+	OR (@RowReorder IS NOT NULL AND dvf.FieldSource = @RowReorder)
 	INNER JOIN (
 	SELECT
 		ColIndex = X.value('(@ColIndex)[1]', 'int'),
@@ -93,7 +103,7 @@ BEGIN
 		SET @SQLColumns = LEFT(@SQLColumns, LEN(@SQLColumns) - 1)
 END
 ELSE
-	SET @SQLColumns = @SQLColumns + @PK
+	SET @SQLColumns = @SQLColumns + ISNULL(@RowReorder, @PK)
 
 SET @SQLColumns = @SQLColumns + N')'
 

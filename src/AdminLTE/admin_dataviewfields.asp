@@ -207,7 +207,7 @@ ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) THEN
 "		WHEN t.name = 'time' THEN 13 " & vbCrLf & _
 "		ELSE 1 " & vbCrLf & _
 "	END AS fieldtype, " & vbCrLf & _
-"	fieldflags = 1 + CASE WHEN c.is_nullable = 1 THEN 0 ELSE 2 END + CASE WHEN c.max_length BETWEEN 1 AND 200 THEN 8 ELSE 0 END, " & vbCrLf & _
+"	fieldflags = 1 + CASE WHEN c.is_nullable = 1 OR t.name = 'bit' THEN 0 ELSE 2 END + CASE WHEN c.is_computed = 1 THEN 4 ELSE 0 END + CASE WHEN c.max_length BETWEEN 1 AND 200 THEN 8 ELSE 0 END, " & vbCrLf & _
 "	fieldorder = ROW_NUMBER() OVER (ORDER BY c.column_id ASC), " & vbCrLf & _
 "	'' AS fielddefault, max_length = CASE WHEN c.max_length = -1 THEN NULL WHEN t.name IN ('nchar', 'nvarchar') THEN c.max_length / 2 ELSE c.max_length END, QUOTENAME(fk.REFERENCED_SCHEMA) + '.' + QUOTENAME(fk.REFERENCED_TABLE) AS LinkedTable " & vbCrLf & _
 "   , fk.REFERENCED_COLUMN AS LinkedColumnValue, ISNULL(fk_table.REFERENCED_COLUMN_TEXT, fk.REFERENCED_COLUMN) AS LinkedColumnLabel " & vbCrLf & _
@@ -266,6 +266,7 @@ ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) THEN
         rsTarget("LinkedTableTitleField") = rsItems("LinkedColumnLabel")
 
         IF rsItems("fieldtype") = 2 AND (IsNull(rsItems("max_length")) OR rsItems("max_length") >= 1000) THEN rsTarget("Height") = 10
+        IF rsItems("fieldtype") = 1 OR rsItems("fieldtype") = 2 OR rsItems("fieldtype") = 5 OR rsItems("fieldtype") = 9 THEN rsTarget("FieldFlags") = rsTarget("FieldFlags") + 16
 
         rsTarget.Update
 

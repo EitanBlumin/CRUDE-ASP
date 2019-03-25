@@ -21,7 +21,7 @@ Response.CacheControl = "No-Store"
 ' Variable Definition
 Dim strMode, adoConnCrudeSrc, adoConnCrudeSource, cmdStoredProc, nItemID, nIndex, blnFound, nColSpan, blnRequiredFieldsFilled, strFormIDString
 Dim blnDtInfo, blnDtColumnFooter, blnDtQuickSearch, blnDtSort, blnDtPagination, blnDtPageSizeSelection, blnDtStateSave
-Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle
+Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle, strRowReorderCol
 Dim blnRTEEnabled, blnShowForm, blnShowList, blnAllowUpdate, blnAllowInsert, blnAllowDelete, blnAllowClone, blnShowCharts, blnAllowCNamee, blnAllowSearch, strOrderBy, strSearchFilter, strCurrFilter
 Dim strLastOptGroup, blnOptGroupStarted, strJsonOutput, strMsgOutput
 Dim nViewID, dvFields, arrViewFields
@@ -70,6 +70,7 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
         strModificationProcedure = rsItems("ModificationProcedure")
         strDeleteProcedure = rsItems("DeleteProcedure")
         strMainTableName = rsItems("MainTable")
+        strRowReorderCol = rsItems("RowReorderColumn")
         strPrimaryKey = rsItems("PrimaryKey")
         nViewFlags = rsItems("Flags")
     
@@ -111,9 +112,9 @@ IF strMode = "getSiteNav" THEN
         Response.Write "[ ]"
     END IF
     rsItems.Close
-ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "delete" OR strMode = "delete_multiple") AND Request.Form("postback") <> "" AND Request("ViewID") <> "" AND IsNumeric(Request("ViewID")) THEN
+ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "delete" OR strMode = "delete_multiple" OR strMode = "reorder") AND Request.Form("postback") <> "" AND Request("ViewID") <> "" AND IsNumeric(Request("ViewID")) THEN
     nItemID = Request("DT_RowID")
-    IF NOT IsNumeric(nItemID) AND strMode <> "delete_multiple" THEN nItemID = ""
+    IF NOT IsNumeric(nItemID) AND strMode <> "delete_multiple" AND strMode <> "reorder" THEN nItemID = ""
     
     IF strDataSource <> "" THEN
         adoConnCrudeSource = GetConfigValue("connectionStrings", "name", "connectionString", strDataSource, adoConStr)
@@ -232,6 +233,7 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
                             cmdStoredProc.Parameters(nParamID).Value = varCurrFieldValue
                         ELSE
                             'strMsgOutput = strMsgOutput & "<!-- setting " & dvFields(nIndex)("FieldSource") & " = """ & varCurrFieldValue & """ (isnull: " & IsNull(varCurrFieldValue) & ") ErrCount: " & adoConnCrude.Errors.Count & " -->" & vbCrLf
+                            'Response.Write dvFields(nIndex)("FieldSource") & ": " & varCurrFieldValue & "<br/>" & vbCrLf
                             rsItems(dvFields(nIndex)("FieldSource")) = varCurrFieldValue
                         END IF
                     END IF
@@ -406,6 +408,73 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
             adoConnCrude.Close
             'Response.Redirect(constPageScriptName & "?MSG=delete" & strViewQueryString)
         End If
+    
+    ELSEIF strError = "" AND strMainTableName <> "" AND Request.Form("DT_RowId") <> "" AND strMode = "reorder" AND strRowReorderCol <> "" AND NOT IsNull(strRowReorderCol) THEN
+    
+        'Response.Status = "500 Server Error"
+        'Response.Write "<div class='alert alert-danger'><h1><i class='fas fa-times-circle'></i> ERROR</h1>"
+        'Response.Write "<BR/>NOT YET IMPLEMENTED"
+        Dim RowIds, currRowId, objReorderDom, objReorder, objRow, objattRowIndex, objReorderPI
+        RowIds = Split(Request("DT_RowId"), ",")
+        
+        'Instantiate the Microsoft XMLDOM
+        Set objReorderDom = server.CreateObject("Microsoft.XMLDOM")
+        objReorderDom.preserveWhiteSpace = True
+
+        'Columns root element and append it to the XML document.
+        Set objReorder = objReorderDom.createElement("Reorder")
+        objReorderDom.appendChild objReorder   
+
+        nColIndex = 0
+    
+        FOR EACH currRowId IN RowIds
+            Set objRow = objReorderDom.createElement("Row")
+
+            'Create "Id" attribute
+            Set objattRowIndex = objReorderDom.createAttribute("Id")
+            objattRowIndex.Text = Trim(currRowId)
+            objRow.setAttributeNode objattRowIndex
+    
+            'Set new value
+            objRow.Text = Request("DT_RowId[" & Trim(currRowId) & "]")
+
+            'Append "Column" element as a child container element "Columns".'
+            objReorder.appendChild objRow
+        NEXT
+    
+        'Create the xml processing instruction - and append to XML doc
+        Set objReorderPI = objReorderDom.createProcessingInstruction("xml", "version='1.0'")
+        objReorderDom.insertBefore objReorderPI, objReorderDom.childNodes(0)
+
+        Dim sRowsReOrder
+        sRowsReOrder = objReorderDom.selectSingleNode("/").xml
+    
+        SET rsItems = Server.CreateObject("ADODB.Command")
+        rsItems.ActiveConnection = adoConnCrudeSrc
+        rsItems.CommandText = "DECLARE @Dat XML = ?;" & vbCrLf & _
+        " WITH RowData AS (" & vbCrLf & _
+        " SELECT XX.x.value('(@Id)[1]','varchar(1000)') AS RowId, XX.x.value('(text())[1]','varchar(1000)') AS NewValue" & vbCrLf & _
+        " FROM @Dat.nodes('/Reorder/Row') AS XX(X) )" & vbCrLf & _
+        " UPDATE T SET [" & strRowReorderCol & "] = RowData.NewValue" & vbCrLf & _
+        " FROM RowData INNER JOIN " & strMainTableName & " AS T" & vbCrLf & _
+        " ON RowData.RowId = T.[" & strPrimaryKey & "]"
+
+	    SET rsItems = rsItems.Execute (,sRowsReOrder,adOptionUnspecified)
+    
+        IF adoConnCrudeSrc.Errors.Count > 0 THEN
+	        strError = "ERROR while trying to delete reorder rows using data source " & strDataSource & ":<br/>"
+            For Each Err In adoConnCrudeSrc.Errors
+		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & "<br/>"
+            Next
+        ELSE
+            strMsgOutput = strMsgOutput & "Successfully Reordered: " & nItemID
+        END IF
+
+	    IF strError = "" Then
+    	    adoConnCrudeSrc.Close
+            adoConnCrude.Close
+            'Response.Redirect(constPageScriptName & "?MSG=delete" & strViewQueryString)
+        End If
     ELSE
         strError = "Invalid Input"
     END IF
@@ -422,7 +491,7 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
         Response.Write "{ ""data"": """
 
         Response.Write "<div class='alert alert-success'><h1><i class='fas fa-check-circle'></i> SUCCESS</h1>"
-        Response.Write "<BR/>" & REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(strMsgOutput, "<br/>", vbCrLf), "<br>", vbCrLf), "\", "\\"), "/", "\/"), vbCrLf, "\n"), """", "\""")
+        Response.Write "<BR/>" & Sanitizer.JSON(strMsgOutput)
 
         Response.Write "</div>"" }"
     
@@ -567,7 +636,7 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
 
     nColIndex = 1
 
-    WHILE Request("columns[" & nColIndex & "][data]") <> ""
+    WHILE Request("columns[" & nColIndex & "][searchable]") <> ""
         Set objColumn = objDom.createElement("Column")
 
         'Create "ColIndex" attribute'
@@ -746,7 +815,8 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
         IF adoConnCrudeSrc.Errors.Count > 0 THEN
 	        strError = "ERROR while trying to retrieve datatable:<br>"
             For Each Err In adoConnCrudeSrc.Errors
-		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & "<br/>"
+                IF globalIsAdmin THEN strError = strError & strSQL & "<br/>"
             Next
         ELSE
             ON ERROR GOTO 0
@@ -776,7 +846,7 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
 
     Response.Write "{ ""draw"": " & nDraw & ", ""recordsTotal"": " & recordsTotal & ", ""recordsFiltered"": " & recordsFiltered & ", ""data"": " & strJsonOutput
 
-    IF strError <> "" THEN Response.Write ", ""error"": """ & REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(strError, "<br/>", vbCrLf), "<br>", vbCrLf), "\", "\\"), "/", "\/"), vbCrLf, "\n"), """", "\""") & """"
+    IF strError <> "" THEN Response.Write ", ""error"": """ &Sanitizer.JSON(strError) & """"
 
     Response.Write " }"
 END IF

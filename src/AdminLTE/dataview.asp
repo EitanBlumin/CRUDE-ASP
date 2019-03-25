@@ -42,13 +42,14 @@ myRegEx.Global = True
 '[ConfigVars]
 ' Init Form Variables from DB. This will be deleted when generated as a seperate file.
 DIM adoConnCrudeSrc, adoConnCrudeSource, nViewID, blnPublished, rsFields, arrViewFields
-DIM nFieldsNum, nViewFlags, strPrimaryKey, strDataSource, strMainTableName, strDataViewDescription, strFilterBackLink, strRowReorderCol
+DIM nFieldsNum, nViewFlags, strPrimaryKey, strDataSource, strMainTableName, strDataViewDescription, strFilterBackLink, strRowReorderCol, strRowReorderColMasked
 Dim strFilterField, blnFilterRequired, cmdStoredProc, strViewProcedure, strModificationProcedure, strDeleteProcedure, varCurrFieldValue
 Dim paramPK, paramMode, paramFilter, paramOrderBy, blnRequired, blnReadOnly, nDtModBtnStyleIndex, blnShowRowActions
 
 strDataSource = "Default"
 strError = ""
 strSearchFilter = ""
+strRowReorderColMasked = ""
 
 nItemID = Request("ItemID")
 IF NOT IsNumeric(nItemID) THEN nItemID = ""
@@ -353,6 +354,7 @@ END IF
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.2/css/responsive.bootstrap.min.css"/>
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/scroller/2.0.0/css/scroller.bootstrap.min.css"/>
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.3.0/css/select.bootstrap.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/rowreorder/1.2.5/css/rowReorder.bootstrap.min.css"/>
  
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
@@ -373,6 +375,7 @@ END IF
 <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.2.2/js/responsive.bootstrap.min.js"></script>
 <script type="text/javascript" src="https://cdn.datatables.net/scroller/2.0.0/js/dataTables.scroller.min.js"></script>
 <script type="text/javascript" src="https://cdn.datatables.net/select/1.3.0/js/dataTables.select.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/rowreorder/1.2.5/js/dataTables.rowReorder.min.js"></script>
 <!-- JQuery Form -->
 <script src="http://malsup.github.com/jquery.form.js"></script> 
 
@@ -509,6 +512,14 @@ IF strError <> "" THEN
     </div>
 </div>
 <!-- /.modal -->
+
+<!-- Hidden Form for Row Reordering -->
+<form name="row_reorder_form" action="ajax_dataview.asp?ViewID=<%= nViewID %>" method="post">
+    <div id="row_reorder_body"></div>
+    <input type="hidden" name="postback" value="true" />
+    <input type="hidden" name="mode" value="reorder" />
+</form>
+<!-- /row reorder -->
         
         <div class="row">
             <div class="col col-sm-12">
@@ -524,8 +535,12 @@ IF strError <> "" THEN
             <table datatable="" id="mainGrid" class="table table-hover table-bordered table-striped">
         <thead>
         <tr class="bg-primary">
+        <% IF strRowReorderCol <> "" AND Not IsNull(strRowReorderCol) THEN %>
+            <th><%= GetWord("Reorder") %></th>
+        <% END IF %>
             <% IF blnShowRowActions THEN %><th><%= GetWord("Actions") %></th><% END IF 
     FOR nIndex = 0 TO dvFields.UBound
+        IF strRowReorderCol = dvFields(nIndex)("FieldSource") AND strRowReorderColMasked = "" THEN strRowReorderColMasked = "Field_" & dvFields(nIndex)("FieldID")
         IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN %>
             <th class="dt-exportable dt-toggleable<%
                 ' if search is enabled for this field
@@ -541,6 +556,9 @@ IF strError <> "" THEN
         <tbody></tbody><% IF blnDtColumnFooter OR blnAllowSearch THEN %>
         <tfoot<% IF blnDtColumnFooter THEN Response.Write " class=""dt-keep-footer""" %>>
         <tr>
+        <% IF strRowReorderCol <> "" AND Not IsNull(strRowReorderCol) THEN %>
+            <th class="dt-non-searchable"><%= GetWord("Reorder") %></th>
+        <% END IF %>
     <% IF blnShowRowActions THEN %><th class="dt-non-searchable"><%= GetWord("Actions") %></th><% END IF 
             FOR nIndex = 0 TO dvFields.UBound
                 IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN %>
@@ -656,7 +674,11 @@ IF strError <> "" THEN
     // DataTable Columns:
     // TODO: Simplify the addColumn() function interface
     respite_crud
-        .addInlineActionButtonsColumn()
+        <% IF strRowReorderCol <> "" AND Not IsNull(strRowReorderCol) THEN
+            IF strRowReorderColMasked = "" THEN strRowReorderColMasked = strRowReorderCol
+        %>.addRowReorderColumn("<%= Sanitizer.JSON(strRowReorderColMasked) %>")
+        <% END IF 
+        %>.addInlineActionButtonsColumn()
         <% IF strError = "" THEN
         FOR nIndex = 0 TO dvFields.UBound
         IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN
@@ -898,7 +920,12 @@ IF strError <> "" THEN
             scrollX: 460,
             scrollCollapse: true,
             scroller: { loadingIndicator: true },<% END IF %><% IF blnDtStateSave THEN %>
-            stateSave: true,<% END IF %>
+            stateSave: true,<% END IF %><% IF strRowReorderCol <> "" AND Not IsNull(strRowReorderCol) THEN %>
+            rowReorder: { dataSrc: "<%= Sanitizer.JSON(strRowReorderColMasked) %>" },
+            columnDefs: [
+                { orderable: true, className: 'reorder', targets: 0 },
+                { orderable: false, targets: '_all' }
+            ],<% END IF %>
             pageLength: <%= nDtDefaultPageSize %>
             });
         <% END IF
