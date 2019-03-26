@@ -777,7 +777,7 @@
                             currDiv
                                 .append(currLabel.clone()
                                     .append(currInput.clone())
-                                    //.append($('<label class="custom-control-label" for="field_' + i + '_' + j + '"></label>'))
+                                    //.append($('<label class="custom-control-label" for="field_' + i + '_' + j + '"></label>')) // reserved for bootstrap 4
                                     .append($('<i class="' + ed['options'][j]['glyph'] + '"></i>'))
                                     .append($('<span></span>').text(' ' + ed['options'][j]['label']))
                                     );
