@@ -703,44 +703,7 @@ IF strError <> "" THEN
                 },<%
     END IF %>
                 "label": "<%= Sanitizer.JSON(dvFields(nIndex)("FieldLabel")) %>",
-                "type": "<%
-                Select Case dvFields(nIndex)("FieldType")
-            Case 1
-            Response.Write "text"
-            Case 2
-            Response.Write "textarea"
-            Case 3
-            Response.Write "numeric"
-            Case 4
-            Response.Write "decimal"
-            Case 5
-            Response.Write "select"
-            Case 6
-            Response.Write "csv"
-            Case 7
-            Response.Write "date"
-            Case 8
-            Response.Write "datetime"
-            Case 9
-            Response.Write "boolean"
-            Case 10
-            Response.Write "link"
-            Case 11
-            Response.Write "image"
-            Case 12
-            Response.Write "password"
-            Case 13
-            Response.Write "time"
-            Case 14
-            Response.Write "rte"
-            Case 15
-            Response.Write "email"
-            Case 16
-            Response.Write "phone"
-        Case Else
-            Response.Write "text"
-        End Select                
-                %>",       // field type
+                "type": "<%= luDataViewFieldTypes(dvFields(nIndex)("FieldType")).Identifier %>",       // field type
                 "default_value": "<%= Sanitizer.JSON(dvFields(nIndex)("DefaultValue")) %>",   // default value
                 <%
                 IF (dvFields(nIndex)("FieldFlags") AND 16) > 0 THEN %>"searchable": false,<%
@@ -760,7 +723,7 @@ IF strError <> "" THEN
                     END IF %>": <%= dvFields(nIndex)("Height") %><%
                     END IF
                     IF dvFields(nIndex)("Width") <> "" AND NOT IsNull(dvFields(nIndex)("Width")) THEN
-                    %>, "width": <%= dvFields(nIndex)("Width") %><%
+                    %>, "width": '<%= dvFields(nIndex)("Width") %>%'<%
                     END IF
                     IF dvFields(nIndex)("FormatPattern") <> "" AND NOT IsNull(dvFields(nIndex)("FormatPattern")) THEN
                     %>, "pattern": "<%= Sanitizer.JSON(dvFields(nIndex)("FormatPattern")) %>"<%
@@ -771,26 +734,55 @@ IF strError <> "" THEN
                     IF (dvFields(nIndex)("FieldFlags") AND 4) > 0 THEN 
                     %>, "readonly": true<%
                     END IF %>}
-                <% IF dvFields(nIndex)("FieldType") = 5 OR dvFields(nIndex)("FieldType") = 6 THEN
-                Response.Write ", ""options"": [ "
-                Dim rsOptions
-                SET rsOptions = Server.CreateObject("ADODB.Recordset")
-                strSQL = "SELECT " & dvFields(nIndex)("LinkedTableValueField") & " AS [value], " & dvFields(nIndex)("LinkedTableTitleField") & " AS [title], "
-                IF dvFields(nIndex)("LinkedTableGroupField") <> "" THEN
-                strSQL = strSQL & dvFields(nIndex)("LinkedTableGroupField")
-                ELSE
-                    strSQL = strSQL & "''"
-                END IF
-                strSQL = strSQL & " AS [group] FROM " & dvFields(nIndex)("LinkedTable") & " " & dvFields(nIndex)("LinkedTableAddition")
+                <% 
+                IF dvFields(nIndex)("FieldType") = 5 OR dvFields(nIndex)("FieldType") = 6 OR (dvFields(nIndex)("FieldType") >= 17 AND dvFields(nIndex)("FieldType") <= 21) OR (dvFields(nIndex)("FieldType") >= 27 AND dvFields(nIndex)("FieldType") <= 29) THEN
+                    Response.Write ", ""options"": [ "
 
-                rsOptions.Open strSQL, adoConnCrudeSrc
-                WHILE NOT rsOptions.EOF
-            %>{ "group": "<%= Sanitizer.JSON(rsOptions("group")) %>", "value": "<%= Sanitizer.JSON(rsOptions("value")) %>", "label": "<%= Sanitizer.JSON(rsOptions("title")) %>" }<%
-                rsOptions.MoveNext
-                IF NOT rsOptions.EOF THEN Response.Write ", "
-                WEND
-                rsOptions.Close
-                Response.Write "]"
+                    IF dvFields(nIndex)("LinkedTableValueField") <> "" AND Not IsNull(dvFields(nIndex)("LinkedTableValueField")) AND dvFields(nIndex)("LinkedTable") <> "" AND NOT IsNull(dvFields(nIndex)("LinkedTable")) THEN
+                        Dim rsOptions
+                        SET rsOptions = Server.CreateObject("ADODB.Recordset")
+                        strSQL = "SELECT * FROM (SELECT " & dvFields(nIndex)("LinkedTableValueField") & " AS [value], "
+                    
+                        IF dvFields(nIndex)("LinkedTableTitleField") <> "" THEN
+                            strSQL = strSQL & dvFields(nIndex)("LinkedTableTitleField")
+                        ELSE
+                            strSQL = strSQL & dvFields(nIndex)("LinkedTableValueField")
+                        END IF
+                        strSQL = strSQL & " AS [title], "
+
+                        IF dvFields(nIndex)("LinkedTableGroupField") <> "" THEN
+                            strSQL = strSQL & dvFields(nIndex)("LinkedTableGroupField")
+                        ELSE
+                            strSQL = strSQL & "''"
+                        END IF
+                        strSQL = strSQL & " AS [group], "
+                
+                        IF dvFields(nIndex)("LinkedTableGlyphField") <> "" THEN
+                        strSQL = strSQL & dvFields(nIndex)("LinkedTableGlyphField")
+                        ELSE
+                        strSQL = strSQL & "''"
+                        END IF
+                        strSQL = strSQL & " AS [glyph], "
+
+                        IF dvFields(nIndex)("LinkedTableTooltipField") <> "" THEN
+                        strSQL = strSQL & dvFields(nIndex)("LinkedTableTooltipField")
+                        ELSE
+                        strSQL = strSQL & "''"
+                        END IF
+                        strSQL = strSQL & " AS [tooltip] "
+
+                        strSQL = strSQL & " FROM " & dvFields(nIndex)("LinkedTable") & " " & dvFields(nIndex)("LinkedTableAddition")
+                        strSQL = strSQL & ") AS q ORDER BY [group] ASC, [title] ASC, [value] ASC"
+                
+                        rsOptions.Open strSQL, adoConnCrudeSrc
+                        WHILE NOT rsOptions.EOF
+                    %>{ "value": "<%= Sanitizer.JSON(rsOptions("value")) %>", "label": "<%= Sanitizer.JSON(rsOptions("title")) %>", "group": "<%= Sanitizer.JSON(rsOptions("group")) %>", "glyph": "<%= Sanitizer.JSON(rsOptions("glyph")) %>", "tooltip": "<%= Sanitizer.JSON(rsOptions("tooltip")) %>" }<%
+                        rsOptions.MoveNext
+                        IF NOT rsOptions.EOF THEN Response.Write ", "
+                        WEND
+                        rsOptions.Close
+                    END IF
+                    Response.Write "]"
                 END IF %>
             }
         })

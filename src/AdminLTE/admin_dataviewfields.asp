@@ -23,7 +23,7 @@ adoConn.Open
 %><!--#include file="dist/asp/inc_crudeconstants.asp" --><%
 DIM adoConnSrc, adoConnSource, strDataSource, strPK, strMainTableName
 Dim strFieldLabel, strFieldSource, strDataViewTitle, nViewID, strDefaultValue, strUriPath, strLinkedTable, strLinkedTableGroupField
-Dim strLinkedTableTitleField, strLinkedTableAddition, strLinkedTableValueField, nFlags, nFieldType, nOrdering
+Dim strLinkedTableTitleField, strLinkedTableAddition, strLinkedTableValueField, strLinkedTableGlyphField, strLinkedTableTooltipField, nFlags, nFieldType, nOrdering
 Dim nUriStyle, nMaxLength, nWidth, nHeight, strFieldDescription
     
 strDataSource = "Default"
@@ -66,6 +66,8 @@ strLinkedTable = Request("LinkedTable")
 strLinkedTableGroupField = Request("LinkedTableGroupField")
 strLinkedTableTitleField = Request("LinkedTableTitleField")
 strLinkedTableValueField = Request("LinkedTableValueField")
+strLinkedTableGlyphField = Request("LinkedTableGlyphField")
+strLinkedTableTooltipField = Request("LinkedTableTooltipField")
 strLinkedTableAddition = Request("LinkedTableAddition")
 nMaxLength = Request("MaxLength")
 IF nMaxLength = "" OR NOT IsNumeric(nMaxLength) THEN nMaxLength = 100
@@ -132,6 +134,8 @@ IF Request.Form("FieldLabel") <> "" THEN
             rsItems("LinkedTableGroupField") = strLinkedTableGroupField
             rsItems("LinkedTableTitleField") = strLinkedTableTitleField
             rsItems("LinkedTableValueField") = strLinkedTableValueField
+            rsItems("LinkedTableGlyphField") = strLinkedTableGlyphField
+            rsItems("LinkedTableTooltipField") = strLinkedTableTooltipField
             rsItems("LinkedTableAddition") = strLinkedTableAddition
             rsItems("FieldFlags") = nFlags
             rsItems("MaxLength") = nMaxLength
@@ -354,6 +358,8 @@ IF strMode = "edit" AND nItemID <> "" Then
         strLinkedTableGroupField = rsItems("LinkedTableGroupField")
 		strLinkedTableTitleField = rsItems("LinkedTableTitleField")
 		strLinkedTableValueField = rsItems("LinkedTableValueField")
+		strLinkedTableGlyphField = rsItems("LinkedTableGlyphField")
+		strLinkedTableTooltipField = rsItems("LinkedTableTooltipField")
 		strLinkedTableAddition = rsItems("LinkedTableAddition")
         strUriPath = rsItems("UriPath")
         nUriStyle = rsItems("UriStyle")
@@ -469,35 +475,49 @@ END IF
         <label for="inputLinkedTable" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputLinkedTable" data-toggle="tooltip" title="Used for Dropdown and Multi-Selection Box" placeholder="Linked Table Name" name="LinkedTable" value="<%= Sanitizer.HTMLFormControl(strLinkedTable) %>">
-        </div>
-    </div>
-    <div class="form-group">
-        <label for="inputLinkedTableGroupField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Group Field</label>
-
-        <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputLinkedTableGroupField" data-toggle="tooltip" title="Used for Dropdown and Multi-Selection Box" placeholder="Linked Table Group Field Column" name="LinkedTableGroupField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableGroupField) %>">
-        </div>
-    </div>
-    <div class="form-group">
-        <label for="inputLinkedTableTitleField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Title Field</label>
-
-        <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputLinkedTableTitleField" data-toggle="tooltip" title="Used for Dropdown and Multi-Selection Box" placeholder="Linked Table Title Field Column" name="LinkedTableTitleField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableTitleField) %>">
+        <input type="text" class="form-control" id="inputLinkedTable" data-toggle="tooltip" title="Used for Lists of Values" placeholder="Linked Table Name" name="LinkedTable" value="<%= Sanitizer.HTMLFormControl(strLinkedTable) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputLinkedTableValueField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Value Field</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <input type="text" class="form-control" id="inputLinkedTableValueField" data-toggle="tooltip" title="Used for Dropdown and Multi-Selection Box" placeholder="Linked Table Value Column" name="LinkedTableValueField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableValueField) %>">
+        <input type="text" class="form-control" id="inputLinkedTableValueField" data-toggle="tooltip" title="Used for Lists of Values" placeholder="Linked Table Value Column" name="LinkedTableValueField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableValueField) %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputLinkedTableTitleField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Title Field</label>
+
+        <div class="col-sm-9 col-md-9 col-lg-10">
+        <input type="text" class="form-control" id="inputLinkedTableTitleField" data-toggle="tooltip" title="Used for Lists of Values" placeholder="Linked Table Title Field Column" name="LinkedTableTitleField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableTitleField) %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputLinkedTableGroupField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Group Field</label>
+
+        <div class="col-sm-9 col-md-9 col-lg-10">
+        <input type="text" class="form-control" id="inputLinkedTableGroupField" data-toggle="tooltip" title="Used for Lists of Values" placeholder="Linked Table Group Field Column" name="LinkedTableGroupField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableGroupField) %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputLinkedTableGlyphField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Glyph Field</label>
+
+        <div class="col-sm-9 col-md-9 col-lg-10">
+        <input type="text" class="form-control" id="inputLinkedTableGlyphField" data-toggle="tooltip" title="Used for Lists of Values" placeholder="Linked Table Glyph Field Column" name="LinkedTableGlyphField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableGlyphField) %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="inputLinkedTableTooltipField" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Tooltip Field</label>
+
+        <div class="col-sm-9 col-md-9 col-lg-10">
+        <input type="text" class="form-control" id="inputLinkedTableTooltipField" data-toggle="tooltip" title="Used for Lists of Values" placeholder="Linked Table Tooltip Field Column" name="LinkedTableTooltipField" value="<%= Sanitizer.HTMLFormControl(strLinkedTableTooltipField) %>">
         </div>
     </div>
     <div class="form-group">
         <label for="inputLinkedTableAddition" class="col-sm-3 col-md-3 col-lg-2 control-label">Linked Table Addition</label>
 
         <div class="col-sm-9 col-md-9 col-lg-10">
-        <textarea class="form-control" id="inputLinkedTableAddition" name="LinkedTableAddition" data-toggle="tooltip" title="Used for Dropdown and Multi-Selection Box" placeholder="Linked Table Addition" height="4"><%= Sanitizer.HTMLFormControl(strLinkedTableAddition) %></textarea>
+        <textarea class="form-control" id="inputLinkedTableAddition" name="LinkedTableAddition" data-toggle="tooltip" title="Used for Lists of Values" placeholder="Linked Table Addition" rows="5"><%= Sanitizer.HTMLFormControl(strLinkedTableAddition) %></textarea>
         </div>
     </div>
     <div class="form-group">

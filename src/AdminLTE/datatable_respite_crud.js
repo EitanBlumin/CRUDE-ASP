@@ -297,6 +297,8 @@
         if (data != '' && data != undefined && ed != undefined && ed['options'] != undefined) {
 
             var opList = ed.options;
+            console.log('rendering bitwise:');
+            console.log(ed.options);
 
             for (var i = 0; i < opList.length; i++) {
 
@@ -304,21 +306,22 @@
 
                     nextOp = opList[i].label.trim();
 
-                    if (opList['glyph'] != undefined) {
+                    if (opList[i]['glyph'] != undefined && opList[i]['glyph'] != '') {
 
-                        glyph = $('<i class="' + opList['glyph'] + '"></i>');
+                        glyph = $('<i class="' + opList[i]['glyph'] + '"></i>');
                         glyph.attr('data-toggle', 'tooltip');
-                        if (opList['tooltip'] != undefined) 
-                            glyph.attr('title', opList['tooltip'])
-                        else if (opList['label'] != undefined)
-                            glyph.attr('title', opList['label'])
+
+                        if (opList[i]['tooltip'] != undefined && opList[i]['tooltip'] != '')
+                            glyph.attr('title', opList[i]['tooltip'])
+                        else if (opList[i]['label'] != undefined)
+                            glyph.attr('title', opList[i]['label'])
 
                         nextOp = glyph.clone().wrap('<div>').parent().html();
                     } else if (rv.length > 0) {
-                        rv += ", ";
+                        rv += ",";
                     }
 
-                    rv += nextOp;
+                    rv += ' ' + nextOp;
                 }
             }
         }
@@ -395,16 +398,26 @@
         var rv = "";
         if (data != undefined && data != '' && ed != undefined) {
             switch (ed["type"]) {
-                case "boolean":
+                case "boolean_switch":
+                case "boolean_checkbox":
+                case "boolean_radios":
+                case "boolean_button":
                     rv = respite_crud.renderBoolean_ed(data, ed);
                     break;
                 case "csv":
+                case "csv_checkboxes":
+                case "csv_switches":
+                case "csv_buttons":
                     rv = respite_crud.renderCSVLookup_ed(data, ed);
                     break;
                 case "select":
+                case "select_buttons":
+                case "select_switches":
                     rv = respite_crud.renderLookup_ed(data, ed);
                     break;
-                case "bitwise":
+                case "bitwise_checkboxes":
+                case "bitwise_switches":
+                case "bitwise_buttons":
                     rv = respite_crud.renderBitwiseLookup_ed(data, ed);
                     break;
                 case "link":
@@ -583,12 +596,20 @@
                         // TODO: add format validation based on type (using the "pattern" attribute with regex: https://www.w3schools.com/tags/att_input_pattern.asp )
                         break;
                     case "select":
+                    case "select_buttons":
+                    case "select_switches":
                     case "csv":
+                    case "csv_checkboxes":
+                    case "csv_switches":
+                    case "csv_buttons":
                         element = $('<select tabindex="' + i + '" class="form-control form-control-sm" id="field_' + i + '" name="' + cn + '"></select>');
                         if (ed['type'] == "csv")
                             element.attr('multiple', 'multiple');
                         break;
                     case "bitwise":
+                    case "bitwise_checkboxes":
+                    case "bitwise_switches":
+                    case "bitwise_buttons":
                         element = $('<div tabindex="' + i + '" class="custom-control custom-checkbox" id="field_' + i + '"></div>');
                         break;
                     case "rte":
@@ -597,6 +618,10 @@
                         element.text(d[cn]);
                         break;
                     case "boolean":
+                    case "boolean_switch":
+                    case "boolean_checkbox":
+                    case "boolean_radios":
+                    case "boolean_button":
                         // using bootswatch switch custom control
                         content += '<div class="custom-control custom-switch">';
                         element = $('<input tabindex="' + i + '" id="field_' + i + '" type="checkbox" value="true" class="custom-control-input" name="' + cn + '"/>');
@@ -648,7 +673,12 @@
                 // fill with any content inside element tag
                 switch (ed['type']) {
                     case "select":
+                    case "select_buttons":
+                    case "select_switches":
                     case "csv":
+                    case "csv_checkboxes":
+                    case "csv_switches":
+                    case "csv_buttons":
                         dValues = [];
                         currOpt = $('<option></option>');
                         if (ed['options'] != undefined) {
@@ -717,6 +747,9 @@
                         }
                         break;
                     case "bitwise":
+                    case "bitwise_checkboxes":
+                    case "bitwise_switches":
+                    case "bitwise_buttons":
                         var currLabel = $('<label class="custom-control-label"></label>');
                         var currInput = $('<input type="checkbox" class="custom-control-input" name="' + cn + '"/>');
                         var dValues = 0;
@@ -789,6 +822,9 @@
                         $('#field_' + i).val("");
                         break;
                     case "csv":
+                    case "csv_checkboxes":
+                    case "csv_switches":
+                    case "csv_buttons":
                         // de-select all currently selected options
                         $('#field_' + i).val('');
                         $('#field_' + i + ' option').attr('selected', false);
@@ -804,6 +840,9 @@
                         }
                         break;
                     case "bitwise":
+                    case "bitwise_checkboxes":
+                    case "bitwise_switches":
+                    case "bitwise_buttons":
                         // de-select all currently selected options
                         $('#field_' + i + ' label input').attr('checked', false);
 
@@ -823,6 +862,10 @@
                         $('#field_' + i).summernote('code', d[cn]);
                         break;
                     case "boolean":
+                    case "boolean_switch":
+                    case "boolean_checkbox":
+                    case "boolean_radios":
+                    case "boolean_button":
                         $('#field_' + i, $(form_selector)).attr('checked', (d[cn] == "true" || d[cn] == true));
                         break;
                     default:
@@ -1309,24 +1352,33 @@
                                 .draw();
                         });
 
-                    // if boolean
-                    if (respite_crud.dt_Columns[column[0]]['editor_data'] != undefined && respite_crud.dt_Columns[column[0]].editor_data['type'] == "boolean") {
-                        select.append('<option value="1"' + (column.search() == '1' ? ' selected="selected"' : '') + '>True</option>');
-                        select.append('<option value="0"' + (column.search() == '0' ? ' selected="selected"' : '') + '>False</option>');
-                    } else {
-                        // otherwise, it's csv or select
-                        var d = {}
-                        var val = "";
-                        for (var i = 0; respite_crud.dt_Columns[column[0]]['editor_data'] != undefined && respite_crud.dt_Columns[column[0]].editor_data['options'] != undefined && i < respite_crud.dt_Columns[column[0]].editor_data['options']['length']; i++) {
-                            d = respite_crud.dt_Columns[column[0]].editor_data['options'][i];
-                            val = $.fn.dataTable.util.escapeRegex(d.value);
-                            if (column.search() === val) {
-                                select.append(
-                                  '<option value="' + val + '" selected="selected">' + d.label + "</option>"
-                                );
-                            } else {
-                                select.append('<option value="' + val + '">' + d.label + "</option>");
-                            }
+                    if (respite_crud.dt_Columns[column[0]]['editor_data'] != undefined) {
+                        // if boolean
+                        switch (respite_crud.dt_Columns[column[0]].editor_data['type']) {
+                            case "boolean":
+                            case "boolean_switch":
+                            case "boolean_checkbox":
+                            case "boolean_radios":
+                            case "boolean_button":
+                                select.append('<option value="1"' + (column.search() == '1' ? ' selected="selected"' : '') + '>True</option>');
+                                select.append('<option value="0"' + (column.search() == '0' ? ' selected="selected"' : '') + '>False</option>');
+                                break;
+                            default:
+                                // otherwise, it's csv or select
+                                var d = {}
+                                var val = "";
+                                for (var i = 0; respite_crud.dt_Columns[column[0]].editor_data['options'] != undefined && i < respite_crud.dt_Columns[column[0]].editor_data['options']['length']; i++) {
+                                    d = respite_crud.dt_Columns[column[0]].editor_data['options'][i];
+                                    val = $.fn.dataTable.util.escapeRegex(d.value);
+                                    if (column.search() === val) {
+                                        select.append(
+                                          '<option value="' + val + '" selected="selected">' + d.label + "</option>"
+                                        );
+                                    } else {
+                                        select.append('<option value="' + val + '">' + d.label + "</option>");
+                                    }
+                                }
+                                break;
                         }
                     }
                 });
