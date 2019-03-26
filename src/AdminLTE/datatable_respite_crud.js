@@ -522,25 +522,21 @@
                     case "number":
                         element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="number" id="field_' + i + '" name="' + cn + '" step="1" />');
                         element.attr('value', d[cn]);
-                        //content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="number" id="field_' + i + '" name="' + cn + '" step="1" value="' + respite_crud.escapeHtml(d[cn]) + '"';
                         // TODO: add format validation based on type (using the "pattern" attribute with regex: https://www.w3schools.com/tags/att_input_pattern.asp )
-                        //closing_string = "/>";
                         break;
                     case "select":
                     case "csv":
                         element = $('<select tabindex="' + i + '" class="form-control form-control-sm" id="field_' + i + '" name="' + cn + '"></select>');
-                        //content += '<select tabindex="' + i + '" class="form-control form-control-sm" id="field_' + i + '" name="' + cn + '"';
                         if (ed['type'] == "csv")
                             element.attr('multiple', 'multiple');
-                            //content += ' multiple';
-                        //closing_string = '</select>';
+                        break;
+                    case "bitwise":
+                        element = $('<div tabindex="' + i + '" class="custom-control custom-checkbox" id="field_' + i + '"></div>');
                         break;
                     case "rte":
                     case "textarea":
                         element = $('<textarea tabindex="' + i + '" class="form-control form-control-sm" id="field_' + i + '" name="' + cn + '"></textarea>');
                         element.text(d[cn]);
-                        //content += '<textarea tabindex="' + i + '" class="form-control form-control-sm" id="field_' + i + '" name="' + cn + '"';
-                        //closing_string = '</textarea>';
                         break;
                     case "boolean":
                         // using bootswatch switch custom control
@@ -548,62 +544,38 @@
                         element = $('<input tabindex="' + i + '" id="field_' + i + '" type="checkbox" value="true" class="custom-control-input" name="' + cn + '"/>');
                         if (d[cn] == "true" || d[cn] == true)
                             element.attr('checked', 'checked');
-                        //content += '<div class="custom-control custom-switch"><input tabindex="' + i + '" id="field_' + i + '" type="checkbox" value="true" class="custom-control-input" name="' + cn + '"' + (d[cn] == "true" || d[cn] == true ? ' checked' : '');
-                        //closing_string = '><label for="field_' + i + '" class="custom-control-label"></label></div>';
                         closing_string = '<label for="field_' + i + '" class="custom-control-label"></label></div>';
                         break;
                     case "password":
                         element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="password" id="field_' + i + '" name="' + cn + '" value="" />');
-                        //content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="password" id="field_' + i + '" name="' + cn + '" value=""';
-                        //closing_string = '/>';
                         break;
                     case "time":
                         element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="time" id="field_' + i + '" name="' + cn + '" step="1" maxlength="8" />');
                         element.attr('value', d[cn].substr(0, 8));
-                        //content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="time" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]).substr(0, 8) + '" step="1" maxlength="8"';
-                        //closing_string = '/>';
                         break;
                     case "date":
                         element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="date" id="field_' + i + '" name="' + cn + '" step="1" maxlength="10" />');
                         element.attr('value', d[cn].substr(0, 10));
-                        //content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="date" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]).substr(0, 10) + '" step="1" maxlength="10"';
-                        //closing_string = '/>';
                         break;
                     case "datetime":
                         element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="datetime-local" id="field_' + i + '" name="' + cn + '" step="1" maxlength="20" />');
                         element.attr('value', d[cn].substr(0, 20));
-                        //content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="datetime-local" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]).substr(0, 20) + '" step="1" maxlength="20"';
-                        //closing_string = '/>';
                         break;
-                        // TODO: more field types: formula, image (upload), document (upload), bitwise
-                        // some of these field types would also require additional render functions
-                        // additionally, a few custom types based on https://bootswatch.com : csv_checkbox, csv_buttons, select_radio, select_buttons
-                        // TODO: additional column options (some of these are relevant to the grid table only): glyph, help, tooltip, cssView, cssCell, cssColumnHeader
-                        // TODO: preset column attributes per field type: tooltip, placeholder, min, max, maxlength, format (pattern), required, height, width, read-only, cssEdit
-
                     case "link":
                         element = $(respite_crud.renderLink_ed(d[cn], ed, 'field_' + i));
-                        //content += respite_crud.renderLink_ed(d[cn], ed, 'field_' + i);
-                        //closing_string = "";
                         break;
-                    /*case "image":
-                        content += '<div class="col"><img id="field_' + i + '_src" src="' + respite_crud.escapeHtml(d[cn]) + '" class="img-fluid"/><br/><br/>';
-                        content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="text" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]) + '"';
-
-                        //content += '<div class="custom-file">';
-                        //content += '<input tabindex="' + i + '" type="file" name="' + cn + '" id="field_' + i + '" class="custom-file-input"';
-                        //closing_string = '/><label class="custom-file-label" for="validatedCustomFile">Choose file...</label><div class="invalid-feedback">Example invalid custom file feedback</div></div>';
-                        closing_string = "/></div>";
-                        break;*/
                     case "phone":
                     case "email":
                     case "text":
                     default:
                         element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="text" id="field_' + i + '" name="' + cn + '" />');
                         element.attr('type', ed['type']);
-                        element.attr('value',d[cn]);
-                        //content += '<input tabindex="' + i + '" class="form-control form-control-sm" type="' + respite_crud.escapeHtml(ed['type']) + '" id="field_' + i + '" name="' + cn + '" value="' + respite_crud.escapeHtml(d[cn]) + '"';
-                        //closing_string = "/>";
+                        element.attr('value', d[cn]);
+                        // TODO: more field types: formula, image (upload), document (upload), bitwise
+                        // some of these field types would also require additional render functions
+                        // additionally, a few custom types based on https://bootswatch.com : csv_checkbox, csv_buttons, select_radio, select_buttons
+                        // TODO: additional column options (some of these are relevant to the grid table only): glyph, help, tooltip, cssView, cssCell, cssColumnHeader
+                        // TODO: preset column attributes per field type: tooltip, placeholder, min, max, maxlength, format (pattern), required, height, width, read-only, cssEdit
                 }
 
                 // append any attributes
@@ -612,7 +584,6 @@
                     for (var attrName in attr) {
                         if (ed['type'] != "boolean" || attrName != "required")
                             element.attr(attrName, attr[attrName]);
-                            //content += ' ' + attrName + '="' + respite_crud.escapeHtml(attr[attrName]) + '"';
                     }
                 }
 
@@ -620,7 +591,6 @@
                 switch (ed['type']) {
                     case "select":
                     case "csv":
-                        //content += '>';
                         var dValues = [];
                         var currOpt = $('<option></option>');
                         if (ed['options'] != undefined) {
@@ -644,15 +614,12 @@
                                         currOpt = $('<option></option>');
                                         if (d[cn] == '')
                                             currOpt.attr('selected', 'selected');
-                                        //content += '<option value=""';
-                                        //if (d[cn] == '')
-                                        //    content += ' selected';
-                                        //content += '></option>';
                                         element.append(currOpt.clone());
                                     }
                                 }
                             }
 
+                            // trim comma separated values to remove whitespaces
                             for (var k = 0; k < dValues.length; k++) {
                                 dValues[k] = dValues[k].trim();
                             }
@@ -664,23 +631,19 @@
                                 if (prevOptGroup != ed['options'][j]['group']) {
                                     if (prevOptGroup != undefined) {
                                         element.append(currOptGroup.clone());
-                                        //content += '</optgroup>';
                                     }
                                     if (ed['options'][j]['group'] != '') {
                                         currOptGroup = $('<optgroup></optgroup>');
                                         currOptGroup.attr('label', ed['options'][j]['group']);
-                                        //content += '<optgroup label="' + respite_crud.escapeHtml(ed['options'][j]['group']) + '">';
                                     }
                                     prevOptGroup = (ed['options'][j]['group'] == '' ? undefined : ed['options'][j]['group']);
                                 }
                                 currOpt = $('<option></option>');
                                 currOpt.attr('value', ed['options'][j]['value']);
-                                //content += '<option value="' + respite_crud.escapeHtml(ed['options'][j]['value']) + '"';
 
                                 for (var k = 0; k < dValues.length; k++) {
                                     if (dValues[k].trim() == ed['options'][j]['value'].trim())
                                         currOpt.attr('selected', 'selected');
-                                    //content += (dValues[k] == ed['options'][j]['value'] ? ' selected' : '');
                                 }
 
                                 currOpt.text(ed['options'][j]['label']);
@@ -689,12 +652,47 @@
                                 else {
                                     element.append(currOpt.clone());
                                 }
-                                //content += '>' + respite_crud.escapeHtml(ed['options'][j]['label']) + '</option>';
                             }
                             if (prevOptGroup != undefined && prevOptGroup != '') {
                                 element.append(currOptGroup.clone());
-                                //content += '</optgroup>';
                             }
+                        }
+                        break;
+                    case "bitwise":
+                        var currLabel = $('<label class="custom-control-label"></label>');
+                        var currInput = $('<input type="checkbox" class="custom-control-input" name="' + cn + '"/>');
+                        var dValues = 0;
+
+                        if (d[cn] != undefined)
+                            dValues = d[cn];
+
+                        for (var j = 0; j < ed['options'].length; j++) {
+                            if (j > 0)
+                                element.append($('<br/>'));
+
+                            currInput = $('<input type="checkbox" class="custom-control-input" id="field_' + i + '_' + j + '" name="' + cn + '"/>');
+                            currInput.attr('value', ed['options'][j]['value']);
+
+                            if ((dValues & ed['options'][j]['value']) > 0)
+                                currInput.attr('checked', 'checked');
+
+                            currLabel = $('<label class="custom-control-label" for="field_' + i + '_' + j + '"></label>');
+
+                            if (ed['options'][j]['tooltip'] != undefined && ed['options'][j]['tooltip'] != '') {
+                                currLabel.attr('data-toggle', 'tooltip');
+                                currLabel.attr('title', ed['options'][j]['tooltip']);
+                            }
+
+                            currLabel.append(currInput.clone());
+
+                            if (ed['options'][j]['glyph'] != undefined && ed['options'][j]['glyph'] != '') {
+                                currLabel.append($('<i class="' + ed['options'][j]['glyph'] + '"></i>'));
+                            }
+
+                            if (ed['options'][j]['label'] != undefined)
+                                currLabel.text(ed['options'][j]['label']);
+
+                            element.append(currLabel.clone());
                         }
                         break;
                         // TODO: more field types
@@ -726,7 +724,7 @@
                     case "document":
                     case "file":
                         // upload inputs must always be set to empty string only
-                        $('#field_' + i, $(form_selector)).val("");
+                        $('#field_' + i).val("");
                         break;
                     case "csv":
                         // de-select all currently selected options
@@ -741,16 +739,21 @@
                                 dValues[j] = dValues[j].trim();
 
                             $('#field_' + i).val(dValues);
-
-                            //for (var j = 0; j < ed['options'].length; j++) {
-                            //    for (var k = 0; k < dValues.length; k++) {
-                            //        if (dValues[k] == ed['options'][j]['value'])
-                            //            $('#field_' + i + ' option[value="' + respite_crud.escapeHtml(ed['options'][j]['value']) + '"]').attr('selected', true);
-                            //    }
-                            //}
-
                         }
                         break;
+                    case "bitwise":
+                        // de-select all currently selected options
+                        $('#field_' + i + ' label input').attr('checked', false);
+
+                        // re-select based on row data
+                        if (d[cn] != undefined) {
+                            var dValues = d[cn];
+
+                            for (var j = 0; j < ed['options'].length; j++) {
+                                if ((dValues & ed['options'][j]['value']) > 0)
+                                    $('#field_' + i + '_' + j).attr('checked', 'checked');
+                            }
+                        }
                     case "link":
                         $('#field_' + i).attr('href', d[cn]);
                         break;
