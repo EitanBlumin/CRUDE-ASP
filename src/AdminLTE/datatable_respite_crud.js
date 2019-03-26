@@ -288,6 +288,44 @@
         return renderLookup_ed(data, oColumn['editor_data']);
     }
 
+    static renderBitwiseLookup_ed(data, ed) {
+        var rv = "";
+        if (data != '' && data != undefined && ed != undefined && ed['options'] != undefined) {
+
+            var opList = ed.options;
+
+            for (var i = 0; i < opList.length; i++) {
+
+                if ((data & opList[i].value) > 0) {
+
+                    var nextOp = opList[i].label.trim();
+
+                    if (opList['glyph'] != undefined) {
+
+                        var glyph = $('<i class="' + opList['glyph'] + '"></i>');
+                        glyph.attr('data-toggle', 'tooltip');
+                        if (opList['tooltip'] != undefined) 
+                            glyph.attr('title', opList['tooltip'])
+                        else if (opList['label'] != undefined)
+                            glyph.attr('title', opList['label'])
+
+                        nextOp = glyph.clone().wrap('<div>').parent().html();
+                    } else if (rv.length > 0) {
+                        rv += ", ";
+                    }
+
+                    rv += nextOp;
+                }
+            }
+        }
+        if (rv.length == 0) rv = data;
+        return rv;
+    }
+    static renderBitwiseLookup(data, type, row, meta) {
+        var oColumn = meta.settings.aoColumns[meta.col];
+        return renderBitwiseLookup_ed(data, oColumn['editor_data']);
+    }
+
     static renderCSVLookup_ed(data, ed) {
         var rv = "";
         if (data != '' && data != undefined && ed != undefined && ed['options'] != undefined) {
@@ -359,6 +397,9 @@
                     break;
                 case "select":
                     rv = respite_crud.renderLookup_ed(data, ed);
+                    break;
+                case "bitwise":
+                    rv = respite_crud.renderBitwiseLookup_ed(data, ed);
                     break;
                 case "link":
                     rv = respite_crud.renderLink_ed(data, ed);
