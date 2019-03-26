@@ -610,7 +610,7 @@
                     case "bitwise_checkboxes":
                     case "bitwise_switches":
                     case "bitwise_buttons":
-                        element = $('<div tabindex="' + i + '" class="custom-control custom-checkbox" id="field_' + i + '"></div>');
+                        element = $('<div id="field_' + i + '"></div>');
                         break;
                     case "rte":
                     case "textarea":
@@ -750,40 +750,39 @@
                     case "bitwise_checkboxes":
                     case "bitwise_switches":
                     case "bitwise_buttons":
-                        var currLabel = $('<label class="custom-control-label"></label>');
+                        var currDiv = $('<div class="checkbox custom-control custom-checkbox"></div>');
                         var currInput = $('<input type="checkbox" class="custom-control-input" name="' + cn + '"/>');
+                        var currLabel = $('<label class="custom-control-label"></label>');
                         var dValues = 0;
 
                         if (d[cn] != undefined)
                             dValues = d[cn];
 
                         for (var j = 0; j < ed['options'].length; j++) {
-                            if (j > 0)
-                                element.append($('<br/>'));
 
+                            currDiv = $('<div class="checkbox custom-control custom-checkbox"></div>');
                             currInput = $('<input type="checkbox" class="custom-control-input" id="field_' + i + '_' + j + '" name="' + cn + '"/>');
                             currInput.attr('value', ed['options'][j]['value']);
 
                             if ((dValues & ed['options'][j]['value']) > 0)
                                 currInput.attr('checked', 'checked');
 
-                            currLabel = $('<label class="custom-control-label" for="field_' + i + '_' + j + '"></label>');
+                            currLabel = $('<label></label>');
 
                             if (ed['options'][j]['tooltip'] != undefined && ed['options'][j]['tooltip'] != '') {
                                 currLabel.attr('data-toggle', 'tooltip');
                                 currLabel.attr('title', ed['options'][j]['tooltip']);
                             }
 
-                            currLabel.append(currInput.clone());
+                            currDiv
+                                .append(currLabel.clone()
+                                    .append(currInput.clone())
+                                    //.append($('<label class="custom-control-label" for="field_' + i + '_' + j + '"></label>'))
+                                    .append($('<i class="' + ed['options'][j]['glyph'] + '"></i>'))
+                                    .append($('<span></span>').text(' ' + ed['options'][j]['label']))
+                                    );
 
-                            if (ed['options'][j]['glyph'] != undefined && ed['options'][j]['glyph'] != '') {
-                                currLabel.append($('<i class="' + ed['options'][j]['glyph'] + '"></i>'));
-                            }
-
-                            if (ed['options'][j]['label'] != undefined)
-                                currLabel.text(ed['options'][j]['label']);
-
-                            element.append(currLabel.clone());
+                            element.append(currDiv.clone());
                         }
                         break;
                         // TODO: more field types
@@ -844,7 +843,7 @@
                     case "bitwise_switches":
                     case "bitwise_buttons":
                         // de-select all currently selected options
-                        $('#field_' + i + ' label input').attr('checked', false);
+                        $('#field_' + i + ' div label input').attr('checked', false);
 
                         // re-select based on row data
                         if (d[cn] != undefined) {

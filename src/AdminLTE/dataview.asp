@@ -704,6 +704,7 @@ IF strError <> "" THEN
     END IF %>
                 "label": "<%= Sanitizer.JSON(dvFields(nIndex)("FieldLabel")) %>",
                 "type": "<%= luDataViewFieldTypes(dvFields(nIndex)("FieldType")).Identifier %>",       // field type
+                "tooltip": "<%= Sanitizer.JSON(dvFields(nIndex)("FieldTooltip")) %>",
                 "default_value": "<%= Sanitizer.JSON(dvFields(nIndex)("DefaultValue")) %>",   // default value
                 <%
                 IF (dvFields(nIndex)("FieldFlags") AND 16) > 0 THEN %>"searchable": false,<%
