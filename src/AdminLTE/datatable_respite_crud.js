@@ -885,24 +885,23 @@
     }
 
     static renderInlineActionButtons(data, type, row, meta) {
-        var rv = "<span style=\"white-space: nowrap\">";
+        var rv = $('<span style="white-space: nowrap"></span>');
+        var a = $('<a></a>');
 
         for (var i = 0; respite_crud.dt_InlineActionButtons != undefined && i < respite_crud.dt_InlineActionButtons['length']; i++) {
 
-            rv += ' <a href="' + respite_crud.dt_InlineActionButtons[i]['href'] + '" class="' + respite_crud.dt_InlineActionButtons[i]['class'] + '" role="button" data-toggle="tooltip" data-placement="bottom" title="' + respite_crud.dt_InlineActionButtons[i]['title'] + '">';
+            a = $('<a href="' + respite_crud.dt_InlineActionButtons[i]['href'] + '" class="' + respite_crud.dt_InlineActionButtons[i]['class'] + '" role="button" data-toggle="tooltip" data-placement="bottom" title="' + respite_crud.dt_InlineActionButtons[i]['title'] + '"></a>');
 
             if (respite_crud.dt_InlineActionButtons[i]['glyph'] != "" && respite_crud.dt_InlineActionButtons[i]['glyph'] != undefined)
-                rv += '<i class="' + respite_crud.dt_InlineActionButtons[i]['glyph'] + '"></i>';
+                a.append($('<i class="' + respite_crud.dt_InlineActionButtons[i]['glyph'] + '"></i>'));
 
             if (respite_crud.dt_InlineActionButtons[i]['label'] != "" && respite_crud.dt_InlineActionButtons[i]['label'] != undefined)
-                rv += ' ' + respite_crud.dt_InlineActionButtons[i]['label'];
+                a.append($(' ' + respite_crud.dt_InlineActionButtons[i]['label']));
 
-            rv += '</a>';
+            rv.append($('<span>&nbsp;</span>')).append(a.clone());
         }
 
-        rv += "</span>";
-
-        return rv;
+        return rv.clone().wrap('<div>').parent().html();
     }
 
         /*

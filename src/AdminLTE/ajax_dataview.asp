@@ -207,7 +207,7 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
                         Select Case dvFields(nIndex)("FieldType")
                             Case 12, 1, 2, 6, 14 '"password", "text", "textarea", "multicombo", "rte"
                                 varCurrFieldValue = Request("Field_" & dvFields(nIndex)("FieldID"))
-                            Case 9 '"boolean"
+                            Case 9, 22, 23, 26 '"boolean"
                                 varCurrFieldValue = CBool(Request("Field_" & dvFields(nIndex)("FieldID")))
                             Case 13 '"time"
                                 IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
@@ -216,6 +216,21 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
                                 ELSE
 				                    varCurrFieldValue = Mid(Request("Field_" & dvFields(nIndex)("FieldID")), 1, 8)
                                     'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+                                END IF
+                            Case 27, 28, 29 '"bitwise"
+                                IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 THEN ' if empty, enter 0
+                                    varCurrFieldValue = 0
+                                    'strMsgOutput = strMsgOutput & "<!-- setting " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
+                                ELSE
+                                    Dim arrValues, currVal
+                                    arrValues = Split(Request("Field_" & dvFields(nIndex)("FieldID")), ",")
+    
+                                    varCurrFieldValue = 0
+
+                                    For Each currVal In arrValues
+                                        IF IsNumeric(currVal) THEN varCurrFieldValue = varCurrFieldValue + CLng(currVal)
+                                    'strMsgOutput = strMsgOutput & "<!-- " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+                                    Next
                                 END IF
                             Case Else
                                 IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
