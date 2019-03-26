@@ -128,8 +128,9 @@
     static formatDetailsRow(d) {
         if (d != undefined) {
             var rv = "";
+            var col = {};
             for (var dKey in d) {
-                var col = respite_crud.getColumnByName(dKey);
+                col = respite_crud.getColumnByName(dKey);
 
                 if (col == undefined)
                     col = "";
@@ -290,6 +291,9 @@
 
     static renderBitwiseLookup_ed(data, ed) {
         var rv = "";
+        var nextOp = "";
+        var glyph = $('<i></i>');
+
         if (data != '' && data != undefined && ed != undefined && ed['options'] != undefined) {
 
             var opList = ed.options;
@@ -298,11 +302,11 @@
 
                 if ((data & opList[i].value) > 0) {
 
-                    var nextOp = opList[i].label.trim();
+                    nextOp = opList[i].label.trim();
 
                     if (opList['glyph'] != undefined) {
 
-                        var glyph = $('<i class="' + opList['glyph'] + '"></i>');
+                        glyph = $('<i class="' + opList['glyph'] + '"></i>');
                         glyph.attr('data-toggle', 'tooltip');
                         if (opList['tooltip'] != undefined) 
                             glyph.attr('title', opList['tooltip'])
@@ -353,13 +357,15 @@
 
     static renderLink_ed(data, ed, id) {
         var rv = "";
+        var attr = [];
+
         if (((id != null && id != undefined) || (data != '' && data != undefined)) && ed != undefined && ed["label"] != undefined) {
             rv = '<a href="' + respite_crud.escapeHtml(data) + '"';
 
             if (id != null && id != undefined)
                 rv += ' id="' + id + '"';
 
-            var attr = ed["attributes"];
+            attr = ed["attributes"];
             for (var attrName in attr) {
                 rv += ' ' + attrName + '="' + respite_crud.escapeHtml(attr[attrName]) + '"';
             }
@@ -516,10 +522,12 @@
     // Init Default Row (when adding)
     static initDefaultRow() {
         var r = {}
+        var ed = {}
+        var cn = {}
 
         for (var i = 0; i < respite_crud.dt.columns()[0].length; i++) {
-            var ed = respite_crud.dt.column(i).editor_data();
-            var cn = respite_crud.dt.column(i).dataSrc();
+            ed = respite_crud.dt.column(i).editor_data();
+            cn = respite_crud.dt.column(i).dataSrc();
 
             if (ed != undefined && cn != undefined) {
                 r[cn] = ed["default_value"];
@@ -536,10 +544,19 @@
         var content = "";
         var closing_string = "";
         var element = "";
+        var ed = {}
+        var cn = {}
+        var attr = [];
+        var dValues = [];
+        var currOpt = $('<option></option>');
+        var bFoundEmptyOpt = false;
+        var prevOptGroup = undefined;
+        var currOptGroup = $('<optgroup></optgroup>');
+
         //console.log(d);
         for (var i = 0; i < respite_crud.dt.columns()[0].length; i++) {
-            var ed = respite_crud.dt.column(i).editor_data();
-            var cn = respite_crud.dt.column(i).dataSrc();
+            ed = respite_crud.dt.column(i).editor_data();
+            cn = respite_crud.dt.column(i).dataSrc();
             //console.log("column " + i + " (" + cn + "): " + d[cn]);
 
             if (ed != undefined && !ed["hidden"]) {
@@ -621,7 +638,7 @@
 
                 // append any attributes
                 if (ed['attributes'] != undefined && ed['type'] != "link") {
-                    var attr = ed['attributes'];
+                    attr = ed['attributes'];
                     for (var attrName in attr) {
                         if (ed['type'] != "boolean" || attrName != "required")
                             element.attr(attrName, attr[attrName]);
@@ -632,8 +649,8 @@
                 switch (ed['type']) {
                     case "select":
                     case "csv":
-                        var dValues = [];
-                        var currOpt = $('<option></option>');
+                        dValues = [];
+                        currOpt = $('<option></option>');
                         if (ed['options'] != undefined) {
 
                             if (d[cn] != undefined && ed['type'] == "csv")
@@ -644,7 +661,7 @@
 
                                 // generate optional empty value if such was not provided in options already
                                 if (ed['attributes']['required'] != 'true') {
-                                    var bFoundEmptyOpt = false;
+                                    bFoundEmptyOpt = false;
 
                                     for (var j = 0; j < ed['options'].length; j++) {
                                         if (ed['options'][j]['value'] == '')
@@ -665,8 +682,8 @@
                                 dValues[k] = dValues[k].trim();
                             }
 
-                            var prevOptGroup = undefined;
-                            var currOptGroup = $('<optgroup></optgroup>');
+                            prevOptGroup = undefined;
+                            currOptGroup = $('<optgroup></optgroup>');
 
                             for (var j = 0; j < ed['options'].length; j++) {
                                 if (prevOptGroup != ed['options'][j]['group']) {
@@ -752,9 +769,13 @@
 
     // Fill Existing Data Manipulation Form
     static fillDMFormFields(d, form_selector) {
+        var ed = {}
+        var cn = {}
+        var dValues = [];
+
         for (var i = 0; i < respite_crud.dt.columns()[0].length; i++) {
-            var ed = respite_crud.dt.column(i).editor_data();
-            var cn = respite_crud.dt.column(i).dataSrc();
+            ed = respite_crud.dt.column(i).editor_data();
+            cn = respite_crud.dt.column(i).dataSrc();
 
             if (ed != undefined) {
                 switch (ed['type']) {
@@ -774,7 +795,7 @@
 
                         // re-select based on row data
                         if (d[cn] != undefined && ed['options'] != undefined) {
-                            var dValues = d[cn].split(",");
+                            dValues = d[cn].split(",");
 
                             for (var j = 0; j < dValues.length; j++)
                                 dValues[j] = dValues[j].trim();
@@ -788,7 +809,7 @@
 
                         // re-select based on row data
                         if (d[cn] != undefined) {
-                            var dValues = d[cn];
+                            dValues = d[cn];
 
                             for (var j = 0; j < ed['options'].length; j++) {
                                 if ((dValues & ed['options'][j]['value']) > 0)
@@ -1294,9 +1315,11 @@
                         select.append('<option value="0"' + (column.search() == '0' ? ' selected="selected"' : '') + '>False</option>');
                     } else {
                         // otherwise, it's csv or select
+                        var d = {}
+                        var val = "";
                         for (var i = 0; respite_crud.dt_Columns[column[0]]['editor_data'] != undefined && respite_crud.dt_Columns[column[0]].editor_data['options'] != undefined && i < respite_crud.dt_Columns[column[0]].editor_data['options']['length']; i++) {
-                            var d = respite_crud.dt_Columns[column[0]].editor_data['options'][i];
-                            var val = $.fn.dataTable.util.escapeRegex(d.value);
+                            d = respite_crud.dt_Columns[column[0]].editor_data['options'][i];
+                            val = $.fn.dataTable.util.escapeRegex(d.value);
                             if (column.search() === val) {
                                 select.append(
                                   '<option value="' + val + '" selected="selected">' + d.label + "</option>"
@@ -1305,14 +1328,6 @@
                                 select.append('<option value="' + val + '">' + d.label + "</option>");
                             }
                         }
-                    }
-
-                    var colED = column.name();
-                    var colSearch = respite_crud.getUrlParam(colED + '[search]');
-                    if (colSearch != undefined) {
-                        console.log('filtering: ' + colED + ' = ' + colSearch);
-                        column.search(colSearch, true, false);
-                        urlFilter = true;
                     }
                 });
 
@@ -1331,14 +1346,6 @@
                                 .search(val ? '%' + val + '%' : '', true, false)
                                 .draw();
                         });
-
-                    var colED = column.name();
-                    var colSearch = respite_crud.getUrlParam(colED + '[search]');
-                    if (colSearch != undefined) {
-                        //console.log('filtering: ' + colED + ' = ' + colSearch);
-                        column.search('%' + colSearch + '%', true, false);
-                        urlFilter = true;
-                    }
                 });
                 // Copy footers to right below headers
                 $(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' tfoot tr').clone(true).appendTo(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' thead');
@@ -1363,34 +1370,43 @@
             }
         }
 
+        // if not buttons were added, remove the B dom placeholder
         if (setOptions.buttons.length <= 0) {
             setOptions.dom = setOptions.dom.replace("B", "");
         }
+
+        // if searchCols wasn't manually initialized, initialize it automatically based on dt_Columns
+        if (setOptions['searchCols'] == undefined) {
+            var searchCols = [];
+            var colSearch = null;
+            var currCol = "";
+
+            for (var i = 0; i < setOptions.columns.length; i++) {
+                colSearch = null;
+                currCol = setOptions.columns[i]['name'];
+                if (currCol != undefined) {
+                    colSearch = respite_crud.getUrlParam(currCol + '[search]');
+
+                    if (colSearch != undefined) {
+                        colSearch = { "search": colSearch, "escapeRegex": !(respite_crud.getUrlParam(currCol + '[regex]') == "true") }
+                    } else {
+                        colSearch = null;
+                    }
+                }
+                searchCols.push(colSearch);
+            }
+
+            setOptions.searchCols = searchCols;
+        }
+
         console.log("initializing datatable. options:");
         console.log(setOptions);
-        //console.log($(respite_crud.respite_editor_options.dt_Options.dt_Selector));
 
         $(document).ready(function () {
             //console.log(setOptions);
             //console.log(respite_crud.respite_editor_options.dt_Options.dt_Selector);
             respite_crud.dt = $(respite_crud.respite_editor_options.dt_Options.dt_Selector).DataTable(setOptions);
-            /*
-            // Find filters from querystring
-            var col, param, usedFilter = false;
 
-            for (var i = 0; i < respite_crud.dt_Columns.length && col == undefined; i++) {
-                param = respite_crud.getUrlParam(respite_crud.dt_Columns[i]['name'] + '[search]');
-                if (param != undefined) {
-                    col = respite_crud.dt.column(respite_crud.dt_Columns[i]['name']);
-                    console.log('filtering from URL: ' + respite_crud.dt_Columns[i]['name'] + ' = ' + param);
-                    col.search(param);
-                    console.log(col);
-                    usedFilter = true;
-                }
-            }
-
-            if (usedFilter) respite_crud.dt.draw();
-            */
             // If detail rows enabled
             if (respite_crud.isDetailRowsAdded) {
                 // On each draw, loop over the `detailRows` array and show any child rows
@@ -1408,6 +1424,8 @@
                 var options = respite_crud.respite_editor_options.dt_Options.dt_RowReorder;
                 var frm = $(options.form_selector).hide();
                 var frmBody = $(options.form_body_selector).empty();
+                var rowData = {}
+                var inputField = $('<input type="hidden" />');
 
                 //console.log('Reorder started on row:');
                 //console.log(edit.triggerRow.data());
@@ -1418,10 +1436,10 @@
                         changed = true;
 
                         // get row data
-                        var rowData = respite_crud.dt.row(diff[i].node).data();
+                        rowData = respite_crud.dt.row(diff[i].node).data();
 
                         // generate hidden input
-                        var inputField = $('<input type="hidden" />');
+                        inputField = $('<input type="hidden" />');
                         inputField.attr('name', 'DT_RowId[' + rowData['DT_RowId'] + ']');
                         inputField.attr('value', diff[i].newData);
 
