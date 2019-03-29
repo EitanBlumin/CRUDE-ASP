@@ -1,4 +1,35 @@
-﻿class respite_crud {
+﻿/// Dynamic Bootstrap Modal
+var BstrapModal = function (title, body, buttons) {
+    var title = title || "Lorem Ipsum History", body = body || "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.", buttons = buttons || [{ Value: "CLOSE", Css: "btn-primary", Callback: function (event) { BstrapModal.Close(); } }];
+    var GetModalStructure = function () {
+        var that = this;
+        that.Id = BstrapModal.Id = Math.random();
+        var buttonshtml = "";
+        for (var i = 0; i < buttons.length; i++) {
+            buttonshtml += "<button type='button' class='btn " + (buttons[i].Css || "") + "' name='btn" + that.Id + "'>" + (buttons[i].Value || "CLOSE") + "</button>";
+        }
+        return "<div class='modal fade' name='dynamiccustommodal' id='" + that.Id + "' tabindex='-1' role='dialog' data-keyboard='true' aria-labelledby='" + that.Id + "Label'><div class='modal-dialog modal-dialog-centered'><div class='modal-content'><div class='modal-header'><button type='button' class='close modal-white-close' onclick='BstrapModal.Close()'><span aria-hidden='true'>&times;</span></button><h4 class='modal-title'>" + title + "</h4></div><div class='modal-body'><div class='row'><div class='col-xs-12 col-md-12 col-sm-12 col-lg-12'>" + body + "</div></div></div><div class='modal-footer bg-default'><div class='col-xs-12 col-sm-12 col-lg-12'>" + buttonshtml + "</div></div></div></div></div>";
+    }();
+    BstrapModal.Delete = function () {
+        var modals = document.getElementsByName("dynamiccustommodal");
+        if (modals.length > 0) document.body.removeChild(modals[0]);
+    };
+    BstrapModal.Close = function () {
+        $(document.getElementById(BstrapModal.Id)).modal('hide');
+        BstrapModal.Delete();
+    };
+    this.Show = function () {
+        BstrapModal.Delete();
+        document.body.appendChild($(GetModalStructure)[0]);
+        var btns = document.querySelectorAll("button[name='btn" + BstrapModal.Id + "']");
+        for (var i = 0; i < btns.length; i++) {
+            btns[i].addEventListener("click", buttons[i].Callback || BstrapModal.Close);
+        }
+        $(document.getElementById(BstrapModal.Id)).modal('show');
+    };
+};
+
+class respite_crud {
     // Public Members
     dt_Columns;
     dt_Order;
@@ -553,7 +584,7 @@
     }
 
     // Data Manipulation Modal Formatting (rendering form fields)
-    static renderDMFormFields(d) {
+    static renderDMFormFields(d, columns, input_prefix) {
         var content = "";
         var closing_string = "";
         var element = "";
@@ -565,21 +596,30 @@
         var bFoundEmptyOpt = false;
         var prevOptGroup = undefined;
         var currOptGroup = $('<optgroup></optgroup>');
+        var arrColumns = columns;
+        var inputPrefix = input_prefix || "field_";
+
+        if (arrColumns == undefined) {
+            arrColumns = [];
+            for (var i = 0; i < respite_crud.dt.columns()[0].length; i++) {
+                arrColumns.push({ "name": respite_crud.dt.column(i).dataSrc(), "editor_data": respite_crud.dt.column(i).editor_data() })
+            }
+        }
 
         //console.log(d);
-        for (var i = 0; i < respite_crud.dt.columns()[0].length; i++) {
-            ed = respite_crud.dt.column(i).editor_data();
-            cn = respite_crud.dt.column(i).dataSrc();
+        for (var i = 0; i < arrColumns.length; i++) {
+            ed = arrColumns[i].editor_data;
+            cn = arrColumns[i].name;
             //console.log("column " + i + " (" + cn + "): " + d[cn]);
 
             if (ed != undefined && !ed["hidden"]) {
                 element = $('<label>ERROR Column ' + i + '</label>');
                 closing_string = "";
                 content += '<div class="form-group' + (ed['type'] == "rte" ? ' summernote' : '') + '" data-toggle="tooltip" title="' + respite_crud.escapeHtml(ed['tooltip']) + '">';
-                content += '<label for="field_' + i + '" class="control-label col-sm-3 col-md-4 col-lg-4">';
+                content += '<label for="' + inputPrefix + i + '" class="control-label col-sm-3 col-md-4 col-lg-4">';
 
                 if (ed["help"] != undefined && ed["help"] != "") {
-                    content += '<div class="ml-auto float-right"><a class="btn btn-link text-info" data-toggle="collapse" data-target="#help_field_' + i + '" aria-expanded="false" aria-controls="help_field_' + i + '" title="Help"><i class="fas fa-question-circle"></i></a></div>';
+                    content += '<div class="ml-auto float-right"><a class="btn btn-link text-info" data-toggle="collapse" data-target="#help_' + inputPrefix + i + '" aria-expanded="false" aria-controls="help_' + inputPrefix + i + '" title="Help"><i class="fas fa-question-circle"></i></a></div>';
                 }
 
                 content += respite_crud.escapeHtml(ed['label']) + '</label><div class="input-group col-sm-9 col-md-8 col-lg-8">';
@@ -591,7 +631,7 @@
                     case "integer":
                     case "numeric":
                     case "number":
-                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="number" id="field_' + i + '" name="' + cn + '" step="1" />');
+                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="number" id="' + inputPrefix + i + '" name="' + cn + '" step="1" />');
                         element.attr('value', d[cn]);
                         // TODO: add format validation based on type (using the "pattern" attribute with regex: https://www.w3schools.com/tags/att_input_pattern.asp )
                         break;
@@ -602,7 +642,7 @@
                     case "csv_checkboxes":
                     case "csv_switches":
                     case "csv_buttons":
-                        element = $('<select tabindex="' + i + '" class="form-control form-control-sm" id="field_' + i + '" name="' + cn + '"></select>');
+                        element = $('<select tabindex="' + i + '" class="form-control form-control-sm" id="' + inputPrefix + i + '" name="' + cn + '"></select>');
                         if (ed['type'] == "csv")
                             element.attr('multiple', 'multiple');
                         break;
@@ -610,11 +650,11 @@
                     case "bitwise_checkboxes":
                     case "bitwise_switches":
                     case "bitwise_buttons":
-                        element = $('<div id="field_' + i + '"></div>');
+                        element = $('<div id="' + inputPrefix + i + '"></div>');
                         break;
                     case "rte":
                     case "textarea":
-                        element = $('<textarea tabindex="' + i + '" class="form-control form-control-sm" id="field_' + i + '" name="' + cn + '"></textarea>');
+                        element = $('<textarea tabindex="' + i + '" class="form-control form-control-sm" id="' + inputPrefix + i + '" name="' + cn + '"></textarea>');
                         element.text(d[cn]);
                         break;
                     case "boolean":
@@ -624,34 +664,34 @@
                     case "boolean_button":
                         // using bootswatch switch custom control
                         content += '<div class="custom-control custom-switch">';
-                        element = $('<input tabindex="' + i + '" id="field_' + i + '" type="checkbox" value="true" class="custom-control-input" name="' + cn + '"/>');
+                        element = $('<input tabindex="' + i + '" id="' + inputPrefix + i + '" type="checkbox" value="true" class="custom-control-input" name="' + cn + '"/>');
                         if (d[cn] == "true" || d[cn] == true)
                             element.attr('checked', 'checked');
-                        closing_string = '<label for="field_' + i + '" class="custom-control-label"></label></div>';
+                        closing_string = '<label for="' + inputPrefix + i + '" class="custom-control-label"></label></div>';
                         break;
                     case "password":
-                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="password" id="field_' + i + '" name="' + cn + '" value="" />');
+                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="password" id="' + inputPrefix + i + '" name="' + cn + '" value="" />');
                         break;
                     case "time":
-                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="time" id="field_' + i + '" name="' + cn + '" step="1" maxlength="8" />');
+                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="time" id="' + inputPrefix + i + '" name="' + cn + '" step="1" maxlength="8" />');
                         element.attr('value', d[cn].substr(0, 8));
                         break;
                     case "date":
-                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="date" id="field_' + i + '" name="' + cn + '" step="1" maxlength="10" />');
+                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="date" id="' + inputPrefix + i + '" name="' + cn + '" step="1" maxlength="10" />');
                         element.attr('value', d[cn].substr(0, 10));
                         break;
                     case "datetime":
-                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="datetime-local" id="field_' + i + '" name="' + cn + '" step="1" maxlength="20" />');
+                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="datetime-local" id="' + inputPrefix + i + '" name="' + cn + '" step="1" maxlength="20" />');
                         element.attr('value', d[cn].substr(0, 20));
                         break;
                     case "link":
-                        element = $(respite_crud.renderLink_ed(d[cn], ed, 'field_' + i));
+                        element = $(respite_crud.renderLink_ed(d[cn], ed, inputPrefix + i));
                         break;
                     case "phone":
                     case "email":
                     case "text":
                     default:
-                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="text" id="field_' + i + '" name="' + cn + '" />');
+                        element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="text" id="' + inputPrefix + i + '" name="' + cn + '" />');
                         element.attr('type', ed['type']);
                         element.attr('value', d[cn]);
                         // TODO: more field types: formula, image (upload), document (upload), bitwise
@@ -761,7 +801,7 @@
                         for (var j = 0; j < ed['options'].length; j++) {
 
                             currDiv = $('<div class="checkbox custom-control custom-checkbox"></div>');
-                            currInput = $('<input type="checkbox" class="custom-control-input" id="field_' + i + '_' + j + '" name="' + cn + '"/>');
+                            currInput = $('<input type="checkbox" class="custom-control-input" id="' + inputPrefix + i + '_' + j + '" name="' + cn + '"/>');
                             currInput.attr('value', ed['options'][j]['value']);
 
                             if ((dValues & ed['options'][j]['value']) > 0)
@@ -777,7 +817,7 @@
                             currDiv
                                 .append(currLabel.clone()
                                     .append(currInput.clone())
-                                    //.append($('<label class="custom-control-label" for="field_' + i + '_' + j + '"></label>')) // reserved for bootstrap 4
+                                    //.append($('<label class="custom-control-label" for="' + inputPrefix + i + '_' + j + '"></label>')) // reserved for bootstrap 4
                                     .append($('<i class="' + ed['options'][j]['glyph'] + '"></i>'))
                                     .append($('<span></span>').text(' ' + ed['options'][j]['label']))
                                     );
@@ -791,7 +831,7 @@
                 // close element
                 content += element.clone().wrap('<div>').parent().html() + closing_string + '</div></div>';
                 if (ed["help"] != undefined && ed["help"] != "") {
-                    content += '<div id="help_field_' + i + '" class="collapse bg-info"><div class="ml-auto float-right"><button type="button" role="button" class="btn btn-secondary btn-sm" data-toggle="collapse" data-target="#help_field_' + i + '" aria-expanded="false" aria-controls="help_field_' + i + '" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button></div>' + ed["help"] + '</div>';
+                    content += '<div id="help_' + inputPrefix + i + '" class="collapse bg-info"><div class="ml-auto float-right"><button type="button" role="button" class="btn btn-secondary btn-sm" data-toggle="collapse" data-target="#help_' + inputPrefix + i + '" aria-expanded="false" aria-controls="help_' + inputPrefix + i + '" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button></div>' + ed["help"] + '</div>';
                 }
             }
         }
@@ -800,33 +840,42 @@
     }
 
     // Fill Existing Data Manipulation Form
-    static fillDMFormFields(d, form_selector) {
+    static fillDMFormFields(d, form_selector, columns, input_prefix) {
         var ed = {}
         var cn = {}
         var dValues = [];
+        var arrColumns = columns;
+        var inputPrefix = input_prefix || "field_";
 
-        for (var i = 0; i < respite_crud.dt.columns()[0].length; i++) {
-            ed = respite_crud.dt.column(i).editor_data();
-            cn = respite_crud.dt.column(i).dataSrc();
+        if (arrColumns == undefined) {
+            arrColumns = [];
+            for (var i = 0; i < respite_crud.dt.columns()[0].length; i++) {
+                arrColumns.push({ "name": respite_crud.dt.column(i).dataSrc(), "editor_data": respite_crud.dt.column(i).editor_data() })
+            }
+        }
+
+        for (var i = 0; i < arrColumns.length; i++) {
+            ed = arrColumns[i].editor_data;
+            cn = arrColumns[i].name;
 
             if (ed != undefined) {
                 switch (ed['type']) {
                     case "image":
-                        //$('#field_' + i + '_src').attr('src', respite_crud.escapeHtml(d[cn]));
-                        //$('#field_' + i, $(form_selector)).val(respite_crud.escapeHtml(d[cn]));
+                        //$('#' + inputPrefix + i + '_src').attr('src', respite_crud.escapeHtml(d[cn]));
+                        //$('#' + inputPrefix + i, $(form_selector)).val(respite_crud.escapeHtml(d[cn]));
                         //break;
                     case "document":
                     case "file":
                         // upload inputs must always be set to empty string only
-                        $('#field_' + i).val("");
+                        $('#' + inputPrefix + i).val("");
                         break;
                     case "csv":
                     case "csv_checkboxes":
                     case "csv_switches":
                     case "csv_buttons":
                         // de-select all currently selected options
-                        $('#field_' + i).val('');
-                        $('#field_' + i + ' option').attr('selected', false);
+                        $('#' + inputPrefix + i).val('');
+                        $('#' + inputPrefix + i + ' option').attr('selected', false);
 
                         // re-select based on row data
                         if (d[cn] != undefined && ed['options'] != undefined) {
@@ -835,7 +884,7 @@
                             for (var j = 0; j < dValues.length; j++)
                                 dValues[j] = dValues[j].trim();
 
-                            $('#field_' + i).val(dValues);
+                            $('#' + inputPrefix + i).val(dValues);
                         }
                         break;
                     case "bitwise":
@@ -843,7 +892,7 @@
                     case "bitwise_switches":
                     case "bitwise_buttons":
                         // de-select all currently selected options
-                        $('#field_' + i + ' div label input').attr('checked', false);
+                        $('#' + inputPrefix + i + ' div label input').attr('checked', false);
 
                         // re-select based on row data
                         if (d[cn] != undefined) {
@@ -851,28 +900,28 @@
 
                             for (var j = 0; j < ed['options'].length; j++) {
                                 if ((dValues & ed['options'][j]['value']) > 0)
-                                    $('#field_' + i + '_' + j).attr('checked', 'checked');
+                                    $('#' + inputPrefix + i + '_' + j).attr('checked', 'checked');
                             }
                         }
                     case "link":
-                        $('#field_' + i).attr('href', d[cn]);
+                        $('#' + inputPrefix + i).attr('href', d[cn]);
                         break;
                     case "rte":
-                        $('#field_' + i).summernote('code', d[cn]);
+                        $('#' + inputPrefix + i).summernote('code', d[cn]);
                         break;
                     case "boolean":
                     case "boolean_switch":
                     case "boolean_checkbox":
                     case "boolean_radios":
                     case "boolean_button":
-                        $('#field_' + i, $(form_selector)).attr('checked', (d[cn] == "true" || d[cn] == true));
+                        $('#' + inputPrefix + i, $(form_selector)).attr('checked', (d[cn] == "true" || d[cn] == true));
                         break;
                     default:
-                        $('#field_' + i, $(form_selector)).val(respite_crud.escapeHtml(d[cn]));
+                        $('#' + inputPrefix + i, $(form_selector)).val(respite_crud.escapeHtml(d[cn]));
                 }
             }
             else
-                $('#field_' + i, $(form_selector)).val(respite_crud.escapeHtml(d[cn]));
+                $('#' + inputPrefix + i, $(form_selector)).val(respite_crud.escapeHtml(d[cn]));
         }
     }
 
