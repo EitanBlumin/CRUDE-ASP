@@ -139,7 +139,7 @@ SELECT
 		ELSE N''
 	END,
 	@SQLColumns = @SQLColumns + N',
-		' + QUOTENAME(ISNULL(c.DataSrc, 'Field_' + CONVERT(nvarchar,dvf.FieldID))) + N' = ' + CASE WHEN FieldType = 12 THEN N'''''' ELSE N'ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''')' END
+		' + QUOTENAME(ISNULL(c.DataSrc, 'Field_' + CONVERT(nvarchar,dvf.FieldID))) + N' = ' + CASE WHEN FieldType = 12 THEN N'''''' WHEN FieldType IN (7,8) THEN N'ISNULL(CONVERT(nvarchar(19),' + FieldSource + N', 126), '''')' ELSE N'ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''')' END
 FROM portal.DataViewField AS dvf
 LEFT JOIN ColsXML AS c
 ON 'Field_' + CONVERT(nvarchar,dvf.FieldID) = c.ColName
