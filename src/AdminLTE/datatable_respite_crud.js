@@ -8,15 +8,19 @@ var BstrapModal = function (title, body, buttons, on_show_event) {
         for (var i = 0; i < buttons.length; i++) {
             buttonshtml += "<button type='button' class='btn " + (buttons[i].Css || "") + "' name='btn" + that.Id + "'>" + (buttons[i].Value || "CLOSE") + "</button>";
         }
-        return "<div class='modal fade' name='dynamiccustommodal' id='" + that.Id + "' tabindex='-1' role='dialog' data-keyboard='true' aria-labelledby='" + that.Id + "Label'><div class='modal-dialog modal-lg modal-dialog-centered'><div class='modal-content'><div class='modal-header bg-primary'><button type='button' class='close modal-white-close' onclick='BstrapModal.Close()'><span aria-hidden='true'>&times;</span></button><h4 class='modal-title'>" + title + "</h4></div><div class='modal-body'><div class='row'><div class='col-xs-12 col-md-12 col-sm-12 col-lg-12'>" + body + "</div></div></div><div class='modal-footer bg-default'><div class='col-xs-12 col-sm-12 col-lg-12'>" + buttonshtml + "</div></div></div></div></div>";
+        return "<div class='modal fade' name='dynamiccustommodal' id='" + that.Id + "' tabindex='-1' role='dialog' data-keyboard='true' aria-labelledby='" + that.Id + "Label'><div class='modal-dialog modal-lg modal-dialog-centered'><div class='modal-content'><div class='modal-header bg-primary'><button type='button' class='close modal-white-close' onclick='BstrapModal.Close(true)'><span aria-hidden='true'>&times;</span></button><h4 class='modal-title'>" + title + "</h4></div><div class='modal-body'><div class='row'><div class='col-xs-12 col-md-12 col-sm-12 col-lg-12'>" + body + "</div></div></div><div class='modal-footer bg-default'><div class='col-xs-12 col-sm-12 col-lg-12'>" + buttonshtml + "</div></div></div></div></div>";
     }();
-    BstrapModal.Delete = function () {
-        var modals = document.getElementsByName("dynamiccustommodal");
-        if (modals.length > 0) document.body.removeChild(modals[0]);
+    BstrapModal.Delete = function (preservePreviousModals) {
+        if (!preservePreviousModals) {
+            var modals = document.getElementsByName("dynamiccustommodal");
+            if (modals.length > 0) document.body.removeChild(modals[0]);
+        } else {
+            var modal = document.getElementById(BstrapModal.Id);
+            if (modal) document.body.removeChild(modal);
+        }
     };
-    BstrapModal.Close = function () {
+    BstrapModal.Close = function (preservePreviousModals) {
         $(document.getElementById(BstrapModal.Id)).modal('hide');
-        BstrapModal.Delete();
     };
     this.Show = function (preservePreviousModals) {
         if (!preservePreviousModals)
@@ -29,6 +33,9 @@ var BstrapModal = function (title, body, buttons, on_show_event) {
         }
 
         $(document.getElementById(BstrapModal.Id)).modal('show');
+        $(document.getElementById(BstrapModal.Id)).on('hidden.bs.modal', function (e) {
+            BstrapModal.Delete(preservePreviousModals);
+        });
 
         if (on_show_event) {
             $(document.getElementById(BstrapModal.Id)).on('shown.bs.modal', function (e) {
@@ -219,6 +226,7 @@ class respite_crud {
                     response_success_callback: respite_crud.callbackPostResponse,
                     response_error_callback: respite_crud.callbackPostResponse,
                     modal_edit: {
+                        modal_form_target: 'ajax_dataview.asp?viewId=undefined',
                         modal_selector: '#modal_edit',
                         modal_title_selector: '#modal_edit_title',
                         modal_body_selector: '#modal_edit_body',
@@ -226,6 +234,7 @@ class respite_crud {
                         delete_button_selector: '#modal_btn_delete'
                     },
                     modal_delete: {
+                        modal_form_target: 'ajax_dataview.asp?viewId=undefined',
                         modal_selector: '#modal_delete',
                         modal_title_selector: '#modal_delete_title',
                         modal_body_selector: '#modal_delete_body',
@@ -264,7 +273,7 @@ class respite_crud {
             // ,timeout:    int
     }
     */
-    static initAjaxForm(options) {
+    static initAjaxForm(options, frmSelector) {
         // init defaults
         var setOptions = {
               target: respite_crud.respite_editor_options.modal_Options.modal_response.modal_body_selector    // target element(s) to be updated with server response
@@ -288,11 +297,12 @@ class respite_crud {
             for (var key in options)
                 setOptions[key] = options[key];
         
-        $(respite_crud.respite_editor_options.modal_Options.ajax_forms_selector).ajaxForm(setOptions);
+        var frmSelector = frmSelector || respite_crud.respite_editor_options.modal_Options.ajax_forms_selector;
+        $(frmSelector).ajaxForm(setOptions);
     }
     // Utility Functions
-    static focusFirstField(e) {
-        var frm = $(respite_crud.respite_editor_options.modal_Options.modal_edit.form_selector);
+    static focusFirstField(e, frm) {
+        var frm = frm || $(respite_crud.respite_editor_options.modal_Options.modal_edit.form_selector);
         var firstInput = $(":input:not(input[type=button],input[type=submit],button):visible:first", frm);
         firstInput.focus();
     }
@@ -547,6 +557,9 @@ class respite_crud {
         $(modal_options.modal_selector).modal({ show: true, keyboard: true, focus: true });
     }
     static showDelete(r) {
+        respite_crud.showDelete_dynamic(r);
+        return;
+
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_delete;
 
         $(modal_options.modal_body_selector).html(respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(r)); // render modal with row details
@@ -555,6 +568,9 @@ class respite_crud {
         $(modal_options.modal_selector).modal({ show: true, keyboard: true, focus: true });
     }
     static showDeleteMultiple(e, dt, node, config) {
+        respite_crud.showDeleteMultiple_dynamic(e, dt, node, config);
+        return;
+
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_delete;
 
         var r = dt.rows({ selected: true }).data();
@@ -575,8 +591,9 @@ class respite_crud {
     // Data Manipulation Modals (Dynamic Modal)
     static showDMModal_dynamic(r, mode) {
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_edit;
+        var form_id = 'form_modal_modify_' + mode;
         var title = "";
-        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left", Callback: function (e) { BstrapModal.Close(); } }, { Value: "<i class='fas fa-save'></i> Save Changes", Css: "btn-success", Callback: function (e) { $('#form_modal').submit(); } }]; // localization['Cancel']
+        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left", Callback: function (e) { BstrapModal.Close(); } }, { Value: "<i class='fas fa-save'></i> Save Changes", Css: "btn-success", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
         
         // save to static row object for the Deletion modal to access
         if (r == undefined || r == null)
@@ -592,7 +609,8 @@ class respite_crud {
         else {
             title = "Add Item";                         // localization.modal_add_title
         }
-        var body = $('<form class="ajax-form" name="modal_edit_form" action="ajax_dataview.asp?ViewID=12345" method="post" id="#form_modal"></form>')
+        var body = $('<form class="ajax-form" name="modal_edit_form" action="ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
+                .attr('action', modal_options.modal_form_target)
                 .append(respite_crud.renderDMFormFields(respite_crud.row));
 
         // init form global fields
@@ -620,16 +638,28 @@ class respite_crud {
                         }
                     });
                 });
+                $('#' + form_id).attr('form-modal', '#' + $(this).attr('id'));
 
-                respite_crud.focusFirstField(e);
+                // init ajax form
+                $('#' + form_id).ajaxForm({
+                    target: respite_crud.respite_editor_options.modal_Options.modal_response.modal_body_selector    // target element(s) to be updated with server response
+                    , beforeSubmit: respite_crud.respite_editor_options.modal_Options.pre_submit_callback           // pre-submit callback
+                    , success: respite_crud.respite_editor_options.modal_Options.response_success_callback          // post-submit callback
+                    , error: respite_crud.respite_editor_options.modal_Options.response_error_callback              // post-submit callback
+                    , dataType: 'json'                                     // 'xml', 'script', or 'json' (expected server response type)
+                });
+
+                respite_crud.focusFirstField(e, $('#' + form_id));
             }
             ).Show();
     }
     static showDelete_dynamic(r) {
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_delete;
+        var form_id = 'form_modal_delete';
         var title = "Are you sure you want to delete?";
-        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left", Callback: function (e) { BstrapModal.Close(); } }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#form_modal_delete').submit(); } }]; // localization['Cancel']
-        var body = $('<form class="ajax-form" name="modal_delete_form" action="ajax_dataview.asp?ViewID=1234" method="post" id="#form_modal_delete"></form>')
+        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left", Callback: function (e) { BstrapModal.Close(true); } }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
+        var body = $('<form class="ajax-form" name="modal_delete_form" action="ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
+                .attr('action', modal_options.modal_form_target)
                 .append(respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(r)); // render modal with row details
 
         body.append($('<input type="hidden" name="postback" value="true" />'))
@@ -637,25 +667,57 @@ class respite_crud {
         .append($('<input type="hidden" name="mode" value="delete" />').val("delete"));
 
         new BstrapModal(
-            title, body.clone().wrap('<div>').parent().html(), buttons).Show(true);
+            title, body.clone().wrap('<div>').parent().html(), buttons,
+            function (e) {
+                $('#' + form_id).attr('form-modal', '#' + $(this).attr('id'));
+
+                // init ajax form
+                $('#' + form_id).ajaxForm({
+                    target: respite_crud.respite_editor_options.modal_Options.modal_response.modal_body_selector    // target element(s) to be updated with server response
+                    , beforeSubmit: respite_crud.respite_editor_options.modal_Options.pre_submit_callback           // pre-submit callback
+                    , success: respite_crud.respite_editor_options.modal_Options.response_success_callback          // post-submit callback
+                    , error: respite_crud.respite_editor_options.modal_Options.response_error_callback              // post-submit callback
+                    , dataType: 'json'                                     // 'xml', 'script', or 'json' (expected server response type)
+                });
+            }).Show(true);
     }
     static showDeleteMultiple_dynamic(e, dt, node, config) {
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_delete;
-
+        var form_id = 'form_modal_delete_multi';
+        var title = "Are you sure you want to delete?";
+        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left", Callback: function (e) { BstrapModal.Close(true); } }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
+        
         var r = dt.rows({ selected: true }).data();
         var rowIds = "";
-        var content = "Deleting " + r.length + " row(s):";
+        var content = "You're about to delete " + r.length + " row(s):";
 
         for (var i = 0; i < r.length; i++) {
             if (rowIds.length > 0) rowIds += ", ";
             rowIds += r[i].DT_RowId;
-            content += "<hr/> " + respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(r[i]);                          // concatenate_row_details
+            content += "<hr/> " + respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(r[i]);
         }
+        var body = $('<form class="ajax-form" name="modal_delete_form_multi" action="ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
+                .attr('action', modal_options.modal_form_target)
+                .append($('<div></div>').html(content)); // render modal with row details
 
-        $(modal_options.modal_body_selector).html(content);                                      // modal_body_selector
-        $('input[name=DT_RowId]', $(modal_options.form_selector)).val(rowIds);         // modal_form_name, input_init_values: [ { input_name: value } ]
-        $('input[name=mode]', $(modal_options.form_selector)).val("delete_multiple");  // modal_form_name
-        $(modal_options.modal_selector).modal({ show: true, keyboard: true, focus: true });      // modal_to_show, modal_options = {}
+        body.append($('<input type="hidden" name="postback" value="true" />'))
+        .append($('<input type="hidden" name="DT_RowId" value="" />').val(rowIds))
+        .append($('<input type="hidden" name="mode" value="delete" />').val("delete_multiple"));
+
+        new BstrapModal(
+            title, body.clone().wrap('<div>').parent().html(), buttons,
+            function (e) {
+                $('#' + form_id).attr('form-modal', '#' + $(this).attr('id'));
+
+                // init ajax form
+                $('#' + form_id).ajaxForm({
+                    target: respite_crud.respite_editor_options.modal_Options.modal_response.modal_body_selector    // target element(s) to be updated with server response
+                    , beforeSubmit: respite_crud.respite_editor_options.modal_Options.pre_submit_callback           // pre-submit callback
+                    , success: respite_crud.respite_editor_options.modal_Options.response_success_callback          // post-submit callback
+                    , error: respite_crud.respite_editor_options.modal_Options.response_error_callback              // post-submit callback
+                    , dataType: 'json'                                     // 'xml', 'script', or 'json' (expected server response type)
+                });
+            }).Show(true);
     }
 
     // Init Default Row (when adding)

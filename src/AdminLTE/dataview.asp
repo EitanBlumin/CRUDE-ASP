@@ -439,8 +439,8 @@ IF strError <> "" THEN
   
 <% ELSE %>
 
-<!-- Data Manipulation Modals -->
-<!-- Edit/Update/Clone Modal -->
+<!-- Data Manipulation Modals -- >
+< !-- Edit/Update/Clone Modal -- >
 <div class="modal fade" id="modal_edit" role="dialog">
     <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
@@ -463,13 +463,13 @@ IF strError <> "" THEN
             </div>
         </form>
     </div>
-    <!-- /.modal-content -->
+    < !-- /.modal-content -- >
     </div>
-    <!-- /.modal-dialog -->
+    < !-- /.modal-dialog -- >
 </div>
-<!-- /.modal -->
+<!-- /.modal -- >
 
-<!-- Deletion Modal -->
+<!-- Deletion Modal -- >
 <div class="modal fade" id="modal_delete" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -492,7 +492,7 @@ IF strError <> "" THEN
     </div>
     </div>
 </div>
-<!-- /.modal -->
+< !-- /.modal -->
 
 <!-- Response Modal -->
 <div class="modal fade" id="modal_response" role="dialog">
@@ -670,6 +670,8 @@ IF strError <> "" THEN
     respite_crud.respite_editor_options.modal_Options.response_success_callback = showResponse;
     respite_crud.respite_editor_options.modal_Options.response_error_callback = showResponse;
     respite_crud.respite_editor_options.modal_Options.ajax_forms_selector = "form.ajax-form";
+    respite_crud.respite_editor_options.modal_Options.modal_edit.modal_form_target = "ajax_dataview.asp?ViewID=<%= nViewID %>";
+    respite_crud.respite_editor_options.modal_Options.modal_delete.modal_form_target = "ajax_dataview.asp?ViewID=<%= nViewID %>";
 
     // DataTable Columns:
     // TODO: Simplify the addColumn() function interface
@@ -893,13 +895,16 @@ IF strError <> "" THEN
         })*/
         ;
 
-        // Bind Data Manipulation Forms to Ajax
+        respite_crud.respite_editor_options.modal_Options.pre_submit_callback = preRequest;
+        respite_crud.respite_editor_options.modal_Options.response_success_callback = showResponse;
+        respite_crud.respite_editor_options.modal_Options.response_error_callback = showResponse;
+        /*// Bind Data Manipulation Forms to Ajax
         respite_crud.initAjaxForm({
             beforeSubmit: preRequest,
             success: showResponse,
             error: showResponse,
             dataType: 'json'
-        });
+        });*/
 
         // Init DataTable with default options:
         <% IF strError = "" THEN %>
