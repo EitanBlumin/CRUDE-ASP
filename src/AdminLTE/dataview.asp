@@ -500,12 +500,12 @@ IF strError <> "" THEN
     <div class="modal-content">
         <div class="modal-header bg-primary">
             <span class="box-tools pull-right">
-            <button type="button" role="button" class="btn btn-secondary btn-sm" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button>
+            <button type="button" role="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button>
             </span>
             <h4 class="modal-title float-left" id="modal_response_title">Processing</h4>
         </div>
             <div class="modal-body container-fluid" id="modal_response_body"><h2><i class="fas fa-spinner fa-pulse"></i></h2></div>
-            <div class="modal-footer bg-primary">
+            <div class="modal-footer bg-default">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
     </div>
@@ -590,6 +590,8 @@ IF strError <> "" THEN
         // jqForm is a jQuery object encapsulating the form element.  To access the 
         // DOM element for the form do this: 
         var formElement = jqForm[0];
+
+        BstrapModal.Close();
 
         $(formElement.getAttribute('form-modal')).modal('hide');
         //respite_crud.dt.buttons.info('Processing...', '<h3 class="text-center"><i class="fas fa-spinner fa-pulse"></i></h3>');

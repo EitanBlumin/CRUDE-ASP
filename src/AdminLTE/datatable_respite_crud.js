@@ -8,7 +8,7 @@ var BstrapModal = function (title, body, buttons, on_show_event) {
         for (var i = 0; i < buttons.length; i++) {
             buttonshtml += "<button type='button' class='btn " + (buttons[i].Css || "") + "' name='btn" + that.Id + "'>" + (buttons[i].Value || "CLOSE") + "</button>";
         }
-        return "<div class='modal fade' name='dynamiccustommodal' id='" + that.Id + "' tabindex='-1' role='dialog' data-keyboard='true' aria-labelledby='" + that.Id + "Label'><div class='modal-dialog modal-lg modal-dialog-centered'><div class='modal-content'><div class='modal-header bg-primary'><button type='button' class='close modal-white-close' onclick='BstrapModal.Close(true)'><span aria-hidden='true'>&times;</span></button><h4 class='modal-title'>" + title + "</h4></div><div class='modal-body'><div class='row'><div class='col-xs-12 col-md-12 col-sm-12 col-lg-12'>" + body + "</div></div></div><div class='modal-footer bg-default'><div class='col-xs-12 col-sm-12 col-lg-12'>" + buttonshtml + "</div></div></div></div></div>";
+        return "<div class='modal fade' name='dynamiccustommodal' id='" + that.Id + "' tabindex='-1' role='dialog' data-keyboard='true' aria-labelledby='" + that.Id + "Label'><div class='modal-dialog modal-lg modal-dialog-centered'><div class='modal-content'><div class='modal-header bg-primary'><button type='button' class='close' data-dismiss='modal' title='Close' aria-label='Close'><span aria-hidden='true'>&times;</span></button><h4 class='modal-title'>" + title + "</h4></div><div class='modal-body'><div class='row'><div class='col-xs-12 col-md-12 col-sm-12 col-lg-12'>" + body + "</div></div></div><div class='modal-footer bg-default'><div class='col-xs-12 col-sm-12 col-lg-12'>" + buttonshtml + "</div></div></div></div></div>";
     }();
     BstrapModal.Delete = function (preservePreviousModals) {
         if (!preservePreviousModals) {
@@ -39,7 +39,7 @@ var BstrapModal = function (title, body, buttons, on_show_event) {
 
         if (on_show_event) {
             $(document.getElementById(BstrapModal.Id)).on('shown.bs.modal', function (e) {
-                on_show_event(e);
+                on_show_event(e, BstrapModal.Id);
             });
         }
     };
@@ -72,6 +72,8 @@ class respite_crud {
         // jqForm is a jQuery object encapsulating the form element.  To access the 
         // DOM element for the form do this: 
         var formElement = jqForm[0];
+
+        BstrapModal.Close();
 
         $(formElement.getAttribute('form-modal')).modal('hide');
         respite_crud.dt.buttons.info('Processing...', '<h3 class="text-center"><i class="fas fa-spinner fa-pulse"></i></h3>');
@@ -620,7 +622,7 @@ class respite_crud {
 
         new BstrapModal(
             title, body.clone().wrap('<div>').parent().html(), buttons,
-            function (e) {
+            function (e, modalId) {
                 $(this).find('[data-toggle="tooltip"]').tooltip();
                 $('.summernote textarea').each(function (i) {
                     var currObj = $(this);
@@ -638,7 +640,8 @@ class respite_crud {
                         }
                     });
                 });
-                $('#' + form_id).attr('form-modal', '#' + $(this).attr('id'));
+                console.log($(this));
+                $('#' + form_id).attr('form-modal', '#' + modalId);
 
                 // init ajax form
                 $('#' + form_id).ajaxForm({
@@ -668,8 +671,8 @@ class respite_crud {
 
         new BstrapModal(
             title, body.clone().wrap('<div>').parent().html(), buttons,
-            function (e) {
-                $('#' + form_id).attr('form-modal', '#' + $(this).attr('id'));
+            function (e, modalId) {
+                $('#' + form_id).attr('form-modal', '#' + modalId);
 
                 // init ajax form
                 $('#' + form_id).ajaxForm({
@@ -706,8 +709,8 @@ class respite_crud {
 
         new BstrapModal(
             title, body.clone().wrap('<div>').parent().html(), buttons,
-            function (e) {
-                $('#' + form_id).attr('form-modal', '#' + $(this).attr('id'));
+            function (e, modalId) {
+                $('#' + form_id).attr('form-modal', '#' + modalId);
 
                 // init ajax form
                 $('#' + form_id).ajaxForm({
