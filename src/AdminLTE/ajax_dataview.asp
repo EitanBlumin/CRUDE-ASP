@@ -135,8 +135,8 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
 
         IF adoConnCrudeSrc.Errors.Count > 0 THEN
 	        strError = "ERROR while trying to open data source " & strDataSource & ":<br>"
-            For Each Err In adoConnCrudeSrc.Errors
-		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+            For Each CurrErr In adoConnCrudeSrc.Errors
+		        strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & " | Native Error: " & CurrErr.NativeError & "<br/>"
             Next
         'ELSE
         '        Response.Write "<!-- Opened ConnString (" & strDataSource & ") " & adoConnCrudeSource & " -->" 
@@ -195,7 +195,7 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
 
         IF strError = "" THEN
 	    Dim nParamID
-        DIM Err
+        DIM CurrErr
         nParamID = 2
         'ON ERROR RESUME NEXT
             
@@ -209,6 +209,21 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
                                 varCurrFieldValue = Request("Field_" & dvFields(nIndex)("FieldID"))
                             Case 9, 22, 23, 26 '"boolean"
                                 varCurrFieldValue = CBool(Request("Field_" & dvFields(nIndex)("FieldID")))
+                            Case 7, 8 '"datetime", "date"
+                                IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
+                                    varCurrFieldValue = NULL
+                                    'strMsgOutput = strMsgOutput & "<!-- setting [time] field " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
+                                ELSEIF isIsoDate(Request("Field_" & dvFields(nIndex)("FieldID"))) THEN
+				                    varCurrFieldValue = CIsoDate(Request("Field_" & dvFields(nIndex)("FieldID")))
+                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+                                ELSEIF isDate(Request("Field_" & dvFields(nIndex)("FieldID"))) THEN
+				                    varCurrFieldValue = CDate(Request("Field_" & dvFields(nIndex)("FieldID")))
+                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+                                ELSE
+                                    Response.Status = "500 Server Error"
+                                    Response.Write "The value |" & Request("Field_" & dvFields(nIndex)("FieldID")) & "| is invalid as date and time."
+                                    Response.End
+                                END IF
                             Case 13 '"time"
                                 IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
                                     varCurrFieldValue = NULL
@@ -249,10 +264,17 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
                         ELSE
                             'strMsgOutput = strMsgOutput & "<!-- setting " & dvFields(nIndex)("FieldSource") & " = """ & varCurrFieldValue & """ (isnull: " & IsNull(varCurrFieldValue) & ") ErrCount: " & adoConnCrude.Errors.Count & " -->" & vbCrLf
                             'Response.Write dvFields(nIndex)("FieldSource") & ": " & varCurrFieldValue & "<br/>" & vbCrLf
+                            ON ERROR RESUME NEXT
                             rsItems(dvFields(nIndex)("FieldSource")) = varCurrFieldValue
+                            IF Err.number <> 0 THEN
+                                strError = dvFields(nIndex)("FieldLabel") & " invalid value: " & varCurrFieldValue & "<br/>" & vbCrLf
+                            END IF
+                            ON ERROR GOTO 0
                         END IF
                     END IF
 			    END IF
+
+                IF strError <> "" THEN EXIT FOR
 		    NEXT
         
             IF strError = "" THEN
@@ -286,10 +308,11 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
                     ON ERROR GOTO 0
 
                 END IF
-            'ELSE
-            '    Response.Write vbCrLf & "ERROR: " & strError & vbCrLf
-                
-            '    rsItems.Close    
+            ELSEIF adoConnCrudeSrc.Errors.Count > 0 THEN
+		        strError = strError & " Database Operation Error while performing """ & UCase(strMode) & """:</br>"
+                For Each CurrErr In adoConnCrudeSrc.Errors
+			        strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & "<br/>"
+                Next
             END IF
 
 	    END IF
@@ -298,10 +321,10 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
 
         ' check for errors
         'If adoConnCrudeSrc.Errors.Count > 0 Then
-        '    DIM Err
+        '    DIM CurrErr
         '    strError = strError & " Error(s) while performing """ & strMode & """:<br/>" 
-        '    For Each Err In adoConnCrudeSrc.Errors
-		'	    strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+        '    For Each CurrErr In adoConnCrudeSrc.Errors
+		'	    strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & " | Native Error: " & CurrErr.NativeError & "<br/>"
         '    Next
         '    IF globalIsAdmin THEN strError = strError & "While trying to run:<br/><b>" & strSQL & "</b>"
         'END IF
@@ -336,8 +359,8 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
     
             IF adoConnCrudeSrc.Errors.Count > 0 THEN
 	            strError = "ERROR while trying to delete using data source " & strDataSource & ":<br/>"
-                For Each Err In adoConnCrudeSrc.Errors
-		            strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+                For Each CurrErr In adoConnCrudeSrc.Errors
+		            strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & " | Native Error: " & CurrErr.NativeError & "<br/>"
                 Next
             ELSE
                 strMsgOutput = strMsgOutput & "Successfully Deleted: " & nItemID
@@ -379,8 +402,8 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
     
             IF adoConnCrudeSrc.Errors.Count > 0 THEN
 	            strError = "ERROR while trying to delete using data source " & strDataSource & ":<br/>"
-                For Each Err In adoConnCrudeSrc.Errors
-		            strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+                For Each CurrErr In adoConnCrudeSrc.Errors
+		            strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & " | Native Error: " & CurrErr.NativeError & "<br/>"
                 Next
             ELSE
                 strMsgOutput = strMsgOutput & "Successfully Deleted: " & nItemID
@@ -410,8 +433,8 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
     
             IF adoConnCrudeSrc.Errors.Count > 0 THEN
 	            strError = "ERROR while trying to delete multiple rows using data source " & strDataSource & ":<br/>"
-                For Each Err In adoConnCrudeSrc.Errors
-		            strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+                For Each CurrErr In adoConnCrudeSrc.Errors
+		            strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & " | Native Error: " & CurrErr.NativeError & "<br/>"
                 Next
             ELSE
                 strMsgOutput = strMsgOutput & "Successfully Deleted: " & nItemID
@@ -478,8 +501,8 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
     
         IF adoConnCrudeSrc.Errors.Count > 0 THEN
 	        strError = "ERROR while trying to delete reorder rows using data source " & strDataSource & ":<br/>"
-            For Each Err In adoConnCrudeSrc.Errors
-		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & "<br/>"
+            For Each CurrErr In adoConnCrudeSrc.Errors
+		        strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & "<br/>"
             Next
         ELSE
             strMsgOutput = strMsgOutput & "Successfully Reordered: " & nItemID
@@ -531,8 +554,8 @@ ELSEIF strError = "" AND strMode = "dataviewcontents" AND Request("ViewID") <> "
 	
     IF adoConnCrude.Errors.Count > 0 THEN
 	    strError = "ERROR while trying to get dataview metadata:<br/>"
-        For Each Err In adoConnCrude.Errors
-		    strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+        For Each CurrErr In adoConnCrude.Errors
+		    strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & " | Native Error: " & CurrErr.NativeError & "<br/>"
         Next
     ELSE
         IF NOT rsItems.EOF THEN
@@ -561,8 +584,8 @@ ELSEIF strError = "" AND strMode = "dataviewcontents" AND Request("ViewID") <> "
 
         IF adoConnCrudeSrc.Errors.Count > 0 THEN
 	        strError = "ERROR while trying to open data source " & strDataSource & " for dataview:<br>"
-            For Each Err In adoConnCrudeSrc.Errors
-		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+            For Each CurrErr In adoConnCrudeSrc.Errors
+		        strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & " | Native Error: " & CurrErr.NativeError & "<br/>"
             Next
         'ELSE
         '        Response.Write "<!-- Opened ConnString (" & strDataSource & ") " & adoConnCrudeSource & " -->" 
@@ -580,8 +603,8 @@ ELSEIF strError = "" AND strMode = "dataviewcontents" AND Request("ViewID") <> "
         
         IF adoConnCrudeSrc.Errors.Count > 0 THEN
 	        strError = "ERROR while running command at data source """ & strDataSource & """:<br/>"
-            For Each Err In adoConnCrudeSrc.Errors
-		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+            For Each CurrErr In adoConnCrudeSrc.Errors
+		        strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & " | Native Error: " & CurrErr.NativeError & "<br/>"
             Next
         ELSE
             WHILE NOT rsItems.EOF
@@ -752,8 +775,8 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
 	
     IF adoConnCrude.Errors.Count > 0 THEN
 	    strError = "ERROR while trying to get datatable metadata:<br>"
-        For Each Err In adoConnCrude.Errors
-		    strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+        For Each CurrErr In adoConnCrude.Errors
+		    strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & " | Native Error: " & CurrErr.NativeError & "<br/>"
         Next
     ELSE
         IF NOT rsItems.EOF THEN
@@ -784,8 +807,8 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
 
         IF adoConnCrudeSrc.Errors.Count > 0 THEN
 	        strError = "ERROR while trying to open data source " & strDataSource & " for datatable:<br>(" & adoConnCrudeSource & ")"
-            For Each Err In adoConnCrudeSrc.Errors
-		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+            For Each CurrErr In adoConnCrudeSrc.Errors
+		        strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & " | Native Error: " & CurrErr.NativeError & "<br/>"
             Next
         'ELSE
         '        Response.Write "<!-- Opened ConnString (" & strDataSource & ") " & adoConnCrudeSource & " -->" 
@@ -829,8 +852,8 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
         
         IF adoConnCrudeSrc.Errors.Count > 0 THEN
 	        strError = "ERROR while trying to retrieve datatable:<br>"
-            For Each Err In adoConnCrudeSrc.Errors
-		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & "<br/>"
+            For Each CurrErr In adoConnCrudeSrc.Errors
+		        strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & "<br/>"
                 IF globalIsAdmin THEN strError = strError & strSQL & "<br/>"
             Next
         ELSE
