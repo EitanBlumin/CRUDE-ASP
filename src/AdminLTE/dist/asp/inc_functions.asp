@@ -103,6 +103,27 @@ FUNCTION FormatDateForDB(dt)
     FormatDateForDB = YEAR(dt) & "-" & Pd(Month(dt),2) & "-" & Pd(DAY(dt),2) & " " & Pd(Hour(dt),2) & ":" & Pd(Minute(dt),2) & ":" & Pd(Second(dt),2)
 END FUNCTION
 
+FUNCTION isIsoDate(s_input)
+    dim obj_regex
+
+    isIsoDate = false
+    if len(s_input) > 9 then ' basic check before creating RegExp
+        set obj_regex = new RegExp
+        obj_regex.Pattern = "^\d{4}\-\d{2}\-\d{2}(T\d{2}:\d{2}:\d{2}(Z|\+\d{4}|\-\d{4})?)?$"
+        if obj_regex.Test(s_input) then
+            on error resume next
+            isIsoDate = not IsEmpty(CIsoDate(s_input))
+            on error goto 0
+        end if
+        set obj_regex = nothing
+    end if
+END FUNCTION
+
+' ----------------------------------------------------------------------------------------
+FUNCTION CIsoDate(s_input)
+    CIsoDate = CDate(replace(Mid(s_input, 1, 19) , "T", " "))
+END FUNCTION
+
 FUNCTION AutoFormatLabels(colName)
     Dim strLabel, regEx
     Set regEx = New RegExp
