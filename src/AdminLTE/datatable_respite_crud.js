@@ -1,5 +1,5 @@
 ﻿/// Dynamic Bootstrap Modal
-var BstrapModal = function (title, body, buttons) {
+var BstrapModal = function (title, body, buttons, on_show_event) {
     var title = title || "Lorem Ipsum History", body = body || "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.", buttons = buttons || [{ Value: "CLOSE", Css: "btn-primary", Callback: function (event) { BstrapModal.Close(); } }];
     var GetModalStructure = function () {
         var that = this;
@@ -8,7 +8,7 @@ var BstrapModal = function (title, body, buttons) {
         for (var i = 0; i < buttons.length; i++) {
             buttonshtml += "<button type='button' class='btn " + (buttons[i].Css || "") + "' name='btn" + that.Id + "'>" + (buttons[i].Value || "CLOSE") + "</button>";
         }
-        return "<div class='modal fade' name='dynamiccustommodal' id='" + that.Id + "' tabindex='-1' role='dialog' data-keyboard='true' aria-labelledby='" + that.Id + "Label'><div class='modal-dialog modal-dialog-centered'><div class='modal-content'><div class='modal-header'><button type='button' class='close modal-white-close' onclick='BstrapModal.Close()'><span aria-hidden='true'>&times;</span></button><h4 class='modal-title'>" + title + "</h4></div><div class='modal-body'><div class='row'><div class='col-xs-12 col-md-12 col-sm-12 col-lg-12'>" + body + "</div></div></div><div class='modal-footer bg-default'><div class='col-xs-12 col-sm-12 col-lg-12'>" + buttonshtml + "</div></div></div></div></div>";
+        return "<div class='modal fade' name='dynamiccustommodal' id='" + that.Id + "' tabindex='-1' role='dialog' data-keyboard='true' aria-labelledby='" + that.Id + "Label'><div class='modal-dialog modal-lg modal-dialog-centered'><div class='modal-content'><div class='modal-header bg-primary'><button type='button' class='close modal-white-close' onclick='BstrapModal.Close()'><span aria-hidden='true'>&times;</span></button><h4 class='modal-title'>" + title + "</h4></div><div class='modal-body'><div class='row'><div class='col-xs-12 col-md-12 col-sm-12 col-lg-12'>" + body + "</div></div></div><div class='modal-footer bg-default'><div class='col-xs-12 col-sm-12 col-lg-12'>" + buttonshtml + "</div></div></div></div></div>";
     }();
     BstrapModal.Delete = function () {
         var modals = document.getElementsByName("dynamiccustommodal");
@@ -18,14 +18,23 @@ var BstrapModal = function (title, body, buttons) {
         $(document.getElementById(BstrapModal.Id)).modal('hide');
         BstrapModal.Delete();
     };
-    this.Show = function () {
-        BstrapModal.Delete();
+    this.Show = function (preservePreviousModals) {
+        if (!preservePreviousModals)
+            BstrapModal.Delete();
+
         document.body.appendChild($(GetModalStructure)[0]);
         var btns = document.querySelectorAll("button[name='btn" + BstrapModal.Id + "']");
         for (var i = 0; i < btns.length; i++) {
             btns[i].addEventListener("click", buttons[i].Callback || BstrapModal.Close);
         }
+
         $(document.getElementById(BstrapModal.Id)).modal('show');
+
+        if (on_show_event) {
+            $(document.getElementById(BstrapModal.Id)).on('shown.bs.modal', function (e) {
+                on_show_event(e);
+            });
+        }
     };
 };
 
@@ -478,7 +487,7 @@ class respite_crud {
     // This function runs after the data manipulation form is rendered
     static postRenderDMFormFields(e) {
         if (!respite_crud.DM_form_rendered) {
-            //$('[data-toggle="tooltip"]').tooltip();
+            $(this).find('[data-toggle="tooltip"]').tooltip();
             $('.summernote textarea').each(function (i) {
                 var currObj = $(this);
                 currObj.summernote({
@@ -502,6 +511,8 @@ class respite_crud {
     }
     // Data Manipulation Modals
     static showDMModal(r, mode) {
+        respite_crud.showDMModal_dynamic(r, mode);
+        return;
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_edit;
 
         // save to static row object for the Deletion modal to access
@@ -525,8 +536,7 @@ class respite_crud {
             $(modal_options.modal_body_selector).html(respite_crud.renderDMFormFields(respite_crud.row));
             $(modal_options.modal_selector).on('shown.bs.modal', respite_crud.postRenderDMFormFields);
         }
-        else
-        {
+        else {
             // re-fill existing modal form fields
             respite_crud.fillDMFormFields(respite_crud.row, modal_options.form_selector);
         }
@@ -545,6 +555,91 @@ class respite_crud {
         $(modal_options.modal_selector).modal({ show: true, keyboard: true, focus: true });
     }
     static showDeleteMultiple(e, dt, node, config) {
+        var modal_options = respite_crud.respite_editor_options.modal_Options.modal_delete;
+
+        var r = dt.rows({ selected: true }).data();
+        var rowIds = "";
+        var content = "Deleting " + r.length + " row(s):";
+
+        for (var i = 0; i < r.length; i++) {
+            if (rowIds.length > 0) rowIds += ", ";
+            rowIds += r[i].DT_RowId;
+            content += "<hr/> " + respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(r[i]);                          // concatenate_row_details
+        }
+
+        $(modal_options.modal_body_selector).html(content);                                      // modal_body_selector
+        $('input[name=DT_RowId]', $(modal_options.form_selector)).val(rowIds);         // modal_form_name, input_init_values: [ { input_name: value } ]
+        $('input[name=mode]', $(modal_options.form_selector)).val("delete_multiple");  // modal_form_name
+        $(modal_options.modal_selector).modal({ show: true, keyboard: true, focus: true });      // modal_to_show, modal_options = {}
+    }
+    // Data Manipulation Modals (Dynamic Modal)
+    static showDMModal_dynamic(r, mode) {
+        var modal_options = respite_crud.respite_editor_options.modal_Options.modal_edit;
+        var title = "";
+        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left", Callback: function (e) { BstrapModal.Close(); } }, { Value: "<i class='fas fa-save'></i> Save Changes", Css: "btn-success", Callback: function (e) { $('#form_modal').submit(); } }]; // localization['Cancel']
+        
+        // save to static row object for the Deletion modal to access
+        if (r == undefined || r == null)
+            respite_crud.row = respite_crud.initDefaultRow();
+        else
+            respite_crud.row = r;
+
+        // init modal title and deletion button
+        if (mode == "edit") {
+            title = "Edit Item RowID: " + respite_crud.row.DT_RowId;   // localization.modal_edit_title
+            buttons.push({ Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger pull-left float-left", Callback: function (e) { respite_crud.showDelete_dynamic(respite_crud.row) } });
+        }
+        else {
+            title = "Add Item";                         // localization.modal_add_title
+        }
+        var body = $('<form class="ajax-form" name="modal_edit_form" action="ajax_dataview.asp?ViewID=12345" method="post" id="#form_modal"></form>')
+                .append(respite_crud.renderDMFormFields(respite_crud.row));
+
+        // init form global fields
+        body.append($('<input type="hidden" name="postback" value="true" />'))
+        .append($('<input type="hidden" name="DT_RowId" value="" />').val(respite_crud.row.DT_RowId))
+        .append($('<input type="hidden" name="mode" value="add" />').val(mode))
+
+        new BstrapModal(
+            title, body.clone().wrap('<div>').parent().html(), buttons,
+            function (e) {
+                $(this).find('[data-toggle="tooltip"]').tooltip();
+                $('.summernote textarea').each(function (i) {
+                    var currObj = $(this);
+                    currObj.summernote({
+                        minHeight: currObj.attr('minHeight'),
+                        maxHeight: currObj.attr('maxHeight'),
+                        height: currObj.attr('height'),
+                        width: currObj.attr('width'),
+                        placeholder: currObj.attr('placeholder'),
+                        focus: true,
+                        tabsize: 2,
+                        dialogsInBody: true,
+                        codemirror: { // codemirror options
+                            theme: 'monokai'
+                        }
+                    });
+                });
+
+                respite_crud.focusFirstField(e);
+            }
+            ).Show();
+    }
+    static showDelete_dynamic(r) {
+        var modal_options = respite_crud.respite_editor_options.modal_Options.modal_delete;
+        var title = "Are you sure you want to delete?";
+        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left", Callback: function (e) { BstrapModal.Close(); } }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#form_modal_delete').submit(); } }]; // localization['Cancel']
+        var body = $('<form class="ajax-form" name="modal_delete_form" action="ajax_dataview.asp?ViewID=1234" method="post" id="#form_modal_delete"></form>')
+                .append(respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(r)); // render modal with row details
+
+        body.append($('<input type="hidden" name="postback" value="true" />'))
+        .append($('<input type="hidden" name="DT_RowId" value="" />').val(r.DT_RowId))
+        .append($('<input type="hidden" name="mode" value="delete" />').val("delete"));
+
+        new BstrapModal(
+            title, body.clone().wrap('<div>').parent().html(), buttons).Show(true);
+    }
+    static showDeleteMultiple_dynamic(e, dt, node, config) {
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_delete;
 
         var r = dt.rows({ selected: true }).data();

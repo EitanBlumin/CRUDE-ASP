@@ -189,7 +189,30 @@ td.actions-control {
     // Init default options
     respite_crud.setEditorOptions();
 
-    $('.btn-test')[0].addEventListener("click", function (e) { new BstrapModal("my tile", "my body").Show(); });
+    // Override some options
+    respite_crud.respite_editor_options.dt_Options.dt_AjaxGet = "ajax_dataview.asp?mode=datatable&ViewID=12";
+    respite_crud.respite_editor_options.modal_Options.ajax_forms_selector = "form.ajax-form";
+
+    $('.btn-test')[0].addEventListener("click", function (e) {
+        var body = respite_crud.renderDMFormFields({
+            "DT_RowId": 101,
+            "Field_1": "Field 1 Value"
+        }, [{
+            "name": "Field_1",
+            "data": "Field_1",
+            "render": respite_crud.renderAutomatic,
+            "editor_data": {
+                "label": "Field 1 Label",
+                "type": "text",
+                "tooltip": "Field 1 Tooltip",
+                "default_value": "",
+                "attributes": { "placeholder": "Field 1 Placeholder", "maxlength": 15 }
+            }
+        }]);
+
+        new BstrapModal("my tile", body).Show();
+    });
+
 </script>
 <!--#include file="dist/asp/inc_footer.asp" -->
 </div>
