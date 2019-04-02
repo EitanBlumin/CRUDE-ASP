@@ -1,45 +1,60 @@
 ﻿/// Dynamic Bootstrap Modal
 var BstrapModal = function (title, body, buttons, on_show_event) {
-    var title = title || "Lorem Ipsum History", body = body || "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.", buttons = buttons || [{ Value: "CLOSE", Css: "btn-primary", Callback: function (event) { BstrapModal.Close(); } }];
+    var title = title || "Lorem Ipsum History", body = body || "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.", buttons = buttons || [{ Value: "CLOSE", Css: "btn-primary" }];
+    var Id = Math.random();
     var GetModalStructure = function () {
         var that = this;
-        that.Id = BstrapModal.Id = Math.random();
+        that.Id = Id;
         var buttonshtml = "";
         for (var i = 0; i < buttons.length; i++) {
             buttonshtml += "<button type='button' class='btn " + (buttons[i].Css || "") + "' name='btn" + that.Id + "'>" + (buttons[i].Value || "CLOSE") + "</button>";
         }
-        return "<div class='modal fade' name='dynamiccustommodal' id='" + that.Id + "' tabindex='-1' role='dialog' data-keyboard='true' aria-labelledby='" + that.Id + "Label'><div class='modal-dialog modal-lg modal-dialog-centered'><div class='modal-content'><div class='modal-header bg-primary'><button type='button' class='close' data-dismiss='modal' title='Close' aria-label='Close'><span aria-hidden='true'>&times;</span></button><h4 class='modal-title'>" + title + "</h4></div><div class='modal-body'><div class='row'><div class='col-xs-12 col-md-12 col-sm-12 col-lg-12'>" + body + "</div></div></div><div class='modal-footer bg-default'><div class='col-xs-12 col-sm-12 col-lg-12'>" + buttonshtml + "</div></div></div></div></div>";
+        return "<div class='modal fade' name='dynamiccustommodal' id='" + that.Id + "' tabindex='-1' role='dialog' data-keyboard='true' data-focus='true' aria-labelledby='" + that.Id + "Label'><div class='modal-dialog modal-lg modal-dialog-centered'><div class='modal-content'><div class='modal-header bg-primary'><button type='button' class='close' data-dismiss='modal' title='Close' aria-label='Close'><span aria-hidden='true'>&times;</span></button><h4 class='modal-title'>" + title + "</h4></div><div class='modal-body'><div class='row'><div class='col-xs-12 col-md-12 col-sm-12 col-lg-12'>" + body + "</div></div></div><div class='modal-footer bg-default'><div class='col-xs-12 col-sm-12 col-lg-12'>" + buttonshtml + "</div></div></div></div></div>";
     }();
-    BstrapModal.Delete = function (preservePreviousModals) {
+    this.Delete = function (preservePreviousModals) {
         if (!preservePreviousModals) {
-            var modals = document.getElementsByName("dynamiccustommodal");
-            if (modals.length > 0) document.body.removeChild(modals[0]);
+            BstrapModal.Delete();
         } else {
-            var modal = document.getElementById(BstrapModal.Id);
+            var modal = document.getElementById(Id);
             if (modal) document.body.removeChild(modal);
         }
     };
-    BstrapModal.Close = function (preservePreviousModals) {
-        $(document.getElementById(BstrapModal.Id)).modal('hide');
+    BstrapModal.Delete = function () {
+        $('.modal[name="dynamiccustommodal"]').each(function (ix) {
+            $(this).remove();
+        });
+        // forcibly remove backdrop in case we've missed something
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+    };
+    this.Close = function (preservePreviousModals) {
+        if (!preservePreviousModals)
+            BstrapModal.Close;
+        else
+            $(document.getElementById(Id)).modal('hide');
+    };
+    BstrapModal.Close = function () {
+        $('.modal[name="dynamiccustommodal"]').each( function (ix) { $(this).modal('hide') } );
     };
     this.Show = function (preservePreviousModals) {
         if (!preservePreviousModals)
-            BstrapModal.Delete();
+            this.Delete();
 
         document.body.appendChild($(GetModalStructure)[0]);
-        var btns = document.querySelectorAll("button[name='btn" + BstrapModal.Id + "']");
+        var btns = document.querySelectorAll("button[name='btn" + Id + "']");
         for (var i = 0; i < btns.length; i++) {
-            btns[i].addEventListener("click", buttons[i].Callback || BstrapModal.Close);
+            btns[i].addEventListener("click", buttons[i].Callback || this.Close);
         }
 
-        $(document.getElementById(BstrapModal.Id)).modal('show');
-        $(document.getElementById(BstrapModal.Id)).on('hidden.bs.modal', function (e) {
-            BstrapModal.Delete(preservePreviousModals);
+        $(document.getElementById(Id)).modal('show');
+        var that = this;
+        $(document.getElementById(Id)).on('hidden.bs.modal', function (e) {
+            that.Delete(preservePreviousModals);
         });
 
         if (on_show_event) {
-            $(document.getElementById(BstrapModal.Id)).on('shown.bs.modal', function (e) {
-                on_show_event(e, BstrapModal.Id);
+            $(document.getElementById(Id)).on('shown.bs.modal', function (e) {
+                on_show_event(e, Id);
             });
         }
     };
@@ -76,7 +91,10 @@ class respite_crud {
         BstrapModal.Close();
 
         $(formElement.getAttribute('form-modal')).modal('hide');
-        respite_crud.dt.buttons.info('Processing...', '<h3 class="text-center"><i class="fas fa-spinner fa-pulse"></i></h3>');
+
+        var bsm = new BstrapModal("Processing...", '<h3 class="text-center"><i class="fas fa-spinner fa-pulse"></i></h3>', []);
+        bsm.Show();
+        //respite_crud.dt.buttons.info('Processing...', '<h3 class="text-center"><i class="fas fa-spinner fa-pulse"></i></h3>');
 
         // returning anything other than false will allow the form submit to continue 
         return true;
@@ -96,13 +114,18 @@ class respite_crud {
         // is the json data object returned by the server 
         var btnsm = '<div class="ml-auto float-right pull-right"><button type="button" role="button" class="btn btn-secondary btn-sm" onclick="respite_crud.dt.buttons.info(false)" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button></div>';
         var btn = '<br/><button type="button" role="button" class="btn btn-secondary" onclick="respite_crud.dt.buttons.info(false)">Close</button>';
+        var bsm;
 
         if (statusType == 'error') {
-            respite_crud.dt.buttons.info(btnsm + '<i class="fas fa-exclamation-triangle"></i> ' + response.status + ' ' + response.statusText, response.responseText + btn);
+            bsm = new BstrapModal('<i class="fas fa-exclamation-triangle"></i> ' + response.status + ' ' + response.statusText, response.responseText);
+            //respite_crud.dt.buttons.info(btnsm + '<i class="fas fa-exclamation-triangle"></i> ' + response.status + ' ' + response.statusText, response.responseText + btn);
         }
         else {
-            respite_crud.dt.buttons.info('<i class="fas fa-check-circle"></i> ' + xhr.statusText + btnsm, response['data'] + btn, 10000);
+            bsm = new BstrapModal('<i class="fas fa-check-circle"></i> ' + xhr.statusText, response['data']);
+            //respite_crud.dt.buttons.info('<i class="fas fa-check-circle"></i> ' + xhr.statusText + btnsm, response['data'] + btn, 10000);
         }
+
+        bsm.Show();
 
         // refresh datatable:
         respite_crud.dt.ajax.reload();
@@ -595,7 +618,7 @@ class respite_crud {
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_edit;
         var form_id = 'form_modal_modify_' + mode;
         var title = "";
-        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left", Callback: function (e) { BstrapModal.Close(); } }, { Value: "<i class='fas fa-save'></i> Save Changes", Css: "btn-success", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
+        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left" }, { Value: "<i class='fas fa-save'></i> Save Changes", Css: "btn-success", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
         
         // save to static row object for the Deletion modal to access
         if (r == undefined || r == null)
@@ -660,7 +683,7 @@ class respite_crud {
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_delete;
         var form_id = 'form_modal_delete';
         var title = "Are you sure you want to delete?";
-        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left", Callback: function (e) { BstrapModal.Close(true); } }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
+        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left" }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
         var body = $('<form class="ajax-form" name="modal_delete_form" action="ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
                 .attr('action', modal_options.modal_form_target)
                 .append(respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(r)); // render modal with row details
@@ -688,7 +711,7 @@ class respite_crud {
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_delete;
         var form_id = 'form_modal_delete_multi';
         var title = "Are you sure you want to delete?";
-        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left", Callback: function (e) { BstrapModal.Close(true); } }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
+        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left" }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
         
         var r = dt.rows({ selected: true }).data();
         var rowIds = "";
