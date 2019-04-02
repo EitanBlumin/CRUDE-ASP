@@ -439,80 +439,6 @@ IF strError <> "" THEN
   
 <% ELSE %>
 
-<!-- Data Manipulation Modals -- >
-< !-- Edit/Update/Clone Modal -- >
-<div class="modal fade" id="modal_edit" role="dialog">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-        <div class="modal-header bg-primary">
-            <span class="box-tools pull-right">
-                <button type="button" class="btn btn-danger btn-sm" id="modal_btn_delete" role="button" href="javascript:void(0)" onclick="respite_crud.showDelete(respite_crud.row)" aria-label="Delete" title="Delete" data-toggle="modal" data-target="#modal_delete"><i class="far fa-trash-alt"></i> Delete</button>
-                &nbsp;
-                <button type="button" role="button" class="btn btn-secondary btn-sm" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button>
-            </span>
-            <h4 class="modal-title float-left" id="modal_edit_title">Add Item</h4>
-        </div>
-        <form class="ajax-form" name="modal_edit_form" action="ajax_dataview.asp?ViewID=<%= nViewID %>" method="post" form-modal="#modal_edit">
-            <div class="modal-body" id="modal_edit_body"></div>
-            <div class="modal-footer bg-primary">
-                <input type="hidden" name="postback" value="true" />
-                <input type="hidden" name="DT_RowId" value="" />
-                <input type="hidden" name="mode" value="add" />
-                <button type="button" class="btn btn-secondary pull-left" data-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Save changes</button>
-            </div>
-        </form>
-    </div>
-    < !-- /.modal-content -- >
-    </div>
-    < !-- /.modal-dialog -- >
-</div>
-<!-- /.modal -- >
-
-<!-- Deletion Modal -- >
-<div class="modal fade" id="modal_delete" role="dialog">
-    <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-        <div class="modal-header bg-danger">
-            <span class="box-tools pull-right">
-            <button type="button" role="button" class="btn btn-secondary btn-sm" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button>
-            </span>
-            <h4 class="modal-title float-left">Are you sure you want to delete?</h4>
-        </div>
-        <form class="ajax-form" name="modal_delete_form" action="ajax_dataview.asp?ViewID=<%= nViewID %>" method="post" form-modal="#modal_delete">
-            <div class="modal-body" id="modal_delete_body"></div>
-            <div class="modal-footer bg-danger">
-                <input type="hidden" name="postback" value="true" />
-                <input type="hidden" name="DT_RowId" value="-1" />
-                <input type="hidden" name="mode" value="delete" />
-                <button type="button" class="btn btn-secondary pull-left" data-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-danger" onclick="respite_crud.hideModal('#modal_edit')">Delete</button>
-            </div>
-        </form>
-    </div>
-    </div>
-</div>
-< !-- /.modal -->
-
-<!-- Response Modal -->
-<div class="modal fade" id="modal_response" role="dialog">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-        <div class="modal-header bg-primary">
-            <span class="box-tools pull-right">
-            <button type="button" role="button" class="close" data-dismiss="modal" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button>
-            </span>
-            <h4 class="modal-title float-left" id="modal_response_title">Processing</h4>
-        </div>
-            <div class="modal-body container-fluid" id="modal_response_body"><h2><i class="fas fa-spinner fa-pulse"></i></h2></div>
-            <div class="modal-footer bg-default">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
-    </div>
-    </div>
-</div>
-<!-- /.modal -->
-
 <!-- Hidden Form for Row Reordering -->
 <form name="row_reorder_form" action="ajax_dataview.asp?ViewID=<%= nViewID %>" method="post">
     <div id="row_reorder_body"></div>
@@ -585,61 +511,6 @@ IF strError <> "" THEN
 <script type="text/javascript" src="datatable_respite_crud.js"></script>
 <!-- page scripts -->
 <script type="text/javascript">
-    // pre-submit callback 
-    function preRequest(formData, jqForm, options) {
-        // jqForm is a jQuery object encapsulating the form element.  To access the 
-        // DOM element for the form do this: 
-        var formElement = jqForm[0];
-
-        BstrapModal.Close();
-
-        $(formElement.getAttribute('form-modal')).modal('hide');
-        //respite_crud.dt.buttons.info('Processing...', '<h3 class="text-center"><i class="fas fa-spinner fa-pulse"></i></h3>');
-        $('#modal_response_body').html('<h2 class="text-center"><i class="fas fa-spinner fa-pulse"></i></h2>');
-        $('#modal_response_title').text('<%= GetWord("Processing...") %>');
-        $('#modal_response .modal-header').removeClass().addClass("modal-header bg-primary");
-        $('#modal_response .modal-footer').removeClass().addClass("modal-footer bg-primary");
-        $('#modal_response').modal('show');
-
-        // returning anything other than false will allow the form submit to continue 
-        return true;
-    }
-
-    // post-submit callback 
-    function showResponse(response, statusType, xhr, $form) {
-        // for normal html responses, the first argument to the success callback 
-        // is the XMLHttpRequest object's responseText property 
-
-        // if the ajaxForm method was passed an Options Object with the dataType 
-        // property set to 'xml' then the first argument to the success callback 
-        // is the XMLHttpRequest object's responseXML property 
-
-        // if the ajaxForm method was passed an Options Object with the dataType 
-        // property set to 'json' then the first argument to the success callback 
-        // is the json data object returned by the server 
-        //var btnsm = '<div class="ml-auto float-right"><button type="button" role="button" class="btn btn-secondary btn-sm" onclick="respite_crud.dt.buttons.info(false)" aria-label="Close" title="Close"><span aria-hidden="true">&times;</span></button></div>';
-        //var btn = '<br/><br/><button type="" class="btn btn-secondary" onclick="respite_crud.dt.buttons.info(false)">Close</button>';
-        if (statusType == 'error') {
-            //respite_crud.dt.buttons.info('<i class="fas fa-exclamation-triangle"></i> ' + response.status + ' ' + response.statusText + btnsm, 'Response Body:<br/><div class="alert alert-danger">' + respite_crud.escapeHtml(response.responseText) + '</div>' + btn);
-            $('#modal_response .modal-header').removeClass().addClass("modal-header bg-danger");
-            $('#modal_response .modal-footer').removeClass().addClass("modal-footer bg-danger");
-            $('#modal_response_title').html('<i class="fas fa-exclamation-triangle"></i> ' + response.status + ' ' + response.statusText);
-            $('#modal_response_body').html(response.responseText);
-        }
-        else {
-            //respite_crud.dt.buttons.info('<i class="fas fa-check-circle"></i> ' + xhr.statusText + btnsm, response['data'] + btn, 10000);
-            $('#modal_response .modal-header').removeClass().addClass("modal-header bg-success");
-            $('#modal_response .modal-footer').removeClass().addClass("modal-footer bg-success");
-            $('#modal_response_title').html('<i class="fas fa-check-circle"></i> ' + xhr.statusText);
-            $('#modal_response_body').html(response['data']);
-        }
-        // refresh datatable:
-        respite_crud.dt.ajax.reload();
-
-        //alert('status: ' + statusType + '\n\nresponse: \n' + response['data'] + 
-        //    '\n\nThe output div should have already been updated with the responseText.'); 
-    }
-
     // Detail Row Formatting
     function formatDetails(d) {
         if (d != undefined) {
@@ -668,10 +539,6 @@ IF strError <> "" THEN
 
     // Override some options
     respite_crud.respite_editor_options.dt_Options.dt_AjaxGet = "ajax_dataview.asp?mode=datatable&ViewID=<%= nViewID %>";
-    respite_crud.respite_editor_options.modal_Options.pre_submit_callback = preRequest;
-    respite_crud.respite_editor_options.modal_Options.response_success_callback = showResponse;
-    respite_crud.respite_editor_options.modal_Options.response_error_callback = showResponse;
-    respite_crud.respite_editor_options.modal_Options.ajax_forms_selector = "form.ajax-form";
     respite_crud.respite_editor_options.modal_Options.modal_edit.modal_form_target = "ajax_dataview.asp?ViewID=<%= nViewID %>";
     respite_crud.respite_editor_options.modal_Options.modal_delete.modal_form_target = "ajax_dataview.asp?ViewID=<%= nViewID %>";
 
@@ -897,9 +764,6 @@ IF strError <> "" THEN
         })*/
         ;
 
-        respite_crud.respite_editor_options.modal_Options.pre_submit_callback = preRequest;
-        respite_crud.respite_editor_options.modal_Options.response_success_callback = showResponse;
-        respite_crud.respite_editor_options.modal_Options.response_error_callback = showResponse;
         /*// Bind Data Manipulation Forms to Ajax
         respite_crud.initAjaxForm({
             beforeSubmit: preRequest,
