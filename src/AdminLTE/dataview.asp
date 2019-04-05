@@ -159,183 +159,6 @@ END IF
 
 ON ERROR GOTO 0
 
-'***************************
-' Data Manipulation Section
-'***************************
-IF strError = "" AND ((strMode = "add" AND blnAllowInsert) OR (strMode = "edit" AND blnAllowUpdate AND nItemID <> "")) AND Request.Form("postback") = "true" THEN
-    Response.Write "<!-- Data Manipulation Start -->" & vbCrLf
-	' If stored procedure
-    IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
-        strSQL = strModificationProcedure
-
-	    SET cmdStoredProc = Server.CreateObject("ADODB.Command")
-	    cmdStoredProc.ActiveConnection = adoConnCrudeSrc
-	    cmdStoredProc.CommandText = strSQL
-	    cmdStoredProc.CommandType = adCmdStoredProc
-    
-        cmdStoredProc.Parameters.Refresh
-        ' Parameter 0 is the return value
-        ' Parameter 1 should be @Mode.
-        cmdStoredProc.Parameters(1).Value = strMode
-        
-        ' Parameter 2 should be the PK.
-        IF nItemID = "" THEN nItemID = Null
-        cmdStoredProc.Parameters(2).Value = nItemID
-
-    Else
-	    strSQL = "SELECT * FROM " & strMainTableName
-
-        IF strMode = "edit" AND nItemID <> "" AND IsNumeric(nItemID) THEN
-		    strSQL = strSQL & " WHERE " & strPrimaryKey & " = " & nItemID
-        ELSE
-		    strSQL = strSQL & " WHERE 1=2"
-        END IF
-        
-        rsItems.CursorLocation = adUseClient
-        rsItems.CursorType = adOpenKeyset
-        rsItems.LockType = adLockOptimistic
-        rsItems.Open strSQL, adoConnCrudeSrc
-
-        IF strMode = "add" THEN
-            rsItems.AddNew
-        END IF
-
-        IF strMode = "edit" AND rsItems.EOF THEN
-            strError = "Item Not Found<br/>"
-        END IF
-    END IF
-
-    IF strError = "" THEN
-	Dim nParamID
-    nParamID = 2
-    ON ERROR RESUME NEXT
-
-		FOR nIndex = 0 TO UBound(arrViewFields, 2) 'AND False
-			IF arrViewFields(dvfcFieldType, nIndex) <> 10 AND (arrViewFields(dvfcFieldFlags, nIndex) AND 4) = 0 THEN ' not "link" or read-only
-                
-                IF Request("inputField_" & nIndex) = "" AND (arrViewFields(dvfcFieldFlags, nIndex) AND 2) > 0 THEN
-                    strError = strError & "<b>" & Sanitizer.HTMLDisplay(arrViewFields(dvfcFieldLabel, nIndex)) & "</b> is required but has not been filled.<br/>"
-                ELSE
-                    Select Case arrViewFields(dvfcFieldType, nIndex)
-                        Case 12, 1, 2, 6, 14 '"password", "text", "textarea", "multicombo", "rte"
-                            varCurrFieldValue = Request("inputField_" & nIndex)
-                        Case 13 '"time"
-                            IF Len(Request("inputField_" & nIndex)) = 0 AND (arrViewFields(dvfcFieldFlags, nIndex) AND 2) = 0 THEN ' if empty and not required, enter NULL
-                                varCurrFieldValue = NULL
-                                Response.Write "<!-- setting [time] field " & arrViewFields(dvfcFieldSource, nIndex) & " = NULL -->" & vbCrLf
-                            ELSE
-				                varCurrFieldValue = Mid(Request("inputField_" & nIndex), 1, 8)
-                                Response.Write "<!-- [time] field " & arrViewFields(dvfcFieldSource, nIndex) & " is NOT NULL (" & Len(Request("inputField_" & nIndex)) & ", " & (arrViewFields(dvfcFieldFlags, nIndex) AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
-                            END IF
-                        Case Else
-                            IF Len(Request("inputField_" & nIndex)) = 0 AND (arrViewFields(dvfcFieldFlags, nIndex) AND 2) = 0 THEN ' if empty and not required, enter NULL
-                                varCurrFieldValue = NULL
-                                Response.Write "<!-- setting " & arrViewFields(dvfcFieldSource, nIndex) & " = NULL -->" & vbCrLf
-                            ELSE
-				                varCurrFieldValue = Request("inputField_" & nIndex)
-                                Response.Write "<!-- " & arrViewFields(dvfcFieldSource, nIndex) & " is NOT NULL (" & Len(Request("inputField_" & nIndex)) & ", " & (arrViewFields(dvfcFieldFlags, nIndex) AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
-                            END IF
-                    End Select
-
-                    IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
-                        nParamID = nParamID + 1
-                        Response.Write "<!-- Setting parameter " & nParamID & " = " & varCurrFieldValue & "-->" & vbCrlf
-                        cmdStoredProc.Parameters(nParamID).Value = varCurrFieldValue
-                    ELSE
-                        Response.Write "<!-- setting " & arrViewFields(dvfcFieldSource, nIndex) & " = """ & varCurrFieldValue & """ (isnull: " & IsNull(varCurrFieldValue) & ") ErrCount: " & adoConnCrude.Errors.Count & " -->" & vbCrLf
-                        rsItems(arrViewFields(dvfcFieldSource, nIndex)) = varCurrFieldValue
-                    END IF
-                END IF
-			END IF
-		NEXT
-        
-        IF strError = "" THEN
-            IF NOT IsNull(strModificationProcedure) AND strModificationProcedure <> "" THEN
-	            cmdStoredProc.Execute
-
-	            IF adoConnCrudeSrc.Errors.Count > 0 THEN
-		            strError = strError & " Executed Stored Procedure " & strModificationProcedure & " With Errors</br>"
-    		    END IF
-
-	            SET cmdStoredProc = Nothing
-            ELSE
-                'strError = strError & "Attempting rs.Update<br/>"
-                'Response.Write "<!-- ErrCount before Update: " & adoConnCrudeSrc.Errors.Count & " -->" & vbCrLf
-                rsItems.Update
-                'Response.Write "<!-- ErrCount after Update: " & adoConnCrudeSrc.Errors.Count & " -->" & vbCrLf
-                rsItems.Close    
-                'Response.Write "<!-- ErrCount after Close: " & adoConnCrudeSrc.Errors.Count & " -->" & vbCrLf
-            END IF
-        ELSE
-            rsItems.Close    
-        END IF
-
-	END IF
-
-    ON ERROR GOTO 0
-
-    ' check for errors
-    If adoConnCrudeSrc.Errors.Count > 0 Then
-        DIM Err
-        strError = strError & " Error(s) while performing """ & strMode & """:<br/>" 
-        For Each Err In adoConnCrudeSrc.Errors
-			strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
-        Next
-        IF globalIsAdmin THEN strError = strError & "While trying to run:<br/><b>" & strSQL & "</b>"
-    End If
-	
-	IF strError = "" THEN 
-        adoConnCrudeSrc.Close
-        adoConnCrude.Close
-	    Response.Redirect(constPageScriptName & "?MSG=" & strMode & strViewQueryString)
-    END IF
-
-ELSEIF strError = "" AND strMode = "delete" AND nItemID <> "" AND IsNumeric(nItemID) AND blnAllowDelete THEN
-	
-	' If stored procedure
-    IF NOT IsNull(strDeleteProcedure) AND strDeleteProcedure <> "" THEN
-        strSQL = strDeleteProcedure
-
-	    SET cmdStoredProc = Server.CreateObject("ADODB.Command")
-	    cmdStoredProc.ActiveConnection = adoConnCrudeSrc
-	    cmdStoredProc.CommandText = strSQL
-	    cmdStoredProc.CommandType = adCmdStoredProc
-    
-        cmdStoredProc.Parameters.Refresh
-        ' Parameter 0 is the return value
-        ' Parameter 1 should be the PK.
-        IF nItemID = "" THEN nItemID = Null
-        cmdStoredProc.Parameters(1).Value = nItemID
-    
-        ON ERROR RESUME NEXT
-
-	    cmdStoredProc.Execute
-    
-        IF Err.Number <> 0 THEN
-		    strError = Err.Description
-	    ELSEIF adoConnCrudeSrc.Errors.Count > 0 THEN
-	        strError = "ERROR while tring to open data source " & strDataSource & ":<br/>"
-            For Each Err In adoConnCrudeSrc.Errors
-		        strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
-            Next
-        END IF
-	
-	    SET cmdStoredProc = Nothing
-
-        ON ERROR GOTO 0
-    Else
-        strSQL = "DELETE FROM " & strMainTableName & " WHERE " & strPrimaryKey & " = " & nItemID
-	    adoConnCrudeSrc.Execute strSQL
-    End If
-
-	IF strError = "" Then
-    	adoConnCrudeSrc.Close
-        adoConnCrude.Close
-        Response.Redirect(constPageScriptName & "?MSG=delete" & strViewQueryString)
-    End If
-END IF
-
-
 '***************
 ' Page Contents
 '***************
@@ -466,7 +289,7 @@ IF strError <> "" THEN
         <% END IF %>
             <% IF blnShowRowActions THEN %><th><%= GetWord("Actions") %></th><% END IF 
     FOR nIndex = 0 TO dvFields.UBound
-        IF strRowReorderCol = dvFields(nIndex)("FieldSource") AND strRowReorderColMasked = "" THEN strRowReorderColMasked = "Field_" & dvFields(nIndex)("FieldID")
+        IF strRowReorderCol = dvFields(nIndex)("FieldSource") AND strRowReorderColMasked = "" THEN strRowReorderColMasked = dvFields(nIndex)("FieldIdentifier")
         IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN %>
             <th class="dt-exportable dt-toggleable<%
                 ' if search is enabled for this field
@@ -554,7 +377,7 @@ IF strError <> "" THEN
         FOR nIndex = 0 TO dvFields.UBound
         IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN
     %>.addColumn({
-        "name": "Field_<%= dvFields(nIndex)("FieldID") %>",
+        "name": "<%= dvFields(nIndex)("FieldIdentifier") %>",
         "data": "Field_<%= dvFields(nIndex)("FieldID") %>",
             "render": respite_crud.renderAutomatic<%
     IF (dvFields(nIndex)("FieldFlags") AND 8) = 0 THEN  %>,

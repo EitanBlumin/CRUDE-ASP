@@ -87,7 +87,7 @@ BEGIN
 				ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''') ' + CASE co.ColDir WHEN 'desc' THEN 'DESC' ELSE 'ASC' END + N', '
 	FROM  portal.DataViewField AS dvf
 	INNER JOIN ColsXML AS c
-	ON (@RowReorder IS NULL AND 'Field_' + CONVERT(nvarchar,dvf.FieldID) = c.ColName)
+	ON (@RowReorder IS NULL AND CONVERT(nvarchar,dvf.FieldIdentifier) = c.ColName)
 	OR (@RowReorder IS NOT NULL AND dvf.FieldSource = @RowReorder)
 	INNER JOIN (
 	SELECT
@@ -142,7 +142,7 @@ SELECT
 		' + QUOTENAME(ISNULL(c.DataSrc, 'Field_' + CONVERT(nvarchar,dvf.FieldID))) + N' = ' + CASE WHEN FieldType = 12 THEN N'''''' WHEN FieldType IN (7,8) THEN N'ISNULL(CONVERT(nvarchar(19),' + FieldSource + N', 126), '''')' ELSE N'ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''')' END
 FROM portal.DataViewField AS dvf
 LEFT JOIN ColsXML AS c
-ON 'Field_' + CONVERT(nvarchar,dvf.FieldID) = c.ColName
+ON CONVERT(nvarchar,dvf.FieldIdentifier) = c.ColName
 WHERE ViewID = @ViewID
 --ORDER BY FieldOrder ASC
 

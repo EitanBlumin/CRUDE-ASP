@@ -11,7 +11,7 @@
       })
   });
   $(document).ready(function () {
-      $('[data-toggle="tooltip"]').tooltip();<% IF constPageScriptName <> "dataview.asp" THEN %>
+      $('body').find('[data-toggle="tooltip"]').tooltip();<% IF constPageScriptName <> "dataview.asp" THEN %>
       $('.summernote textarea').summernote({
           placeholder: 'You can enter rich text here. The following placeholders can be used: {ServerName} {ObjectName} {ErrorDescription} {SeverityColor} {Severity} {ObjectType} {SampleID} {LastRunDate} {ExtendedReport}',
           tabsize: 2,

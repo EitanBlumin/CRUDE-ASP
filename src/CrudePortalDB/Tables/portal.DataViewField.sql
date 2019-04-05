@@ -22,7 +22,9 @@
 	[FieldDescription]		NVARCHAR (4000) NULL,
     [FormatPattern] VARCHAR(100) NULL, 
     [FieldTooltip] NVARCHAR(300) NULL, 
+    [FieldIdentifier] NVARCHAR(100) NULL DEFAULT 'Field_' + CONVERT(nvarchar, ABS(CHECKSUM(NEWID()))), 
     CONSTRAINT [PK_DataViewField] PRIMARY KEY CLUSTERED ([ViewID] ASC, [FieldID] ASC),
+    INDEX [UQ_DataViewFields] UNIQUE NONCLUSTERED ([ViewID] ASC, [FieldIdentifier] ASC),
     CONSTRAINT [FK_DataViewField_DataView] FOREIGN KEY ([ViewID]) REFERENCES [portal].[DataView] ([ViewID]) ON DELETE CASCADE
 );
 
