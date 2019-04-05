@@ -1,0 +1,286 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>OAuth Login Client-Side Test</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/all.css">
+  <!-- CodeSeven toastr notifications -->
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
+
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+  <!-- Google Font -->
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+
+<style>
+    /* Sticky footer styles
+-------------------------------------------------- */
+    html {
+        position: relative;
+        min-height: 100%;
+    }
+
+    body {
+        /* Margin bottom by footer height */
+        margin-bottom: 60px;
+    }
+
+    .footer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        /* Set the fixed height of the footer here */
+        height: 60px;
+        line-height: 60px; /* Vertically center the text there */
+        background-color: #f5f5f5;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="row justify-content-center">
+        <h3>There are a few prerequisites for using this interface:</h3>
+    </div>
+    <div class="row justify-content-center">
+        <ol>
+            <li>You must be connected to the internet.</li>
+            <li>The HTML file must be opened from a location authorized as a redirect URL by your app</li>
+			<li>The first time you'll be using this interface, you will be asked to login, and authorize this client application. Make sure you click on "Allow" when prompted.</li>
+        </ol>
+    </div>
+
+    <form onsubmit="startAuthFlow(); return false;">
+        <div class="row justify-content-center">
+            <div class="col-sm-8 col-md-7 col-lg-5">
+                <div class="card text-center mb-3">
+                    <div class="card-header">
+                        <h3 class="card-title" align="center">Please login:</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="input-group">
+                            <div class="input-group-prepend"><span class="input-group-text" id="lbl_currAgentEmail">Email:</span></div>
+                            <input type="email" name="email" class="form-control" required aria-required="true" placeholder="your_name@company.com" aria-label="Email" aria-describedby="lbl_currAgentEmail">
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> log in
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+    <footer class="footer">
+        <div class="container">
+            <span class="text-muted">Copyright &copy; Eitan Blumin 2019.</span>
+        </div>
+    </footer>
+	
+    <!-- JQuery 3 -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <!-- CodeSeven toastr notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        toastr.options = {
+            'closeButton': true,
+            'debug': false,
+            'newestOnTop': true,
+            'progressBar': true,
+            'positionClass': 'toast-bottom-left',
+            'preventDuplicates': true,
+            'onclick': null,
+            'showDuration': '300',
+            'hideDuration': '3000',
+            'timeOut': '5000',
+            'extendedTimeOut': '10000',
+            'showEasing': 'swing',
+            'hideEasing': 'linear',
+            'showMethod': 'slideDown',
+            'hideMethod': 'fadeOut'
+        }
+    </script>
+    <!-- page script -->
+    <script>
+        const LS_EMAIL = 'oauth_email';
+        const LS_ACCESS_TOKEN = 'oauth_access_token';
+
+        var usermail = localStorage.getItem(LS_EMAIL);
+        // config
+
+        // Office 365:
+        var OAuthClientId = "7dcbc15d-98bc-48c1-ac7d-e730b82ea44a";
+        var OAuthSecret = "";
+        var OAuthEndpointURL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
+        var OAuthScope = "User.Read";
+        var response_type = "token";
+        var response_mode = "fragment";
+
+        // Zendesk:
+        //var OAuthClientId = "genericoauthjs";
+        //var OAuthSecret = "787bbc7d96e00d1d4d3276ae701d58ff7ee95f0d4250284804a105b8aaf29659";
+        //var OAuthEndpointURL = "https://madeirards.zendesk.com/oauth/authorizations/new";
+        //var OAuthScope = "read write";
+        //var response_mode = "";
+        //var response_type = "token";
+
+        var access_token = "";
+        var redirect_uri = window.location.href;
+
+        // init functions
+        var parseHashParams = function  (hash) {
+            var params = hash.slice(1).split('&');
+
+            var paramarray = {};
+            params.forEach(function(param) {
+                param = param.split('=');
+                paramarray[param[0]] = param[1];
+            });
+
+            return paramarray;
+        }
+        var handleTokenResponse = function (hash) {
+            // clear tokens
+            sessionStorage.removeItem('accessToken');
+            sessionStorage.removeItem('idToken');
+
+            var tokenresponse = parseHashParams(hash);
+
+            // Check that state is what we sent in sign in request
+            if (tokenresponse.state != sessionStorage.authState) {
+                sessionStorage.removeItem('authState');
+                sessionStorage.removeItem('authNonce');
+                // Report error
+                window.location.hash = '#error=Invalid+state&error_description=The+state+in+the+authorization+response+did+not+match+the+expected+value.+Please+try+signing+in+again.';
+                return;
+            }
+
+            sessionStorage.authState = '';
+            sessionStorage.accessToken = tokenresponse.access_token;
+
+            // Get the number of seconds the token is valid for,
+            // Subract 5 minutes (300 sec) to account for differences in clock settings
+            // Convert to milliseconds
+            var expiresin = (parseInt(tokenresponse.expires_in) - 300) * 1000;
+            var now = new Date();
+            var expireDate = new Date(now.getTime() + expiresin);
+            sessionStorage.tokenExpires = expireDate.getTime();
+
+            sessionStorage.idToken = tokenresponse.id_token;
+
+            // Redirect to home page
+            window.location.hash = '#';
+        }
+        render(window.location.hash);
+
+        $(window).on('hashchange', function() {
+            render(window.location.hash);
+        });
+
+        function render(hash) {
+
+            var action = hash.split('=')[0];
+
+            // Hide everything
+            $('.main-container .page').hide();
+
+            var isAuthenticated = false;
+
+            var pagemap = {
+
+                // Welcome page
+                '': function () {
+                    renderWelcome(isAuthenticated);
+                },
+
+                // Receive access token
+
+                // Signout
+
+                // Error display
+
+                // Display inbox
+
+                // Shown if browser doesn't support session storage
+                '#unsupportedbrowser': function () {
+                    $('#unsupported').show();
+                }
+            }
+
+            if (pagemap[action]) {
+                pagemap[action]();
+            } else {
+                // Redirect to home page
+                window.location.hash = '#';
+            }
+        }
+        var getUrlParam = function (sParam) {
+            var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+                sURLVariables = sPageURL.split('&'),
+                sParameterName,
+                i;
+
+            for (i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+
+                if (sParameterName[0] === sParam) {
+                    return sParameterName[1] === undefined ? true : sParameterName[1];
+                }
+            }
+        }
+
+        var startAuthFlow = function () {
+            var endpoint = OAuthEndpointURL; //$scope.zendeskMain + '/oauth/authorizations/new';
+            var url_params = '?' +
+            'response_type=' + response_type + '&' +
+            'response_mode=' + response_mode + '&' +
+            'redirect_uri=' + redirect_uri + '&' +
+            'client_id=' + OAuthClientId + '&' +
+            //'client_secret=' + OAuthSecret + '&' +
+            'scope=' + encodeURIComponent(OAuthScope);
+            window.location = endpoint + url_params;
+        }
+
+        var url = window.location.href;
+
+        if (url.indexOf('access_token=') !== -1) {
+            access_token = getUrlParam('access_token');
+            localStorage.setItem(LS_ACCESS_TOKEN, access_token);
+            window.location.hash = "";
+        }
+
+        if (url.indexOf('error=') !== -1) {
+            var error_desc = getUrlParam('error_description');
+            var msg = 'Authorization error: ' + error_desc;
+            toastr.error(msg, "Authorization Error");
+            console.log("Authorization Error: " + msg);
+        }
+
+        if (localStorage.getItem(LS_ACCESS_TOKEN)) {
+            access_token = localStorage.getItem(LS_ACCESS_TOKEN);
+            toastr.success('Access Token: ' + access_token, "You are authenticated!");
+            console.log('You are authenticated! Access Token: ' + access_token);
+        //} else {
+        //    localStorage.setItem(LS_EMAIL, usermail);
+        //    startAuthFlow();
+        }
+
+
+    </script>
+
+</body>
+</html>
