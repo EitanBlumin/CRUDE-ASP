@@ -372,8 +372,6 @@ class respite_crud {
         if (data != '' && data != undefined && ed != undefined && ed['options'] != undefined) {
 
             var opList = ed.options;
-            console.log('rendering bitwise:');
-            console.log(ed.options);
 
             for (var i = 0; i < opList.length; i++) {
 
@@ -1556,7 +1554,7 @@ class respite_crud {
             "searchDelay": 700,
 
             //// DOM setting: //// more info here: https://datatables.net/reference/option/dom
-            "dom": "Bilfpr<'table-responsive't>p", // TODO: the B section should only be added if toolbar buttons were added
+            "dom": "Bil<'dt-dynamic-filter-details'>fpr<'table-responsive't>p", // TODO: the B section should only be added if toolbar buttons were added
 
             //// Custom Buttons: ////
             "buttons": {
@@ -1700,6 +1698,32 @@ class respite_crud {
             if (respite_crud.isDetailRowsAdded) {
                 // On each draw, loop over the `detailRows` array and show any child rows
                 respite_crud.dt.on('draw', function () {
+                    //dt-dynamic-filter-details
+                    $('body').find('.dt-dynamic-filter-details').empty();
+                    var searchCols = respite_crud.dt.settings()[0].aoPreSearchCols; //setOptions.searchCols;
+                    for (var i = 0; i < searchCols.length; i++) {
+                        if (searchCols[i]['sSearch']) {
+                            var col = setOptions.columns[i];
+                            var grp = $('<div class="btn-group" role="group"></div>');
+                            var meta = {
+                                "settings": { "aoColumns": respite_crud.dt.settings()[0].aoColumns },
+                                "col": i
+                            };
+
+                            grp
+                                .append($('<button type="button" class="btn btn-primary"></button>').text(col['editor_data']['label'] || col['name']))
+                                .append($('<button type="button" class="btn btn-default"><i class="fas fa-filter"></i></button>'))
+                                .append($('<button type="button" class="btn btn-secondary"></button>').text(
+                                col.mRender(searchCols[i]['sSearch'], undefined, undefined, meta)
+                                || searchCols[i]['sSearch'])
+                                )
+                                .append($('<button type="button" class="btn btn-primary"><i class="fas fa-times"></i></button>'))
+                            ;
+
+                            $('body').find('.dt-dynamic-filter-details').append(grp.clone());
+                        }
+                    }
+
                     $.each(respite_crud.detailRows, function (i, id) {
                         $('#' + id + ' td a.details-control').trigger('click');
                     });
