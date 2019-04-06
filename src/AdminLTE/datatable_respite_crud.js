@@ -642,6 +642,7 @@ class respite_crud {
         body.append($('<input type="hidden" name="postback" value="true" />'))
         .append($('<input type="hidden" name="DT_RowId" value="" />').val(respite_crud.row.DT_RowId))
         .append($('<input type="hidden" name="mode" value="add" />').val(mode))
+        .append($('<input type="submit" autofocus style="position:absolute; left:-9999px; width:0px; height:0px;" />'));
 
         new BstrapModal(
             title, body.clone().wrap('<div>').parent().html(), buttons,
