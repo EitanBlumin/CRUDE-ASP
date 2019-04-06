@@ -152,8 +152,8 @@
             'hideMethod': 'fadeOut'
         }
 
-        const LS_EMAIL = 'oauth_email';
-        const LS_ACCESS_TOKEN = 'oauth_access_token';
+        const LS_EMAIL = 'userSigninName';
+        const LS_ACCESS_TOKEN = 'accessToken';
 
         var usermail = localStorage.getItem(LS_EMAIL);
         // config
@@ -163,12 +163,6 @@
         var OAuthSecret = "";
         var OAuthEndpointURL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
         var OAuthScope = "openid profile User.Read";
-        var response_type = "token";
-        var response_mode = "fragment";
-
-        var access_token = "";
-        var redirect_uri = window.location.href;
-        var hash = window.location.hash;
 
         OAuthFunc(OAuthEndpointURL, redirect_uri, OAuthClientId, OAuthScope);
     </script>

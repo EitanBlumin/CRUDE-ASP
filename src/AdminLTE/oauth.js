@@ -239,6 +239,8 @@
 
         sessionStorage.userDisplayName = payload.name;
         sessionStorage.userSigninName = payload.preferred_username;
+        console.log('Logged in User Payload:');
+        console.log(payload);
 
         // Per the docs at:
         // https://azure.microsoft.com/en-us/documentation/articles/active-directory-v2-protocols-implicit/#send-the-sign-in-request
