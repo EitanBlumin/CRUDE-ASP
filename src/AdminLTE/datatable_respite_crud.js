@@ -1552,7 +1552,7 @@ class respite_crud {
             "searchDelay": 700,
 
             //// DOM setting: //// more info here: https://datatables.net/reference/option/dom
-            "dom": "Bil<'dt-dynamic-filter-details'>fpr<'table-responsive't>p", // TODO: the B section should only be added if toolbar buttons were added
+            "dom": "<'dt-dynamic-filter-details'>Bilfpr<'table-responsive't>p", // TODO: the B section should only be added if toolbar buttons were added
 
             //// Custom Buttons: ////
             "buttons": {
@@ -1596,17 +1596,26 @@ class respite_crud {
                                 break;
                             default:
                                 // otherwise, it's csv or select
+                                // prepare list of available values by building a hash table
+                                var existingValues = {}
+                                column.data().unique().sort().each(function (d, j) {
+                                    existingValues[d] = true;
+                                });
+
                                 var d = {}
                                 var val = "";
                                 for (var i = 0; respite_crud.dt_Columns[column[0]].editor_data['options'] != undefined && i < respite_crud.dt_Columns[column[0]].editor_data['options']['length']; i++) {
                                     d = respite_crud.dt_Columns[column[0]].editor_data['options'][i];
                                     val = $.fn.dataTable.util.escapeRegex(d.value);
-                                    if (column.search() == val) {
-                                        select.append(
-                                          '<option value="' + val + '" selected="selected">' + d.label + "</option>"
-                                        );
-                                    } else {
-                                        select.append('<option value="' + val + '">' + d.label + "</option>");
+                                    // if value exists in grid:
+                                    if (existingValues[val]) {
+                                        if (column.search() == val) {
+                                            select.append(
+                                              '<option value="' + val + '" selected="selected">' + d.label + "</option>"
+                                            );
+                                        } else {
+                                            select.append('<option value="' + val + '">' + d.label + "</option>");
+                                        }
                                     }
                                 }
                                 break;
@@ -1671,14 +1680,9 @@ class respite_crud {
 
                 if (colSearch != undefined) {
                     colSearch = { "search": colSearch, "sSearch": colSearch, "escapeRegex": !(respite_crud.getUrlParam(currCol + '[regex]') == "true") }
-                    console.log('found url Search for column ' + i);
-                    console.log(colSearch);
                 } else if (setOptions['searchCols'][i] != undefined) {
                     colSearch = setOptions.searchCols[i];
-                    console.log('found existing Search for column ' + i);
-                    console.log(colSearch);
                 } else {
-                    console.log('no search found for column ' + i);
                     colSearch = null;
                 }
             }
@@ -1708,7 +1712,8 @@ class respite_crud {
                     for (var i = 0; i < searchCols.length; i++) {
                         if (searchCols[i]['sSearch']) {
                             var col = setOptions.columns[i];
-                            var grp = $('<div role="group"></div>');
+                            var searchVal = searchCols[i]['sSearch'];
+                            var grp = $('<span role="group" style="margin-right: 5px"></span>');
                             var meta = {
                                 "settings": { "aoColumns": respite_crud.dt.settings()[0].aoColumns },
                                 "col": i
@@ -1717,16 +1722,16 @@ class respite_crud {
                             grp
                                 .append(
                                         $('<span class="label label-primary"></span>')
-                                        .append($('<a class="badge badge-pill" data-toggle="tooltip" title="Remove Filter" href="javascript:void(0)" onclick="respite_crud.clearColSearch(' + i + ')"><i class="fas fa-times"></i></a>'))
+                                        .append($('<a class="badge" data-toggle="tooltip" title="Remove filter" href="javascript:void(0)" onclick="respite_crud.clearColSearch(' + i + ')"><i class="fas fa-times"></i></a>'))
                                         .append($('<span></span>').text(' ' + (col['editor_data']['label'] || col['name']) + ':'))
                                         )
                                 .append($('<span class="label label-default"></span>').text(
-                                col.mRender(searchCols[i]['sSearch'], undefined, undefined, meta)
-                                || searchCols[i]['sSearch'])
+                                col.mRender(searchVal, undefined, undefined, meta)
+                                || searchVal)
                                 )
                             ;
                             body.append(grp.clone());
-                            urlParams[col.name + '[search]'] = searchCols[i]['sSearch'];
+                            urlParams[col.name + '[search]'] = searchVal;
                             hasFilters = true;
                         }
                     }
@@ -1734,8 +1739,8 @@ class respite_crud {
                         var urlLink = window.location.pathname + '?' + $.param(urlParams);
                         $('body').find('.dt-dynamic-filter-details')
                             .append($('<div class="panel panel-info"></div>')
-                                .append($('<div class="panel-heading"><i class="fas fa-filter"></i> Active Filters: </div>')
-                                    .append($('<a class="link-sm" data-toggle="tooltip" title="Get URL for this set of filters"><i class="fas fa-link"></i></a>').attr('href', urlLink))
+                                .append($('<div class="panel-heading"><span class="mr-auto"><i class="fas fa-filter"></i> Active Filters:</span></div>')
+                                    .append($('<a class="ml-auto float-right pull-right" data-toggle="tooltip" title="Get URL for this set of filters"><i class="fas fa-link"></i></a>').attr('href', urlLink))
                                 )
                                 .append(body)
                             );
