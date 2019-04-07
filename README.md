@@ -105,4 +105,4 @@ This project is licensed under the Mozilla Public License 2.0 - see the [LICENSE
 ## Future Plans
 
 A new project is in the works, to utilize modern web technologies such as .NET Core, Angular 7 and Bootstrap 4.
-You can find it here: https://github.com/EitanBlumin/CRUDE-NET
+You can find it here: [CRUDE-NET](https://github.com/EitanBlumin/CRUDE-NET)
