@@ -520,7 +520,6 @@ class respite_crud {
     // This function runs after the data manipulation form is rendered
     static postRenderDMFormFields(e) {
         if (!respite_crud.DM_form_rendered) {
-            $('body').find('[data-toggle="tooltip"]').tooltip();
             $('.summernote textarea').each(function (i) {
                 var currObj = $(this);
                 currObj.summernote({
@@ -645,7 +644,6 @@ class respite_crud {
         new BstrapModal(
             title, body.clone().wrap('<div>').parent().html(), buttons,
             function (e, modalId) {
-                $('body').find('[data-toggle="tooltip"]').tooltip();
                 $('.summernote textarea').each(function (i) {
                     var currObj = $(this);
                     currObj.summernote({
@@ -1566,7 +1564,6 @@ class respite_crud {
             },
             "initComplete": function () {
                 var urlFilter = false;
-                $('body').find('[data-toggle="tooltip"]').tooltip();
 
                 // save footer
                 var footerBefore = $(respite_crud.respite_editor_options.dt_Options.dt_Selector + ' tfoot tr').clone(true);
@@ -1689,7 +1686,6 @@ class respite_crud {
         console.log(setOptions);
 
         $(document).ready(function () {
-            $('body').find('[data-toggle="tooltip"]').tooltip();
             //console.log(setOptions);
             //console.log(respite_crud.respite_editor_options.dt_Options.dt_Selector);
             respite_crud.dt = $(respite_crud.respite_editor_options.dt_Options.dt_Selector).DataTable(setOptions);
@@ -1700,28 +1696,45 @@ class respite_crud {
                 respite_crud.dt.on('draw', function () {
                     //dt-dynamic-filter-details
                     $('body').find('.dt-dynamic-filter-details').empty();
+                    var urlParams = { ViewID: respite_crud.getUrlParam('ViewID') };
                     var searchCols = respite_crud.dt.settings()[0].aoPreSearchCols; //setOptions.searchCols;
+                    var body = $('<div class="panel-body"></div>');
+                    var hasFilters = false;
                     for (var i = 0; i < searchCols.length; i++) {
                         if (searchCols[i]['sSearch']) {
                             var col = setOptions.columns[i];
-                            var grp = $('<div class="btn-group" role="group"></div>');
+                            var grp = $('<div role="group"></div>');
                             var meta = {
                                 "settings": { "aoColumns": respite_crud.dt.settings()[0].aoColumns },
                                 "col": i
                             };
 
                             grp
-                                .append($('<button type="button" class="btn btn-primary"></button>').text(col['editor_data']['label'] || col['name']))
-                                .append($('<button type="button" class="btn btn-default"><i class="fas fa-filter"></i></button>'))
-                                .append($('<button type="button" class="btn btn-secondary"></button>').text(
+                                .append(
+                                        $('<span class="label label-primary"></span>')
+                                        .append($('<a class="badge badge-pill" data-toggle="tooltip" title="Remove Filter" href="javascript:void(0)" onclick="respite_crud.clearColSearch(' + i + ')"><i class="fas fa-times"></i></a>'))
+                                        .append($('<span></span>').text(' ' + (col['editor_data']['label'] || col['name']) + ':'))
+                                        )
+                                .append($('<span class="label label-default"></span>').text(
                                 col.mRender(searchCols[i]['sSearch'], undefined, undefined, meta)
                                 || searchCols[i]['sSearch'])
                                 )
-                                .append($('<button type="button" class="btn btn-primary"><i class="fas fa-times"></i></button>'))
                             ;
-
-                            $('body').find('.dt-dynamic-filter-details').append(grp.clone());
+                            body.append(grp.clone());
+                            urlParams[col.name + '[search]'] = searchCols[i]['sSearch'];
+                            hasFilters = true;
                         }
+                    }
+                    if (hasFilters) {
+                        var urlLink = window.location.pathname + '?' + $.param(urlParams);
+                        console.log(urlLink);
+                        $('body').find('.dt-dynamic-filter-details')
+                            .append($('<div class="panel panel-info"></div>')
+                                .append($('<div class="panel-heading"><i class="fas fa-filter"></i> Active Filters: </div>')
+                                    .append($('<a class="link-sm" data-toggle="tooltip" title="Get URL for this set of filters"><i class="fas fa-link"></i></a>').attr('href', urlLink))
+                                )
+                                .append(body)
+                            );
                     }
 
                     $.each(respite_crud.detailRows, function (i, id) {
@@ -1771,4 +1784,8 @@ class respite_crud {
             });
         });
     }
+    static clearColSearch(col) {
+        respite_crud.dt.column(col).search('');
+        respite_crud.dt.draw();
     }
+}

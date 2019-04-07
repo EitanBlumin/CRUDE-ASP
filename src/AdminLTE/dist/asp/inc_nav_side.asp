@@ -75,7 +75,7 @@ function displayNavLink(navLink) {
 
     txt += '" title="' + navLink.NavTooltip + '"';
     if (navLink["NavTooltip"] && navLink.ChildItems.length == 0)
-        txt += ' data-toggle="tooltip"';
+        txt += ' data-toggle="tooltip" data-placement="right"';
 
     txt += '><i class="' + navLink.NavGlyph + '"></i> <span>' + navLink.NavLabel + '</span>'
     
