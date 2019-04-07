@@ -89,7 +89,7 @@
     <Build Include="Views\portal.DataViewChartTypes.sql" />
     <Build Include="Security\portal.sql" />
     <Build Include="Tables\portal.Navigation.sql" />
-    <None Include="Security\CrudeLogin.sql" />
+    <None Include="Security\CrudeLogin.user.sql" />
     <None Include="Security\RoleMemberships.sql" />
     <Build Include="Stored Procedures\portal.AutoInitDataViewFields.sql" />
     <Build Include="Stored Procedures\dbo.usp_Generate_Merge_For_Table.sql" />
@@ -105,6 +105,7 @@
     <Build Include="Stored Procedures\portal.GetDataViewDataTableCommand.sql" />
     <Build Include="Views\portal.DataViewActionTypes.sql" />
     <Build Include="Functions\dbo.GetDataViewLabel.sql" />
+    <Build Include="Security\CrudeLogin.login.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="CrudePortalDB.refactorlog" />
