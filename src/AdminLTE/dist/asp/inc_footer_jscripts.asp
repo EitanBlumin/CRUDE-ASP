@@ -15,7 +15,7 @@
           selector: '[data-toggle="tooltip"]'
       });<% IF constPageScriptName <> "dataview.asp" THEN %>
       $('.summernote textarea').summernote({
-          placeholder: 'You can enter rich text here. The following placeholders can be used: {ServerName} {ObjectName} {ErrorDescription} {SeverityColor} {Severity} {ObjectType} {SampleID} {LastRunDate} {ExtendedReport}',
+          placeholder: 'You can enter rich text here.',
           tabsize: 2,
           height: 100
       });<% END IF %>
