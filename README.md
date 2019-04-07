@@ -27,6 +27,9 @@ These instructions will get you up and running on your local machine.
 
 ### Prerequisites
 
+- Classic ASP
+- Microsoft SQL Server database (Express, Mobile, LocalDB and Azure editions are also supported)
+
 To install **Classic ASP** on your machine, the following features will need to be installed using "Turn Windows features on or off":
 - Internet Information Services
   - Web Management Tools
@@ -44,13 +47,18 @@ To install **Classic ASP** on your machine, the following features will need to 
 You will need a **Microsoft SQL Server** database to be installed.
 If you don't have a license already, [you can download the Developer edition *for free* here](https://www.microsoft.com/en-us/sql-server/sql-server-downloads).
 
+For development:
+
+- Microsoft Visual Studio 2015 or newer
+- SSDT (SQL Server Data Tools)
+
 ### Installing
 
 This project is still in initial development, so there's nothing to install at the moment :)
 
 But when there would be a first release, then it would be something like this:
 
-1. Deploy the database using a dacpac file.
+1. Deploy the database using a dacpac file, or by restoring from a backup, or by running a TSQL script.
 2. Copy the website folder to a subfolder in c:\inetpub\wwwroot
 3. Update the connection strings in the configuration file (web.config)
 4. If your connection strings use Windows Authentication, you'll need to configure anonymous authentication in IIS manager:
@@ -61,12 +69,23 @@ But when there would be a first release, then it would be something like this:
     5. Click on "Anonymous Authentication" and Edit it
     6. Configure the username and password of a specific Windows user to be impersonated by every visitor
     7. In the database, create a Windows Authentication login for the above user, and give it permissions as necessary (i.e. read+write+execute)
-5. That's it! The site should be immediately operational and you should be able to start using it.
+5. Other authentication methods are also available in IIS, such as Windows Authentication, Forms, URL and more. But those are more advanced and far beyond the scope of this project.
+6. That's it! The site should be immediately operational and you should be able to start using it and constructing data views.
 
 ## Built With
 
-* [Visual Studio 2015](https://visualstudio.microsoft.com/vs/older-downloads/) - Used for both web and database development
+* [Visual Studio 2015](https://visualstudio.microsoft.com/vs/older-downloads/)
+* [SSDT for VS2015](https://docs.microsoft.com/en-us/sql/ssdt/previous-releases-of-sql-server-data-tools-ssdt-and-ssdt-bi)
+
+## Dependencies
+
 * [AdminLTE 2.4.5](https://adminlte.io/) - Free starter web template
+* [DataTables](https://www.datatables.net/)
+* [Bootstrap v3.3.7](http://getbootstrap.com)
+* [Font Awesome v5.1.1](https://www.fontawesome.com)
+* [Summernote WYSIWYG Editor](https://summernote.org/)
+* [Toastr Notifications](https://github.com/CodeSeven/toastr)
+* [JQuery](https://jquery.com/)
 
 ## Authors
 
@@ -85,5 +104,5 @@ This project is licensed under the Mozilla Public License 2.0 - see the [LICENSE
 
 ## Future Plans
 
-A new project is in the works, to utilize modern web technologies such as .NET, Angular and Bootstrap 4.
+A new project is in the works, to utilize modern web technologies such as .NET Core, Angular 7 and Bootstrap 4.
 You can find it here: https://github.com/EitanBlumin/CRUDE-NET
