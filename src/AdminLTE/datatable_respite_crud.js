@@ -489,6 +489,15 @@ class respite_crud {
         return data;
     }
 
+    static actionUrl(url, isNewWindow, params, row, self) {
+        if (params != undefined) {
+            if (url.indexOf('?') == -1) url += '?';
+            url = url + $.param(params);
+        }
+        url = respite_crud.replaceRowPlaceholders(url, row, self);
+        window.open(url, (isNewWindow ? '_blank' : '_self'));
+    }
+
     static renderAutomatic_ed(data, ed, row) {
         var rv = "";
         if (data != undefined && data != '' && ed != undefined) {
@@ -1722,58 +1731,59 @@ class respite_crud {
             //console.log(respite_crud.respite_editor_options.dt_Options.dt_Selector);
             respite_crud.dt = $(respite_crud.respite_editor_options.dt_Options.dt_Selector).DataTable(setOptions);
 
-            // If detail rows enabled
-            if (respite_crud.isDetailRowsAdded) {
-                // On each draw, loop over the `detailRows` array and show any child rows
-                respite_crud.dt.on('draw', function () {
-                    //dt-dynamic-filter-details
-                    $('body').find('.dt-dynamic-filter-details').empty();
-                    var urlParams = { ViewID: respite_crud.getUrlParam('ViewID') };
-                    var searchCols = respite_crud.dt.settings()[0].aoPreSearchCols; //setOptions.searchCols;
-                    var body = $('<div class="panel-body"></div>');
-                    var hasFilters = false;
-                    for (var i = 0; i < searchCols.length; i++) {
-                        if (searchCols[i]['sSearch']) {
-                            var col = setOptions.columns[i];
-                            var searchVal = searchCols[i]['sSearch'];
-                            var grp = $('<span role="group" style="margin-right: 5px"></span>');
-                            var meta = {
-                                "settings": { "aoColumns": respite_crud.dt.settings()[0].aoColumns },
-                                "col": i
-                            };
+            respite_crud.dt.on('draw', function () {
+                //dt-dynamic-filter-details
+                $('body').find('.dt-dynamic-filter-details').empty();
+                var urlParams = { ViewID: respite_crud.getUrlParam('ViewID') };
+                var searchCols = respite_crud.dt.settings()[0].aoPreSearchCols; //setOptions.searchCols;
+                var body = $('<div class="panel-body"></div>');
+                var hasFilters = false;
+                for (var i = 0; i < searchCols.length; i++) {
+                    if (searchCols[i]['sSearch']) {
+                        var col = setOptions.columns[i];
+                        var searchVal = searchCols[i]['sSearch'];
+                        var grp = $('<span role="group" style="margin-right: 5px"></span>');
+                        var meta = {
+                            "settings": { "aoColumns": respite_crud.dt.settings()[0].aoColumns },
+                            "col": i
+                        };
 
-                            grp
-                                .append(
-                                        $('<span class="label label-primary"></span>')
-                                        .append($('<a class="badge" data-toggle="tooltip" title="Remove filter" href="javascript:void(0)" onclick="respite_crud.clearColSearch(' + i + ')"><i class="fas fa-times"></i></a>'))
-                                        .append($('<span></span>').text(' ' + (col['editor_data']['label'] || col['name']) + ':'))
-                                        )
-                                .append($('<span class="label label-default"></span>').text(
-                                col.mRender(searchVal, undefined, undefined, meta)
-                                || searchVal)
-                                )
-                            ;
-                            body.append(grp.clone());
-                            urlParams[col.name + '[search]'] = searchVal;
-                            hasFilters = true;
-                        }
+                        grp
+                            .append(
+                                    $('<span class="label label-primary"></span>')
+                                    .append($('<a class="badge" data-toggle="tooltip" title="Remove filter" href="javascript:void(0)" onclick="respite_crud.clearColSearch(' + i + ')"><i class="fas fa-times"></i></a>'))
+                                    .append($('<span></span>').text(' ' + (col['editor_data']['label'] || col['name']) + ':'))
+                                    )
+                            .append($('<span class="label label-default"></span>').text(
+                            col.mRender(searchVal, undefined, undefined, meta)
+                            || searchVal)
+                            )
+                        ;
+                        body.append(grp.clone());
+                        urlParams[col.name + '[search]'] = searchVal;
+                        hasFilters = true;
                     }
-                    if (hasFilters) {
-                        var urlLink = window.location.pathname + '?' + $.param(urlParams);
-                        $('body').find('.dt-dynamic-filter-details')
-                            .append($('<div class="panel panel-info"></div>')
-                                .append($('<div class="panel-heading"><span class="mr-auto"><i class="fas fa-filter"></i> Active Filters:</span></div>')
-                                    .append($('<a class="ml-auto float-right pull-right" data-toggle="tooltip" title="Get URL for this set of filters"><i class="fas fa-link"></i></a>').attr('href', urlLink))
-                                )
-                                .append(body)
-                            );
-                    }
-
+                }
+                if (hasFilters) {
+                    var urlLink = window.location.pathname + '?' + $.param(urlParams);
+                    $('body').find('.dt-dynamic-filter-details')
+                        .append($('<div class="panel panel-info"></div>')
+                            .append($('<div class="panel-heading"><span class="mr-auto"><i class="fas fa-filter"></i> Active Filters:</span></div>')
+                                .append($('<a class="ml-auto float-right pull-right" data-toggle="tooltip" title="Get URL for this set of filters"><i class="fas fa-link"></i></a>').attr('href', urlLink))
+                            )
+                            .append(body)
+                        );
+                }
+                    
+                // If detail rows enabled
+                if (respite_crud.isDetailRowsAdded) {
+                    // On each draw, loop over the `detailRows` array and show any child rows
                     $.each(respite_crud.detailRows, function (i, id) {
                         $('#' + id + ' td a.details-control').trigger('click');
                     });
-                });
-            }
+                }
+            });
+            
 
             // Implement row reordering event
             respite_crud.dt.on('row-reorder', function (e, diff, edit) {

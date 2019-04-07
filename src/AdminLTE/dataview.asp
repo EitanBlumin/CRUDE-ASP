@@ -543,33 +543,24 @@ IF strError <> "" THEN
         .addToolbarActionButton(
         {
             text: '<i class="<%= Sanitizer.JSON(dvActionsToolbar(nIndex)("GlyphIcon")) %>"></i> <%= Sanitizer.JSON(dvActionsToolbar(nIndex)("ActionLabel")) %>',
-            className: "btn btn-primary btn-sm",
+            className: "<%= Sanitizer.JSON(dvActionsToolbar(nIndex)("CSSButton")) %>",
+            title: "<%= Sanitizer.JSON(dvActionsToolbar(nIndex)("ActionTooltip")) %>",
             action: function (e, dt, node, config) {
-                <%= dvActionsToolbar(nIndex)("NgClickJSCode") %>
+                <%
+                Select Case dvActionsToolbar(nIndex)("ActionType")
+                Case "javascript"
+                    Response.Write dvActionsToolbar(nIndex)("ActionExpression")
+                Case "url"
+                    Response.Write "respite_crud.actionUrl(""" & Sanitizer.JSON(dvActionsToolbar(nIndex)("ActionExpression")) & """, " & LCase(dvActionsToolbar(nIndex)("OpenURLInNewWindow")) & ");"
+                Case "db_command", "db_procedure"
+                    Response.Write "throw 'not yet implemented';"
+                Case Else
+                    Response.Write "throw 'Action Type " & dvActionsToolbar(nIndex)("ActionType") & " unrecognized';"
+                End Select
+                %>
             }
         })<%
-    NEXT
-    END IF
-    %>
-        /*
-        // Custom toolbar buttons example
-        .addToolbarActionButton(
-        {
-            text: '<i class="fas fa-exclamation-triangle"></i> Select Reds',
-            className: "btn btn-danger btn-sm",
-            action: function (e, dt, node, config) {
-                dt.rows('.bg-danger').select();
-            }
-        })
-        .addToolbarActionButton({
-            text: '<i class="fas fa-info-circle"></i> Inspect Selected',
-            className: "btn btn-info btn-sm",
-            action: function (e, dt, node, config) {
-                var r = dt.rows({ selected: true }).data();
-                alert("Inspecting " + r.length + " rows (check the console)");
-                console.log(r);
-            }
-        })*/
+    NEXT %>
         // Inline buttons
 <% IF blnAllowRowDetails THEN %>
         .addDetailsButton() //formatDetails)<% END IF
@@ -578,7 +569,33 @@ IF strError <> "" THEN
             IF blnAllowUpdate THEN %>
         .addEditButton("<%= GetWord("Edit") %>")<% END IF
             IF blnAllowDelete THEN %>
-        .addDeleteButton("<%= GetWord("Delete") %>")<% END IF %>
+        .addDeleteButton("<%= GetWord("Delete") %>")<% END IF
+    FOR nIndex = 0 TO dvActionsInline.UBound %>
+        .addInlineActionButton(
+        {
+            href: "javascript:void(0)",
+            label: "<%= Sanitizer.JSON(dvActionsInline(nIndex)("ActionLabel")) %>",
+            glyph: "<%= Sanitizer.JSON(dvActionsInline(nIndex)("GlyphIcon")) %>",
+            "class": "<%= Sanitizer.JSON(dvActionsInline(nIndex)("CSSButton")) %>",
+            title: "<%= Sanitizer.JSON(dvActionsInline(nIndex)("ActionTooltip")) %>"
+         },
+        function (e, tr, r) {
+            <%
+            Select Case dvActionsInline(nIndex)("ActionType")
+            Case "javascript"
+            Response.Write dvActionsInline(nIndex)("ActionExpression")
+            Case "url"
+            Response.Write "respite_crud.actionUrl(""" & Sanitizer.JSON(dvActionsInline(nIndex)("ActionExpression")) & """, " & LCase(dvActionsInline(nIndex)("OpenURLInNewWindow")) & ", undefined, r, undefined);"
+            Case "db_command", "db_procedure"
+            Response.Write "throw 'not yet implemented';"
+            Case Else
+            Response.Write "throw 'Action Type " & dvActionsInline(nIndex)("ActionType") & " unrecognized';"
+            End Select
+            %>}
+        )<%
+    NEXT
+                END IF
+                %>
         /*
         // Custom inline buttons example
         .addInlineActionButton(
@@ -614,7 +631,9 @@ IF strError <> "" THEN
             scrollY: 390,
             scrollX: 460,
             scrollCollapse: true,
-            scroller: { loadingIndicator: true },<% END IF %><% IF blnDtStateSave THEN %>
+            scroller: { loadingIndicator: true },<% END IF %><% IF blnAllowRowSelection THEN %>
+            select: "os",<% ELSE %>
+            select: false,<% END IF %><% IF blnDtStateSave THEN %>
             stateSave: true,<% END IF %><% IF strRowReorderCol <> "" AND Not IsNull(strRowReorderCol) THEN %>
             rowReorder: { dataSrc: "<%= Sanitizer.JSON(strRowReorderColMasked) %>" },
             columnDefs: [
