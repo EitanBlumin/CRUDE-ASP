@@ -360,6 +360,14 @@ IF strError <> "" THEN
     // Init default options
     respite_crud.setEditorOptions();
 
+    // Init DataView Properties as Placeholders
+    respite_crud.placeholderReplacements.push( {
+        "key": "dataview",
+        "values": {
+            "id": <%= nViewID %>,
+            "title": "<%= Sanitizer.JSON(strPageTitle) %>"
+        }});
+
     // Override some options
     respite_crud.respite_editor_options.dt_Options.dt_AjaxGet = "ajax_dataview.asp?mode=datatable&ViewID=<%= nViewID %>";
     respite_crud.respite_editor_options.modal_Options.modal_edit.modal_form_target = "ajax_dataview.asp?ViewID=<%= nViewID %>";

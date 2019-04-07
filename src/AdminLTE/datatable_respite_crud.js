@@ -59,7 +59,6 @@ var BstrapModal = function (title, body, buttons, on_show_event) {
         }
     };
 };
-
 class respite_crud {
     // Public Members
     dt_Columns;
@@ -79,6 +78,8 @@ class respite_crud {
     isDeleteBtnAdded = false;
     isCloneBtnAdded = false;
     isDetailRowsAdded = false;
+
+    static placeholderReplacements = [];
 
     // Default callback functions
 
@@ -457,11 +458,32 @@ class respite_crud {
     }
 
     static replaceRowPlaceholders(data, row, self) {
+        var placeholderReplacements = respite_crud.placeholderReplacements;
+
         if (self != undefined && self != null)
             data = data.replace('{{this}}', self);
 
-        for (var fieldKey in row) {
-            data = data.replace('{{row[' + fieldKey + ']}}', row[fieldKey]);
+        if (row != undefined)
+            for (var fieldKey in row) {
+                data = data.replace('{{row[' + fieldKey + ']}}', row[fieldKey]);
+            }
+
+        for (var i = 0; i < placeholderReplacements.length; i++) {
+            var placeholderKey = placeholderReplacements[i]['key'] || 'placeholder';
+
+            for (var fieldKey in placeholderReplacements[i]['values']) {
+                if (placeholderReplacements[i]['values'][fieldKey] != undefined && placeholderReplacements[i]['values'][fieldKey] != null)
+                    data = data.replace('{{' + placeholderKey + '[' + fieldKey + ']}}', placeholderReplacements[i]['values'][fieldKey]);
+            }
+        }
+
+        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName;
+
+        for (var i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+            data = data.replace('{{urlparam[' + sParameterName[0] + ']}}', sParameterName[1] === undefined ? true : sParameterName[1]);
         }
 
         return data;
