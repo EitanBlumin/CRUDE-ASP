@@ -560,16 +560,20 @@ IF strError <> "" THEN
                 %>
             }
         })<%
-    NEXT %>
+    NEXT
+    END IF
+    %>
         // Inline buttons
 <% IF blnAllowRowDetails THEN %>
-        .addDetailsButton() //formatDetails)<% END IF
+        .addDetailsButton() //formatDetails)
+<% END IF
             IF blnAllowClone THEN %>
         .addCloneButton("<%= GetWord("Clone") %>")<% END IF
             IF blnAllowUpdate THEN %>
         .addEditButton("<%= GetWord("Edit") %>")<% END IF
             IF blnAllowDelete THEN %>
         .addDeleteButton("<%= GetWord("Delete") %>")<% END IF
+IF blnShowCustomActions THEN
     FOR nIndex = 0 TO dvActionsInline.UBound %>
         .addInlineActionButton(
         {
@@ -594,8 +598,8 @@ IF strError <> "" THEN
             %>}
         )<%
     NEXT
-                END IF
-                %>
+END IF
+%>
         /*
         // Custom inline buttons example
         .addInlineActionButton(

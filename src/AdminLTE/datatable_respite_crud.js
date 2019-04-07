@@ -74,10 +74,10 @@ class respite_crud {
     detail_rows;
     DM_form_rendered = false;
 
-    isEditBtnAdded = false;
-    isDeleteBtnAdded = false;
-    isCloneBtnAdded = false;
-    isDetailRowsAdded = false;
+    static url_dml_opened = false;
+
+    static edit_button_selector;
+    static delete_button_selector;
 
     static placeholderReplacements = [];
 
@@ -691,7 +691,7 @@ class respite_crud {
                         }
                     });
                 });
-                console.log($(this));
+                //console.log($(this));
                 $('#' + form_id).attr('form-modal', '#' + modalId);
 
                 // init ajax form
@@ -1265,6 +1265,7 @@ class respite_crud {
         //// INLINE Data Manipulation Buttons Initialization ////
     static addEditButton(title, label, glyph, customClass) {
         var btnClassName = "respite_btn_" + respite_crud.getNextActionButtonIndex();
+        respite_crud.edit_button_selector = btnClassName;
 
         $('tbody', $(respite_crud.respite_editor_options.dt_Options.dt_Selector)).on('click', 'tr td a.' + btnClassName, function (e) {     // datatable_selector
             var tr = $(this).closest('tr');
@@ -1301,6 +1302,7 @@ class respite_crud {
     }
     static addDeleteButton(title, label, glyph, customClass) {
         var btnClassName = "respite_btn_" + respite_crud.getNextActionButtonIndex();
+        respite_crud.delete_button_selector = btnClassName;
 
         $('tbody', $(respite_crud.respite_editor_options.dt_Options.dt_Selector)).on('click', 'tr td a.' + btnClassName, function (e) {    // datatable_selector
             var tr = $(this).closest('tr');
@@ -1514,7 +1516,6 @@ class respite_crud {
 
         //// Initialize DataTable ////
     static initDataTable(options) {
-
         // expose our "editor_data" extra column option using the api:
         $.fn.dataTable.Api.registerPlural('columns().editor_data()', 'column().editor_data()', function (setter) {
             return this.iterator('column', function (settings, column) {
@@ -1774,7 +1775,27 @@ class respite_crud {
                             .append(body)
                         );
                 }
-                    
+
+
+                // Implement URL-based editing
+                if (!respite_crud.url_dml_opened && respite_crud.getUrlParam('mode') == 'edit' && respite_crud.getUrlParam('DT_ItemId') != undefined) {
+                    var tr = $(respite_crud.respite_editor_options.dt_Options.dt_Selector).find('tr#' + respite_crud.getUrlParam('DT_ItemId'));
+                    if (tr.length>0) {
+                        tr.find('.' + respite_crud.edit_button_selector).trigger('click');
+                        respite_crud.url_dml_opened = true;
+                    } else {
+                        console.log('Item ' + respite_crud.getUrlParam('DT_ItemId') + ' was not found in the datatable');
+                    }
+                } else if (!respite_crud.url_dml_opened && respite_crud.getUrlParam('mode') == 'delete' && respite_crud.getUrlParam('DT_ItemId') != undefined) {
+                        var tr = $(respite_crud.respite_editor_options.dt_Options.dt_Selector).find('tr#' + respite_crud.getUrlParam('DT_ItemId'));
+                        if (tr.length > 0) {
+                            tr.find('.' + respite_crud.delete_button_selector).trigger('click');
+                            respite_crud.url_dml_opened = true;
+                        } else {
+                            console.log('Item ' + respite_crud.getUrlParam('DT_ItemId') + ' was not found in the datatable');
+                        }
+                    }
+
                 // If detail rows enabled
                 if (respite_crud.isDetailRowsAdded) {
                     // On each draw, loop over the `detailRows` array and show any child rows
@@ -1783,7 +1804,6 @@ class respite_crud {
                     });
                 }
             });
-            
 
             // Implement row reordering event
             respite_crud.dt.on('row-reorder', function (e, diff, edit) {

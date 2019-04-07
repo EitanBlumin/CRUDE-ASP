@@ -55,7 +55,7 @@ function displayNavLink(navLink) {
         txt += ' treeview';
     if (isNavLinkActive(navLink))
         txt += ' active';
-    if (navLink["ViewID"])
+    if (navLink["ViewID"] != null && navLink["ViewID"] != undefined && navLink["ViewID"] != "")
         txt += '" view-id="' + navLink.ViewID;
     if (navLink["OpenUriInIFRAME"])
         txt += '" nav-id="' + navLink.NavId;
@@ -68,7 +68,7 @@ function displayNavLink(navLink) {
         txt += "view.asp?NavID=" + navLink.NavId;
     else if (navLink["NavUri"])
         txt += navLink.NavUri;
-    else if (navLink["ViewID"])
+    else if (navLink["ViewID"] != null && navLink["ViewID"] != undefined && navLink["ViewID"] != "")
         txt += "dataview.asp?ViewID=" + navLink.ViewID;
     else
         txt += "#"
