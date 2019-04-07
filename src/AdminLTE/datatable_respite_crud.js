@@ -1601,7 +1601,7 @@ class respite_crud {
                                 for (var i = 0; respite_crud.dt_Columns[column[0]].editor_data['options'] != undefined && i < respite_crud.dt_Columns[column[0]].editor_data['options']['length']; i++) {
                                     d = respite_crud.dt_Columns[column[0]].editor_data['options'][i];
                                     val = $.fn.dataTable.util.escapeRegex(d.value);
-                                    if (column.search() === val) {
+                                    if (column.search() == val) {
                                         select.append(
                                           '<option value="' + val + '" selected="selected">' + d.label + "</option>"
                                         );
@@ -1659,25 +1659,30 @@ class respite_crud {
         }
 
         // if searchCols wasn't manually initialized, initialize it automatically based on dt_Columns
-        if (setOptions['searchCols'] == undefined) {
-            var searchCols = [];
-            var colSearch = null;
-            var currCol = "";
+        var searchCols = [];
+        var colSearch = null;
+        var currCol = "";
 
-            for (var i = 0; i < setOptions.columns.length; i++) {
-                colSearch = null;
-                currCol = setOptions.columns[i]['name'];
-                if (currCol != undefined) {
-                    colSearch = respite_crud.getUrlParam(currCol + '[search]');
+        for (var i = 0; i < setOptions.columns.length; i++) {
+            colSearch = null;
+            currCol = setOptions.columns[i]['name'];
+            if (currCol != undefined) {
+                colSearch = respite_crud.getUrlParam(currCol + '[search]');
 
-                    if (colSearch != undefined) {
-                        colSearch = { "search": colSearch, "escapeRegex": !(respite_crud.getUrlParam(currCol + '[regex]') == "true") }
-                    } else {
-                        colSearch = null;
-                    }
+                if (colSearch != undefined) {
+                    colSearch = { "search": colSearch, "sSearch": colSearch, "escapeRegex": !(respite_crud.getUrlParam(currCol + '[regex]') == "true") }
+                    console.log('found url Search for column ' + i);
+                    console.log(colSearch);
+                } else if (setOptions['searchCols'][i] != undefined) {
+                    colSearch = setOptions.searchCols[i];
+                    console.log('found existing Search for column ' + i);
+                    console.log(colSearch);
+                } else {
+                    console.log('no search found for column ' + i);
+                    colSearch = null;
                 }
-                searchCols.push(colSearch);
             }
+            searchCols.push(colSearch);
 
             setOptions.searchCols = searchCols;
         }
@@ -1727,7 +1732,6 @@ class respite_crud {
                     }
                     if (hasFilters) {
                         var urlLink = window.location.pathname + '?' + $.param(urlParams);
-                        console.log(urlLink);
                         $('body').find('.dt-dynamic-filter-details')
                             .append($('<div class="panel panel-info"></div>')
                                 .append($('<div class="panel-heading"><i class="fas fa-filter"></i> Active Filters: </div>')
