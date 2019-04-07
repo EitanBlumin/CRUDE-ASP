@@ -10,10 +10,14 @@ CRUDE:
 - **D**elete
 - **E**xecute
 
-This project aims to implement an easy-to-use platform to create CRUD Application websites using the most-available free technologies (classic ASP, bootstrap, fontawesome, angular, etc.), plus "Execute" functionality to expand database capabilities.
+This project aims to implement an easy-to-use platform to create CRUD Application websites using the most-available free technologies (classic ASP, bootstrap, fontawesome, jquery, etc.), plus "Execute" functionality to expand database capabilities.
 Using this project you can easily create "Data Views" which would serve as CRUD interfaces where you can manipulate data from a SQL Server database, and to also execute custom database commands (such as stored procedures).
 
 No coding knowledge required! All configuration and management of the CRUD elements are completely online with a GUI.
+
+The project should be optimal for rapid application development of simple LOB (line-of-business) applications.
+The main advantage of CRUDE over other similar RAD frameworks, is that there's absolutely NO programming knowledge required.
+It could of course come in handy for the more advanced scenarios, but in the most part, you should be able to implement most common application features using the easy-to-understand UI of CRUDE, without writing a single word of code.
 
 ![Data View Example](docs/images/dataview_basic_toastr.png "Featuring angular datatables and toastr notifications")
 
