@@ -1667,7 +1667,8 @@ class respite_crud {
             setOptions.dom = setOptions.dom.replace("B", "");
         }
 
-        // if searchCols wasn't manually initialized, initialize it automatically based on dt_Columns
+        // if URL search parameters were specified, use them to apply column filters
+        // issue #110: client state save overrides url parameters
         var searchCols = [];
         var colSearch = null;
         var currCol = "";
