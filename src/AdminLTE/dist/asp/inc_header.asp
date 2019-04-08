@@ -3,7 +3,7 @@
 <header class="main-header">
 
 <!-- Logo -->
-<a href="default.asp" class="logo">
+<a href="<%= SITE_ROOT %>default.asp" class="logo">
     <!-- mini logo for sidebar mini 50x50 pixels -->
     <span class="logo-mini">
         <span class="fa-stack fa-1x">

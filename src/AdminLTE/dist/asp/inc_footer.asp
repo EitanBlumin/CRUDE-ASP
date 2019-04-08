@@ -24,11 +24,11 @@
         <section class="sidebar">
         <ul class="sidebar-menu">
             <li class="header">Data View Settings</li>
-            <li role="presentation" class="nav-item"><a href="dataview.asp?ViewID=-1"><i class="fas fa-th-list"></i> Manage Data Views</a></li>
-            <li role="presentation" class="nav-item"><a href="dataview.asp?ViewID=-4"><i class="fas fa-link"></i> Manage Navigation</a></li>
+            <li role="presentation" class="nav-item"><a href="<%= SITE_ROOT %>dataview.asp?ViewID=-1"><i class="fas fa-th-list"></i> Manage Data Views</a></li>
+            <li role="presentation" class="nav-item"><a href="<%= SITE_ROOT %>dataview.asp?ViewID=-4"><i class="fas fa-link"></i> Manage Navigation</a></li>
 <% IF Right(Request.ServerVariables("SCRIPT_NAME"), Len("/dataview.asp")) = "/dataview.asp" THEN %>
-            <li role="presentation" class="nav-item"><a class="nav-link" href="dataview.asp?ViewID=-1&mode=edit&DT_ItemId=<%= nViewID %>"><i class="fas fa-edit"></i> Edit This Data View</a></li>
-            <li role="presentation" class="nav-item"><a class="nav-link" href="dataview.asp?ViewID=-2&dataview[search]=<%= nViewID %>"><i class="fas fa-bars"></i> Edit This Data View's Fields</a><//li>
+            <li role="presentation" class="nav-item"><a class="nav-link" href="<%= SITE_ROOT %>dataview.asp?ViewID=-1&mode=edit&DT_ItemId=<%= nViewID %>"><i class="fas fa-edit"></i> Edit This Data View</a></li>
+            <li role="presentation" class="nav-item"><a class="nav-link" href="<%= SITE_ROOT %>dataview.asp?ViewID=-2&dataview[search]=<%= nViewID %>"><i class="fas fa-bars"></i> Edit This Data View's Fields</a><//li>
 <% END IF %>
         </ul>
         </section>

@@ -8,7 +8,7 @@
       <!-- Sidebar user panel (optional) -->
       <div class="user-panel">
         <div class="pull-left image">
-          <img src="dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
+          <img src="<%= SITE_ROOT %>dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
         </div>
         <div class="pull-left info">
           <p>Alexander Pierce</p>
@@ -51,7 +51,7 @@ function isNavLinkActive(navLink) {
 function displayNavLink(navLink) {
     var txt = "";
     txt += '<li class="nav-link';
-    if (navLink.ChildItems.length > 0)
+    if (navLink.ChildItems == undefined || navLink.ChildItems.length > 0)
         txt += ' treeview';
     if (isNavLinkActive(navLink))
         txt += ' active';
@@ -62,24 +62,24 @@ function displayNavLink(navLink) {
 
     txt += '"><a href="';
 
-    if (navLink.ChildItems.length > 0)
+    if (navLink.ChildItems == undefined || navLink.ChildItems.length > 0)
         txt += "javascript:"
     else if (navLink["OpenUriInIFRAME"])
-        txt += "view.asp?NavID=" + navLink.NavId;
+        txt += "<%= SITE_ROOT %>view.asp?NavID=" + navLink.NavId;
     else if (navLink["NavUri"])
         txt += navLink.NavUri;
     else if (navLink["ViewID"] != null && navLink["ViewID"] != undefined && navLink["ViewID"] != "")
-        txt += "dataview.asp?ViewID=" + navLink.ViewID;
+        txt += "<%= SITE_ROOT %>dataview.asp?ViewID=" + navLink.ViewID;
     else
         txt += "#"
 
     txt += '" title="' + navLink.NavTooltip + '"';
-    if (navLink["NavTooltip"] && navLink.ChildItems.length == 0)
+    if (navLink["NavTooltip"] && (navLink.ChildItems == undefined || navLink.ChildItems.length == 0))
         txt += ' data-toggle="tooltip" data-placement="right"';
 
     txt += '><i class="' + navLink.NavGlyph + '"></i> <span>' + navLink.NavLabel + '</span>'
     
-    if (navLink.ChildItems.length > 0)
+    if (navLink.ChildItems != undefined && navLink.ChildItems.length > 0)
     {
         txt += '<span class="pull-right-container"><i class="fas fa-angle-left pull-right"></i></span><ul class="treeview-menu">';
         for (y in navLink.ChildItems) {

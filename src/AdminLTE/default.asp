@@ -36,7 +36,7 @@ adoConn.Open
       </h1>
 
       <ol class="breadcrumb">
-        <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
+        <li><a href="<%= SITE_ROOT %>default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
         <li class="active"><%= strPageTitle %></li>
       </ol>
 
@@ -45,7 +45,7 @@ adoConn.Open
     <!-- Main content -->
     <section class="content container-fluid">
 
-        <img title="CrudeASP" src="dist/img/crude-logo.png" width="128" />
+        <img title="CrudeASP" src="<%= SITE_ROOT %>dist/img/crude-logo.png" width="128" />
 
     </section>
     <!-- /.content -->
@@ -60,7 +60,7 @@ adoConn.Open
 <!--#include file="dist/asp/inc_footer_jscripts.asp" -->
 
 <!-- AdminLTE App -->
-<script src="dist/js/adminlte.min.js"></script>
+<script src="<%= SITE_ROOT %>dist/js/adminlte.min.js"></script>
 
 <!-- Optionally, you can add Slimscroll and FastClick plugins.
      Both of these plugins are recommended to enhance the

@@ -75,6 +75,7 @@ class respite_crud {
     DM_form_rendered = false;
 
     static url_dml_opened = false;
+    static site_root = "";
 
     static edit_button_selector;
     static delete_button_selector;
@@ -174,8 +175,8 @@ class respite_crud {
         for (i = 0; i < sURLVariables.length; i++) {
             sParameterName = sURLVariables[i].split('=');
 
-            if (sParameterName[0] === sParam) {
-                return sParameterName[1] === undefined ? true : sParameterName[1];
+            if (sParameterName[0].toLowerCase() == sParam.toLowerCase()) {
+                return sParameterName[1] == undefined ? true : sParameterName[1];
             }
         }
     }
@@ -252,7 +253,7 @@ class respite_crud {
                     response_success_callback: respite_crud.callbackPostResponse,
                     response_error_callback: respite_crud.callbackPostResponse,
                     modal_edit: {
-                        modal_form_target: 'ajax_dataview.asp?viewId=undefined',
+                        modal_form_target: respite_crud.site_root + 'ajax_dataview.asp?viewId=undefined',
                         modal_selector: '#modal_edit',
                         modal_title_selector: '#modal_edit_title',
                         modal_body_selector: '#modal_edit_body',
@@ -260,7 +261,7 @@ class respite_crud {
                         delete_button_selector: '#modal_btn_delete'
                     },
                     modal_delete: {
-                        modal_form_target: 'ajax_dataview.asp?viewId=undefined',
+                        modal_form_target: respite_crud.site_root + 'ajax_dataview.asp?viewId=undefined',
                         modal_selector: '#modal_delete',
                         modal_title_selector: '#modal_delete_title',
                         modal_body_selector: '#modal_delete_body',
@@ -662,7 +663,7 @@ class respite_crud {
         else {
             title = "Add Item";                         // localization.modal_add_title
         }
-        var body = $('<form class="ajax-form" name="modal_edit_form" action="ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
+        var body = $('<form class="ajax-form" name="modal_edit_form" action="' + respite_crud.site_root + 'ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
                 .attr('action', modal_options.modal_form_target)
                 .append(respite_crud.renderDMFormFields(respite_crud.row));
 
@@ -712,7 +713,7 @@ class respite_crud {
         var form_id = 'form_modal_delete';
         var title = "Are you sure you want to delete?";
         var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left" }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
-        var body = $('<form class="ajax-form" name="modal_delete_form" action="ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
+        var body = $('<form class="ajax-form" name="modal_delete_form" action="' + respite_crud.site_root + 'ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
                 .attr('action', modal_options.modal_form_target)
                 .append(respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(r)); // render modal with row details
 
@@ -750,7 +751,7 @@ class respite_crud {
             rowIds += r[i].DT_RowId;
             content += "<hr/> " + respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(r[i]);
         }
-        var body = $('<form class="ajax-form" name="modal_delete_form_multi" action="ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
+        var body = $('<form class="ajax-form" name="modal_delete_form_multi" action="' + respite_crud.site_root + 'ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
                 .attr('action', modal_options.modal_form_target)
                 .append($('<div></div>').html(content)); // render modal with row details
 

@@ -134,7 +134,7 @@ ELSE
 	strError = GetWord("ViewID Invalid!")
 END IF
 
-IF NOT blnPublished OR strError <> "" THEN Response.Redirect "404.asp"
+IF NOT blnPublished OR strError <> "" THEN Response.Redirect "404.asp?msg=viewnotfound"
 
 Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
 strViewQueryString = "&ViewID=" & nViewID
@@ -170,7 +170,7 @@ ON ERROR GOTO 0
   <title><%= GetPageTitle() %></title>
 <!--#include file="dist/asp/inc_meta.asp" -->
 <!-- DataTables styles -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap.min.css"/>
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/autofill/2.3.3/css/autoFill.bootstrap.css"/>
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.5.6/css/buttons.bootstrap.min.css"/>
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/fixedheader/3.1.4/css/fixedHeader.bootstrap.min.css"/>
@@ -264,7 +264,7 @@ IF strError <> "" THEN
 <% ELSE %>
 
 <!-- Hidden Form for Row Reordering -->
-<form name="row_reorder_form" action="ajax_dataview.asp?ViewID=<%= nViewID %>" method="post">
+<form name="row_reorder_form" action="<%= SITE_ROOT %>ajax_dataview.asp?ViewID=<%= nViewID %>" method="post">
     <div id="row_reorder_body"></div>
     <input type="hidden" name="postback" value="true" />
     <input type="hidden" name="mode" value="reorder" />
@@ -334,6 +334,24 @@ IF strError <> "" THEN
 <!-- respite_crud -->
 <script type="text/javascript" src="datatable_respite_crud.js"></script>
 <!-- page scripts -->
+
+<script type="text/javascript">
+    // Init page routing (not yet implemented, need to handle lost urlParams first)
+    if (false) {
+        var viewId = respite_crud.getUrlParam("ViewID");
+        var mode = respite_crud.getUrlParam("mode");
+        var itemId = respite_crud.getUrlParam("DT_ItemId");
+        var newUrl = "<%= SITE_ROOT %>dataview/" + viewId;
+        if (itemId != undefined && itemId != null)
+            newUrl += '/' + itemId;
+
+        if (viewId != undefined && viewId != null) {
+            window.history.pushState(null,null,newUrl);
+        }
+        else
+            console.log(viewId);
+    }
+</script>
 <script type="text/javascript">
     // Detail Row Formatting
     function formatDetails(d) {
@@ -359,6 +377,7 @@ IF strError <> "" THEN
     }
 
     // Init default options
+    respite_crud.site_root = "<%= SITE_ROOT %>";
     respite_crud.setEditorOptions();
 
     // Init DataView Properties as Placeholders
@@ -370,9 +389,9 @@ IF strError <> "" THEN
         }});
 
     // Override some options
-    respite_crud.respite_editor_options.dt_Options.dt_AjaxGet = "ajax_dataview.asp?mode=datatable&ViewID=<%= nViewID %>";
-    respite_crud.respite_editor_options.modal_Options.modal_edit.modal_form_target = "ajax_dataview.asp?ViewID=<%= nViewID %>";
-    respite_crud.respite_editor_options.modal_Options.modal_delete.modal_form_target = "ajax_dataview.asp?ViewID=<%= nViewID %>";
+    respite_crud.respite_editor_options.dt_Options.dt_AjaxGet = "<%= SITE_ROOT %>ajax_dataview.asp?mode=datatable&ViewID=<%= nViewID %>";
+    respite_crud.respite_editor_options.modal_Options.modal_edit.modal_form_target = "<%= SITE_ROOT %>ajax_dataview.asp?ViewID=<%= nViewID %>";
+    respite_crud.respite_editor_options.modal_Options.modal_delete.modal_form_target = "<%= SITE_ROOT %>ajax_dataview.asp?ViewID=<%= nViewID %>";
 
     // DataTable Columns:
     // TODO: Simplify the addColumn() function interface

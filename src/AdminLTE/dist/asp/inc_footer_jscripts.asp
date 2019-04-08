@@ -91,7 +91,7 @@ function setActiveAndBubbleUp(element) {
 function loadSideNav()
 {
     var nav = "[]";
-    $.get('ajax_dataview.asp?mode=getSiteNav', "", function(response) {
+    $.get('<%= SITE_ROOT %>ajax_dataview.asp?mode=getSiteNav', "", function(response) {
      //console.log(response);
      nav = response;
     

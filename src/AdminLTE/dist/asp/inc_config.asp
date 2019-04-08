@@ -7,7 +7,7 @@ Option Explicit
 '               attrName - refers to the "key" attribute of an entry
 ' Output:       A string containing the value of the appropriate entry
 '***************************************************************************
-Dim CONFIG_FILE_PATH 
+Dim CONFIG_FILE_PATH
 CONFIG_FILE_PATH = "web.config" 'if no qualifier, refers to this directory. can point elsewhere.
 
 Dim CONFIG_FILE_XML ' load config file only once    
@@ -54,8 +54,9 @@ SET adoConnCrude = adoConn 'compatibility with respite
 
 ' Global Variables
 ' ============================
-Dim rsItems, strSQL
+Dim rsItems, strSQL, SITE_ROOT
 Dim globalIsAdmin, constPortalTitle, globalToastrOptions, globalBodyClass, globalWebPortalAdminEnabled
+SITE_ROOT = GetConfigValue("appSettings", "key", "value", "SiteRootPath", "/CrudePortal/")
 globalWebPortalAdminEnabled = CBool(GetConfigValue("appSettings", "key", "value", "WebPortalAdminEnabled", "False"))
 
 constPortalTitle = GetConfigValue("appSettings", "key", "value", "PortalTitle", "CrudeASP")
