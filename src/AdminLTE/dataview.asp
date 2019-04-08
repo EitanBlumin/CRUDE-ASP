@@ -28,7 +28,7 @@ Dim blnFound, blnRequiredFieldsFilled, strViewIDString, strViewQueryString
 Dim blnShowCustomActions, blnShowForm, blnShowList, blnShowCharts, blnAllowUpdate, blnAllowInsert, blnAllowDelete, blnAllowClone, blnAllowSearch, strOrderBy, strSearchFilter, strCurrFilter
 Dim blnDtInfo, blnDtColumnFooter, blnDtQuickSearch, blnDtSort, blnDtPagination, blnDtPageSizeSelection, blnDtStateSave
 Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle
-Dim strLastOptGroup, blnOptGroupStarted
+Dim strLastOptGroup, blnOptGroupStarted, strCSSTable
 Dim blnAllowColumnsToggle, blnAllowRowDetails, blnAllowRowSelection, blnFixedHeaders
 Dim blnExportClipboard, blnExportCSV, blnExportExcel, blnExportPDF, blnExportPrint, blnAllowExport, blnAllowExportAll
 Set rsItems = Server.CreateObject("ADODB.Recordset")
@@ -81,6 +81,7 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
         nDtDefaultPageSize = rsItems("DataTableDefaultPageSize")
         nDtFlags = rsItems("DataTableFlags")
         strDtPagingStyle = rsItems("DataTablePagingStyle")
+        strCSSTable = rsItems("CSSTable")
     
         blnAllowUpdate = CBool((nViewFlags AND 1) > 0)
         blnAllowInsert = CBool((nViewFlags AND 2) > 0)
@@ -281,7 +282,7 @@ IF strError <> "" THEN
     <div class="box-body container-fluid">
 
         <div class="table-responsive">
-            <table datatable="" id="mainGrid" class="table table-hover table-bordered table-striped">
+            <table datatable="" id="mainGrid" class="<%= strCSSTable %>">
         <thead>
         <tr class="bg-primary">
         <% IF strRowReorderCol <> "" AND Not IsNull(strRowReorderCol) THEN %>

@@ -17,6 +17,7 @@
     [Published] BIT NOT NULL DEFAULT (1), 
     [RowReorderColumn] NVARCHAR(200) NULL, 
     [IsSystemObject] BIT NOT NULL DEFAULT 0, 
+    [CSSTable] NVARCHAR(100) NOT NULL DEFAULT 'table table-hover table-bordered table-striped', 
     CONSTRAINT [PK_DataView] PRIMARY KEY CLUSTERED ([ViewID] ASC)
 );
 

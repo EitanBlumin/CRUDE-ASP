@@ -79,7 +79,7 @@ USING	(VALUES
 		(-3,19,N'Is Per Row',N'IsPerRow',N'9',25,2,N'',1,NULL,1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,N'Field_120'),
 		(-3,20,N'CSS Button',N'CSSButton',N'1',1,13,N'btn btn-primary btn-sm',50,N'',1,N'',N'',N'',N'',N'',N'',N'',0,0,N'','',N'',N'Field_121'),
 		(-3,21,N'Action Type',N'ActionType',N'5',27,5,N'url',20,N'',1,N'portal.DataViewActionTypes',N'TypeValue',N'TypeLabel',N'',N'',N'',N'',0,0,N'Choose the type of action behavior',NULL,NULL,N'Field_122'),
-		(-3,22,N'Data View Title',N'DataViewTitle',N'1',29,14,N'',100,NULL,1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,N'Field_123'),
+		(-3,22,N'Data View Title',N'DataViewTitle',N'1',5,14,N'',100,N'',1,N'',N'',N'',N'',N'',N'',N'',NULL,NULL,N'','',N'',N'Field_123'),
 		(-2,23,N'Data View',N'ViewID',N'5',19,1,N'',4,N'dataview.asp?ViewId={{this}}',1,N'[portal].[DataView]',N'ViewID',N'Title',N'',N'',N'',N'',0,0,N'','',N'',N'dataview'),
 		(-2,24,N'Label',N'FieldLabel',N'1',27,3,N'',300,N'',1,N'',N'',N'',N'',N'',N'',N'',0,0,N'The field label displayed to the user','',N'',N'Field_141'),
 		(-2,25,N'Field Source',N'FieldSource',N'1',9,4,N'',300,N'',1,N'',N'',N'',N'',N'',N'',N'',0,0,N'The actual column name from the database',NULL,NULL,N'Field_142'),
@@ -118,7 +118,8 @@ USING	(VALUES
 		(-1,58,N'Data Table Default Page Size',N'DataTableDefaultPageSize',N'3',3,15,N'25',4,N'',1,N'',N'',N'',N'',N'',N'',N'',NULL,NULL,N'','',N'Choose the default number of rows per page',N'dt_defaultpagesize'),
 		(-1,59,N'Data Table Paging Style',N'DataTablePagingStyle',N'5',3,16,N'1',20,N'',1,N'portal.DataViewPagingTypes',N'StyleValue',N'StyleLabel',N'',N'',N'StyleLabel',N'',NULL,NULL,N'','',N'Choose how the pagination buttons would look like',N'dt_pagingtype'),
 		(-1,60,N'Published',N'Published',N'9',25,2,N'1',1,N'',1,N'',N'',N'',N'',N'',N'',N'',NULL,NULL,N'','',N'Sets whether this dataview is visible to end-users',N'published'),
-		(-1,61,N'Row Reorder Column',N'RowReorderColumn',N'1',1,8,N'',200,N'',1,N'',N'',N'',N'',N'',N'',N'',NULL,NULL,N'','',N'If specified, this column will be used for sorting and re-ordering items in the data table',N'rowreordercol')
+		(-1,61,N'Row Reorder Column',N'RowReorderColumn',N'1',1,8,N'',200,N'',1,N'',N'',N'',N'',N'',N'',N'',NULL,NULL,N'','',N'If specified, this column will be used for sorting and re-ordering items in the data table',N'rowreordercol'),
+		(-1,62,N'DataTable Style',N'CSSTable',N'1',3,17,N'table table-hover table-bordered table-striped',100,N'',1,N'',N'',N'',N'',N'',N'',N'',100,NULL,N'','',N'Choose the CSS class name',N'dt_style')
 		) AS src([ViewID],[FieldID],[FieldLabel],[FieldSource],[FieldType],[FieldFlags],[FieldOrder],[DefaultValue],[MaxLength],[UriPath],[UriStyle],[LinkedTable],[LinkedTableValueField],[LinkedTableTitleField],[LinkedTableGroupField],[LinkedTableGlyphField],[LinkedTableTooltipField],[LinkedTableAddition],[Width],[Height],[FieldDescription],[FormatPattern],[FieldTooltip],[FieldIdentifier])
 ON
 	trgt.[ViewID] = src.[ViewID]
@@ -182,9 +183,9 @@ console.log(r);',N'fas fa-info-circle',0,N'btn btn-info btn-sm','javascript'),
 		(8,-2,N'Open Data View',NULL,N'View this dataview live',N'',2,0,0,N'dataview.asp?ViewID={{urlparam[dataview[search]]}}',N'fas fa-eye',0,N'btn btn-primary btn-lg','url'),
 		(9,-2,N'Data View Actions',NULL,N'Manage Custom Actions for this DataView',N'',3,0,0,N'dataview.asp?ViewID=-3&dataview[search]={{urlparam[dataview[search]]}}',N'fas fa-bolt',0,N'btn btn-primary btn-lg','url'),
 		(10,-2,N'Manage Data Views',NULL,N'Return to Data View Management',N'',1,0,0,N'dataview.asp?ViewID=-1',N'fas fa-th-list',0,N'btn btn-primary btn-lg','url'),
-		(11,-1,N'Open Data View',NULL,N'View this dataview live',N'',1,0,0,N'dataview.asp?ViewID={{row[DT_RowId]}}',N'fas fa-eye',1,N'btn btn-primary btn-sm','url'),
-		(12,-1,N'Data View Fields',NULL,N'Manage this dataview''s fields',N'',2,0,0,N'dataview.asp?ViewID=-2&dataview[search]={{row[DT_RowId]}}',N'fas fa-bars',1,N'btn btn-primary btn-sm','url'),
-		(13,-1,N'Data View Actions',NULL,N'Manage Custom Actions for this DataView',N'',3,0,0,N'dataview.asp?ViewID=-3&dataview[search]={{row[DT_RowId]}}',N'fas fa-bolt',1,N'btn btn-primary btn-sm','url')
+		(11,-1,N'Open Data View',NULL,N'Open Data View',N'',1,0,0,N'dataview.asp?ViewID={{row[DT_RowId]}}',N'fas fa-eye',1,N'btn btn-primary btn-sm','url'),
+		(12,-1,N'Data View Fields',NULL,N'Data View Fields',N'',2,0,0,N'dataview.asp?ViewID=-2&dataview[search]={{row[DT_RowId]}}',N'fas fa-bars',1,N'btn btn-primary btn-sm','url'),
+		(13,-1,N'Data View Actions',NULL,N'Data View Actions',N'',3,0,0,N'dataview.asp?ViewID=-3&dataview[search]={{row[DT_RowId]}}',N'fas fa-bolt',1,N'btn btn-primary btn-sm','url')
 		) AS src([ActionID],[ViewID],[ActionLabel],[ParentActionID],[ActionTooltip],[ActionDescription],[ActionOrder],[RequireConfirmation],[OpenURLInNewWindow],[ActionExpression],[GlyphIcon],[IsPerRow],[CSSButton],[ActionType])
 ON
 	trgt.[ActionID] = src.[ActionID]
