@@ -9,7 +9,7 @@ var BstrapModal = function (title, body, buttons, on_show_event) {
         for (var i = 0; i < buttons.length; i++) {
             buttonshtml += "<button type='button' class='btn " + (buttons[i].Css || "") + "' name='btn" + that.Id + "'>" + (buttons[i].Value || "CLOSE") + "</button>";
         }
-        return "<div class='modal fade' name='dynamiccustommodal' id='" + that.Id + "' tabindex='-1' role='dialog' data-keyboard='true' data-focus='true' aria-labelledby='" + that.Id + "Label'><div class='modal-dialog modal-lg modal-dialog-centered'><div class='modal-content'><div class='modal-header bg-primary'><button type='button' class='close' data-dismiss='modal' title='Close' aria-label='Close'><span aria-hidden='true'>&times;</span></button><h4 class='modal-title'>" + title + "</h4></div><div class='modal-body'><div class='row'><div class='col-xs-12 col-md-12 col-sm-12 col-lg-12'>" + body + "</div></div></div><div class='modal-footer bg-default'><div class='col-xs-12 col-sm-12 col-lg-12'>" + buttonshtml + "</div></div></div></div></div>";
+        return "<div class='modal fade' name='dynamiccustommodal' id='" + that.Id + "' tabindex='-1' role='dialog' data-keyboard='true' data-focus='true' aria-labelledby='" + that.Id + "Label'><div class='modal-dialog modal-lg modal-dialog-centered'><div class='modal-content'><div class='modal-header bg-primary'><h5 class='modal-title'>" + title + "</h5><button type='button' class='close' data-dismiss='modal' title='Close' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div><div class='modal-body'><div class='row'><div class='col-xs-12 col-md-12 col-sm-12 col-lg-12'>" + body + "</div></div></div><div class='modal-footer bg-default'>" + buttonshtml + "</div></div></div></div>";
     }();
     this.Delete = function (preservePreviousModals) {
         if (!preservePreviousModals) {
@@ -183,13 +183,26 @@ class respite_crud {
 
     // Returns datatable column object by name
     static getColumnByName(colName) {
-        if (respite_crud.dt_Columns == undefined)
+        if (respite_crud.dt_Columns == undefined) {
             return undefined;
-        else {
+        } else {
             var col;
-
             for (var i = 0; i < respite_crud.dt_Columns.length && col == undefined; i++) {
                 if (respite_crud.dt_Columns[i]['name'] == colName)
+                    col = respite_crud.dt_Columns[i];
+            }
+
+            return col;
+        }
+    }
+    // Returns datatable column object by data
+    static getColumnByData(colName) {
+        if (respite_crud.dt_Columns == undefined) {
+            return undefined;
+        } else {
+            var col;
+            for (var i = 0; i < respite_crud.dt_Columns.length && col == undefined; i++) {
+                if (respite_crud.dt_Columns[i]['data'] == colName)
                     col = respite_crud.dt_Columns[i];
             }
 
@@ -204,7 +217,7 @@ class respite_crud {
             var rv = "";
             var col = {};
             for (var dKey in d) {
-                col = respite_crud.getColumnByName(dKey);
+                col = respite_crud.getColumnByData(dKey);
 
                 if (col == undefined)
                     col = "";
@@ -647,7 +660,7 @@ class respite_crud {
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_edit;
         var form_id = 'form_modal_modify_' + mode;
         var title = "";
-        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left" }, { Value: "<i class='fas fa-save'></i> Save Changes", Css: "btn-success", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
+        var buttons = [];
         
         // save to static row object for the Deletion modal to access
         if (r == undefined || r == null)
@@ -658,11 +671,14 @@ class respite_crud {
         // init modal title and deletion button
         if (mode == "edit") {
             title = "Edit Item RowID: " + respite_crud.row.DT_RowId;   // localization.modal_edit_title
-            buttons.push({ Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger pull-left float-left", Callback: function (e) { respite_crud.showDelete_dynamic(respite_crud.row) } });
+            buttons.push({ Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger mr-auto", Callback: function (e) { respite_crud.showDelete_dynamic(respite_crud.row) } });
         }
         else {
             title = "Add Item";                         // localization.modal_add_title
         }
+        buttons.push({ Value: "Cancel", Css: "btn-default" }); // localization['Cancel']
+        buttons.push({ Value: "<i class='fas fa-save'></i> Save Changes", Css: "btn-success", Callback: function (e) { $('#' + form_id).submit(); } });
+
         var body = $('<form class="ajax-form" name="modal_edit_form" action="' + respite_crud.site_root + 'ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
                 .attr('action', modal_options.modal_form_target)
                 .append(respite_crud.renderDMFormFields(respite_crud.row));
@@ -709,13 +725,17 @@ class respite_crud {
             ).Show();
     }
     static showDelete_dynamic(r) {
+        if (respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender == undefined)
+            respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender = respite_crud.renderDetailsRow;
+
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_delete;
         var form_id = 'form_modal_delete';
         var title = "Are you sure you want to delete?";
-        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left" }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
+        var buttons = [{ Value: "Cancel", Css: "btn-default mr-auto" }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
+        var content = respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(r);
         var body = $('<form class="ajax-form" name="modal_delete_form" action="' + respite_crud.site_root + 'ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
                 .attr('action', modal_options.modal_form_target)
-                .append(respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(r)); // render modal with row details
+                .append(content); // render modal with row details
 
         body.append($('<input type="hidden" name="postback" value="true" />'))
         .append($('<input type="hidden" name="DT_RowId" value="" />').val(r.DT_RowId))
@@ -740,7 +760,7 @@ class respite_crud {
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_delete;
         var form_id = 'form_modal_delete_multi';
         var title = "Are you sure you want to delete?";
-        var buttons = [{ Value: "Cancel", Css: "btn-default pull-left float-left" }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
+        var buttons = [{ Value: "Cancel", Css: "btn-default mr-auto" }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
         
         var r = dt.rows({ selected: true }).data();
         var rowIds = "";
@@ -830,13 +850,13 @@ class respite_crud {
                 element = $('<label>ERROR Column ' + i + '</label>');
                 closing_string = "";
                 content += '<div class="form-group' + (ed['type'] == "rte" ? ' summernote' : '') + '" data-toggle="tooltip" title="' + respite_crud.escapeHtml(ed['tooltip']) + '">';
-                content += '<label for="' + id + '" class="control-label col-sm-3 col-md-4 col-lg-4">';
+                content += '<label for="' + id + '" class="control-label">';
 
                 if (ed["help"] != undefined && ed["help"] != "") {
-                    content += '<div class="ml-auto float-right"><a class="btn btn-link text-info" data-toggle="collapse" data-target="#help_' + id + '" aria-expanded="false" aria-controls="help_' + id + '" title="Help"><i class="fas fa-question-circle"></i></a></div>';
+                    content += '<div class="card-tools ml-auto"><a class="btn btn-link text-info" data-toggle="collapse" data-target="#help_' + id + '" aria-expanded="false" aria-controls="help_' + id + '" title="Help"><i class="fas fa-question-circle"></i></a></div>';
                 }
 
-                content += respite_crud.escapeHtml(ed['label']) + '</label><div class="input-group col-sm-9 col-md-8 col-lg-8">';
+                content += respite_crud.escapeHtml(ed['label']) + '</label><div class="input-group">';
 
                 // open html element tag
                 switch (ed['type']) {
@@ -877,11 +897,11 @@ class respite_crud {
                     case "boolean_radios":
                     case "boolean_button":
                         // using bootswatch switch custom control
-                        content += '<div class="custom-control custom-switch">';
-                        element = $('<input tabindex="' + i + '" id="' + id + '" type="checkbox" value="true" class="custom-control-input" name="' + cn + '"/>');
+                        content += '<div class="form-check custom-control custom-switch">';
+                        element = $('<input tabindex="' + i + '" id="' + id + '" type="checkbox" value="true" class="form-check-input custom-control-input" name="' + cn + '"/>');
                         if (d[cn] == "true" || d[cn] == true)
                             element.attr('checked', 'checked');
-                        closing_string = '<label for="' + id + '" class="custom-control-label"></label></div>';
+                        closing_string = '<label for="' + id + '" class="form-check-label custom-control-label"></label></div>';
                         break;
                     case "password":
                         element = $('<input tabindex="' + i + '" class="form-control form-control-sm" type="password" id="' + id + '" name="' + cn + '" value="" />');
@@ -1001,10 +1021,10 @@ class respite_crud {
                         }
                         break;
                     case "bitwise":
+                    case "bitwise_buttons":
                     case "bitwise_checkboxes":
                     case "bitwise_switches":
-                    case "bitwise_buttons":
-                        var currDiv = $('<div class="checkbox custom-control custom-checkbox"></div>');
+                        var currDiv = $('<div class="custom-control custom-switch"></div>');
                         var currInput = $('<input type="checkbox" class="custom-control-input" name="' + cn + '"/>');
                         var currLabel = $('<label class="custom-control-label"></label>');
                         var dValues = 0;
@@ -1014,27 +1034,25 @@ class respite_crud {
 
                         for (var j = 0; j < ed['options'].length; j++) {
 
-                            currDiv = $('<div class="checkbox custom-control custom-checkbox"></div>');
+                            currDiv = $('<div class="custom-control custom-checkbox"></div>');
+                            if (ed['options'][j]['tooltip'] != undefined && ed['options'][j]['tooltip'] != '') {
+                                currDiv.attr('data-toggle', 'tooltip');
+                                currDiv.attr('title', ed['options'][j]['tooltip']);
+                            }
+
                             currInput = $('<input type="checkbox" class="custom-control-input" id="' + id + '_' + j + '" name="' + cn + '"/>');
                             currInput.attr('value', ed['options'][j]['value']);
 
                             if ((dValues & ed['options'][j]['value']) > 0)
                                 currInput.attr('checked', 'checked');
 
-                            currLabel = $('<label></label>');
-
-                            if (ed['options'][j]['tooltip'] != undefined && ed['options'][j]['tooltip'] != '') {
-                                currLabel.attr('data-toggle', 'tooltip');
-                                currLabel.attr('title', ed['options'][j]['tooltip']);
-                            }
-
                             currDiv
-                                .append(currLabel.clone()
-                                    .append(currInput.clone())
-                                    //.append($('<label class="custom-control-label" for="' + id + '_' + j + '"></label>')) // reserved for bootstrap 4
-                                    .append($('<i class="' + ed['options'][j]['glyph'] + '"></i>'))
-                                    .append($('<span></span>').text(' ' + ed['options'][j]['label']))
-                                    );
+                                .append(currInput.clone())
+                                .append($('<label class="custom-control-label" for="' + id + '_' + j + '"></label>')
+                                        .append($('<i class="' + ed['options'][j]['glyph'] + '"></i>'))
+                                        .append($('<span></span>').text(' ' + ed['options'][j]['label']))
+                                        )
+                            ;
 
                             element.append(currDiv.clone());
                         }
@@ -1212,8 +1230,7 @@ class respite_crud {
         //if (respite_crud.dt == undefined)
         //    throw "Error: addDetailsButton cannot be used before the datatable is initialized!";
 
-        if (render_function != undefined)
-            respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender = render_function;
+        respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender = render_function || respite_crud.renderDetailsRow;
 
         // Array to track the ids of the details displayed rows
         respite_crud.detailRows = [];
@@ -1738,13 +1755,13 @@ class respite_crud {
                 $('body').find('.dt-dynamic-filter-details').empty();
                 var urlParams = { ViewID: respite_crud.getUrlParam('ViewID') };
                 var searchCols = respite_crud.dt.settings()[0].aoPreSearchCols; //setOptions.searchCols;
-                var body = $('<div class="panel-body"></div>');
+                var body = $('<div class="card-body"></div>');
                 var hasFilters = false;
                 for (var i = 0; i < searchCols.length; i++) {
                     if (searchCols[i]['sSearch']) {
                         var col = setOptions.columns[i];
                         var searchVal = searchCols[i]['sSearch'];
-                        var grp = $('<span role="group" style="margin-right: 5px"></span>');
+                        var grp = $('<div class="btn-group" role="group" style="margin-right: 5px"></div>');
                         var meta = {
                             "settings": { "aoColumns": respite_crud.dt.settings()[0].aoColumns },
                             "col": i
@@ -1752,11 +1769,11 @@ class respite_crud {
 
                         grp
                             .append(
-                                    $('<span class="label label-primary"></span>')
-                                    .append($('<a class="badge" data-toggle="tooltip" title="Remove filter" href="javascript:void(0)" onclick="respite_crud.clearColSearch(' + i + ')"><i class="fas fa-times"></i></a>'))
+                                    $('<button tabindex="-1" role="type" type="button" class="btn btn-sm btn-info disabled"></button>')
+                                    .append($('<button type="button" class="btn btn-link badge text-light" data-toggle="tooltip" title="Remove filter" onclick="respite_crud.clearColSearch(' + i + ', this)"><i class="fas fa-times"></i></button>'))
                                     .append($('<span></span>').text(' ' + (col['editor_data']['label'] || col['name']) + ':'))
                                     )
-                            .append($('<span class="label label-default"></span>').text(
+                            .append($('<button tabindex="-1" class="btn btn-sm btn-default disabled"></button>').html(
                             col.mRender(searchVal, undefined, undefined, meta)
                             || searchVal)
                             )
@@ -1769,9 +1786,13 @@ class respite_crud {
                 if (hasFilters) {
                     var urlLink = window.location.pathname + '?' + $.param(urlParams);
                     $('body').find('.dt-dynamic-filter-details')
-                        .append($('<div class="panel panel-info"></div>')
-                            .append($('<div class="panel-heading"><span class="mr-auto"><i class="fas fa-filter"></i> Active Filters:</span></div>')
-                                .append($('<a class="ml-auto float-right pull-right" data-toggle="tooltip" title="Get URL for this set of filters"><i class="fas fa-link"></i></a>').attr('href', urlLink))
+                        .append($('<div class="card card-info"></div>')
+                            .append($('<div class="card-header"><h6 class="card-title"><i class="fas fa-filter"></i> Active Filters:</h6></div>')
+                                .append($('<div class="card-tools"></div>')
+                                    .append($('<a class="btn btn-sm btn-info" role="button" data-toggle="tooltip" title="Get URL for this set of filters"><i class="fas fa-link"></i></a>').attr('href', urlLink))
+                                    .append($('<button type="button" class="btn btn-sm btn-info" data-widget="collapse" data-toggle="tooltip" title="Collapse"><i class="fa fa-minus"></i></button>'))
+                                    .append($('<button type="button" class="btn btn-sm btn-info" data-toggle="tooltip" title="Clear all filters" onclick="respite_crud.clearColSearch(null, this)"><i class="fa fa-times"></i></button>'))
+                                )
                             )
                             .append(body)
                         );
@@ -1847,8 +1868,13 @@ class respite_crud {
             });
         });
     }
-    static clearColSearch(col) {
-        respite_crud.dt.column(col).search('');
+    static clearColSearch(col, e) {
+        if (col == null)
+            respite_crud.dt.columns().search('');
+        else
+            respite_crud.dt.column(col).search('');
         respite_crud.dt.draw();
+        if (e)
+            $(e).tooltip('hide');
     }
 }

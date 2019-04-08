@@ -330,31 +330,6 @@ END IF
 <body class="<%= globalBodyClass %>" ng-app="CrudeApp" ng-controller="CrudeCtrl">
 <div class="wrapper">
 <!--#include file="dist/asp/inc_header.asp" -->
-
-  <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <h1>
-        <%= Sanitizer.HTMLDisplay(strPageTitle) %>
-      </h1>
-
-      <ol class="breadcrumb">
-        <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
-        <li class="active"><%= Sanitizer.HTMLDisplay(strPageTitle) %></li>
-      </ol>
-
-    </section>
-
-    <!-- Main content -->
-    <section class="content container-fluid">
-
-<!--<div class="row">
-    <div class="col col-sm-12">
-        <a class="btn btn-primary" role="button" href="#"><i class="fas fa-arrow-left"></i> Back</a>
-    </div>
-</div>-->
-      
 <%
 IF strError <> "" THEN
 %>
@@ -638,11 +613,6 @@ Dim nIndex2, strCurrLabelBind
 </div>
 <!-- /.box -->
 <% END IF %>
-    </section>
-    <!-- /.content -->
-  </div>
-  <!-- /.content-wrapper -->
-
 <!--#include file="dist/asp/inc_footer.asp" -->
 </div>
 <!-- ./wrapper -->
@@ -653,13 +623,6 @@ Dim nIndex2, strCurrLabelBind
     <script src="bower_components/angular/angular.min.js"></script>
     <script src="bower_components/angular-datatables/dist/angular-datatables.min.js"></script>
 
-<!-- AdminLTE App -->
-<script src="dist/js/adminlte.min.js"></script>
-
-<!-- Optionally, you can add Slimscroll and FastClick plugins.
-     Both of these plugins are recommended to enhance the
-     user experience. -->
-<!-- page script -->
 <script>
 var app = angular.module("CrudeApp", ['datatables']);
 app.filter("trust", ['$sce', function($sce) {

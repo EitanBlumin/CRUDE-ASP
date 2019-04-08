@@ -53,30 +53,11 @@ adoConn.Open
 <body class="<%= globalBodyClass %>">
 <div class="wrapper">
 <!--#include file="dist/asp/inc_header.asp" -->
-
-  <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <h1>
-        <%= strPageTitle %>
-      </h1>
-
-      <ol class="breadcrumb">
-        <li><a href="<%= SITE_ROOT %>default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
-        <li class="active"><%= strPageTitle %></li>
-      </ol>
-
-    </section>
-
-    <!-- Main content -->
-    <section class="content container-fluid">
-        
       <div class="error-page">
-        <h2 class="headline text-yellow"> 404</h2>
+        <h2 class="headline text-warning"> 404</h2>
 
         <div class="error-content">
-          <h3><i class="fas fa-exclamation-triangle text-yellow"></i> Oops! Page not found.</h3>
+          <h3><i class="fas fa-exclamation-triangle text-warning"></i> Oops! Page not found.</h3>
 
           <div>
             We could not find the page you were looking for.
@@ -99,24 +80,12 @@ adoConn.Open
         <!-- /.error-content -->
       </div>
 
-    </section>
-    <!-- /.content -->
-  </div>
-  <!-- /.content-wrapper -->
-
 <!--#include file="dist/asp/inc_footer.asp" -->
 </div>
 <!-- ./wrapper -->
 
 <!-- REQUIRED JS SCRIPTS -->
 <!--#include file="dist/asp/inc_footer_jscripts.asp" -->
-
-<!-- AdminLTE App -->
-<script src="<%= SITE_ROOT %>dist/js/adminlte.min.js"></script>
-
-<!-- Optionally, you can add Slimscroll and FastClick plugins.
-     Both of these plugins are recommended to enhance the
-     user experience. -->
 
 <script type="text/javascript">
     var pathStack = window.location.pathname.split('/');

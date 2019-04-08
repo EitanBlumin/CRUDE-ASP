@@ -193,24 +193,6 @@ END IF
 <div class="wrapper">
 <!--#include file="dist/asp/inc_header.asp" -->
     
-  <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <h1>
-        <%= strPageTitle %>
-      </h1>
-
-      <ol class="breadcrumb">
-        <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
-        <li class="active"><%= Sanitizer.HTMLDisplay(strPageTitle) %></li>
-      </ol>
-
-    </section>
-
-    <!-- Main content -->
-    <section class="content container-fluid">
-
 <%
 
 IF (strMode = "edit" AND nItemID <> "" AND IsNumeric(nItemID)) OR strMode = "add" Then
@@ -503,23 +485,11 @@ WEND %>
 </table>
 </div>
 </div>
-    </section>
-    <!-- /.content -->
-  </div>
-  <!-- /.content-wrapper -->
-
 <!--#include file="dist/asp/inc_footer.asp" -->
 </div>
 <!-- ./wrapper -->
 
 <!-- REQUIRED JS SCRIPTS -->
 <!--#include file="dist/asp/inc_footer_jscripts.asp" -->
-
-<!-- AdminLTE App -->
-<script src="dist/js/adminlte.min.js"></script>
-
-<!-- Optionally, you can add Slimscroll and FastClick plugins.
-     Both of these plugins are recommended to enhance the
-     user experience. -->
 </body>
 </html>

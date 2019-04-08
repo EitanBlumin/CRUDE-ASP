@@ -311,26 +311,6 @@ END IF
 <div class="wrapper">
 <!--#include file="dist/asp/inc_header.asp" -->
 
-  <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <h1>
-        <%= strPageTitle %>
-      </h1>
-
-      <ol class="breadcrumb">
-        <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
-        <li><a href="admin_dataviews.asp"><i class="fas fa-th-list"></i> <%= GetWord("Manage Data Views") %></a></li>
-        <li><a href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"> <%= Sanitizer.HTMLDisplay(strDataViewTitle) %></a></li>
-        <li class="active"><%= GetWord("Manage Fields") %></li>
-      </ol>
-
-    </section>
-
-    <!-- Main content -->
-    <section class="content container-fluid">
-
 <div class="row">
     <div class="col col-sm-12">
         <a class="btn btn-primary" role="button" href="admin_dataviews.asp?mode=edit&ItemID=<%= nViewID %>"><i class="fas fa-edit"></i> Edit Data View</a>
@@ -625,23 +605,11 @@ WEND %>
 <input type="hidden" name="mode" value="sortFields" />
 </form>
 
-    </section>
-    <!-- /.content -->
-  </div>
-  <!-- /.content-wrapper -->
-
 <!--#include file="dist/asp/inc_footer.asp" -->
 </div>
 <!-- ./wrapper -->
 
 <!-- REQUIRED JS SCRIPTS -->
 <!--#include file="dist/asp/inc_footer_jscripts.asp" -->
-
-<!-- AdminLTE App -->
-<script src="dist/js/adminlte.min.js"></script>
-
-<!-- Optionally, you can add Slimscroll and FastClick plugins.
-     Both of these plugins are recommended to enhance the
-     user experience. -->
 </body>
 </html>
