@@ -75,12 +75,12 @@ var currNavID = getParameterByName("NavID");
 function setActiveAndBubbleUp(element) {
     //console.log($(element).parent().get(0).tagName);
     if (!$(element).parent().hasClass("active")) {
-        if ($(element).parent().get(0).tagName == "LI" && $(element).parent().hasClass("nav-link"))
+        if ($(element).parent().get(0).tagName == "LI" && $(element).parent().hasClass("nav-item"))
         {
             $(element).parent().addClass('active');
             setActiveAndBubbleUp($(element).parent());
         }
-        else if ($(element).parent().get(0).tagName == "UL" && $(element).parent().hasClass("treeview-menu"))
+        else if ($(element).parent().get(0).tagName == "UL" && $(element).parent().hasClass("nav-treeview"))
         {
             $(element).parent().addClass('active');
             setActiveAndBubbleUp($(element).parent());
@@ -95,7 +95,7 @@ function loadSideNav()
      //console.log(response);
      nav = response;
     
-    var navTxt = '<li class="header">Menu</li>';
+    var navTxt = '<li class="nav-header">Menu</li>';
 
     for (x in nav) {
         navTxt += displayNavLink(nav[x]);
@@ -103,7 +103,7 @@ function loadSideNav()
 
     document.getElementById("sideNavMenu").innerHTML = navTxt;
     
-    $('li.nav-link a').each(function() {
+    $('li.nav-item a').each(function() {
         //console.log("examining link: " + getPageName($(this).attr('href')));
         if (getPageName($(this).attr('href')) == currFileName){
 
@@ -113,6 +113,7 @@ function loadSideNav()
                 {
                     //console.log("found match (ViewID)");
                     //console.log($(this).parent());
+                    $(this).addClass('active');
                     setActiveAndBubbleUp(this);
                 }
             }

@@ -7,17 +7,17 @@
 
 $(function () {
 
-  'use strict';
+  'use strict'
 
   // Make the dashboard widgets sortable Using jquery UI
   $('.connectedSortable').sortable({
     placeholder         : 'sort-highlight',
     connectWith         : '.connectedSortable',
-    handle              : '.box-header, .nav-tabs',
+    handle              : '.card-header, .nav-tabs',
     forcePlaceholderSize: true,
     zIndex              : 999999
-  });
-  $('.connectedSortable .box-header, .connectedSortable .nav-tabs-custom').css('cursor', 'move');
+  })
+  $('.connectedSortable .card-header, .connectedSortable .nav-tabs-custom').css('cursor', 'move')
 
   // jQuery UI sortable for the todo list
   $('.todo-list').sortable({
@@ -25,10 +25,10 @@ $(function () {
     handle              : '.handle',
     forcePlaceholderSize: true,
     zIndex              : 999999
-  });
+  })
 
   // bootstrap WYSIHTML5 - text editor
-  $('.textarea').wysihtml5();
+  $('.textarea').wysihtml5()
 
   $('.daterange').daterangepicker({
     ranges   : {
@@ -42,87 +42,85 @@ $(function () {
     startDate: moment().subtract(29, 'days'),
     endDate  : moment()
   }, function (start, end) {
-    window.alert('You chose: ' + start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-  });
+    window.alert('You chose: ' + start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'))
+  })
 
   /* jQueryKnob */
-  $('.knob').knob();
+  $('.knob').knob()
 
   // jvectormap data
   var visitorsData = {
-    US: 398, // USA
-    SA: 400, // Saudi Arabia
-    CA: 1000, // Canada
-    DE: 500, // Germany
-    FR: 760, // France
-    CN: 300, // China
-    AU: 700, // Australia
-    BR: 600, // Brazil
-    IN: 800, // India
-    GB: 320, // Great Britain
-    RU: 3000 // Russia
-  };
+    'US': 398, //USA
+    'SA': 400, //Saudi Arabia
+    'CA': 1000, //Canada
+    'DE': 500, //Germany
+    'FR': 760, //France
+    'CN': 300, //China
+    'AU': 700, //Australia
+    'BR': 600, //Brazil
+    'IN': 800, //India
+    'GB': 320, //Great Britain
+    'RU': 3000 //Russia
+  }
   // World map by jvectormap
   $('#world-map').vectorMap({
     map              : 'world_mill_en',
     backgroundColor  : 'transparent',
     regionStyle      : {
       initial: {
-        fill            : '#e4e4e4',
+        fill            : 'rgba(255, 255, 255, 0.7)',
         'fill-opacity'  : 1,
-        stroke          : 'none',
-        'stroke-width'  : 0,
+        stroke          : 'rgba(0,0,0,.2)',
+        'stroke-width'  : 1,
         'stroke-opacity': 1
       }
     },
     series           : {
-      regions: [
-        {
-          values           : visitorsData,
-          scale            : ['#92c1dc', '#ebf4f9'],
-          normalizeFunction: 'polynomial'
-        }
-      ]
+      regions: [{
+        values           : visitorsData,
+        scale            : ['#ffffff', '#0154ad'],
+        normalizeFunction: 'polynomial'
+      }]
     },
     onRegionLabelShow: function (e, el, code) {
       if (typeof visitorsData[code] != 'undefined')
-        el.html(el.html() + ': ' + visitorsData[code] + ' new visitors');
+        el.html(el.html() + ': ' + visitorsData[code] + ' new visitors')
     }
-  });
+  })
 
   // Sparkline charts
-  var myvalues = [1000, 1200, 920, 927, 931, 1027, 819, 930, 1021];
+  var myvalues = [1000, 1200, 920, 927, 931, 1027, 819, 930, 1021]
   $('#sparkline-1').sparkline(myvalues, {
     type     : 'line',
     lineColor: '#92c1dc',
     fillColor: '#ebf4f9',
     height   : '50',
     width    : '80'
-  });
-  myvalues = [515, 519, 520, 522, 652, 810, 370, 627, 319, 630, 921];
+  })
+  myvalues = [515, 519, 520, 522, 652, 810, 370, 627, 319, 630, 921]
   $('#sparkline-2').sparkline(myvalues, {
     type     : 'line',
     lineColor: '#92c1dc',
     fillColor: '#ebf4f9',
     height   : '50',
     width    : '80'
-  });
-  myvalues = [15, 19, 20, 22, 33, 27, 31, 27, 19, 30, 21];
+  })
+  myvalues = [15, 19, 20, 22, 33, 27, 31, 27, 19, 30, 21]
   $('#sparkline-3').sparkline(myvalues, {
     type     : 'line',
     lineColor: '#92c1dc',
     fillColor: '#ebf4f9',
     height   : '50',
     width    : '80'
-  });
+  })
 
   // The Calender
-  $('#calendar').datepicker();
+  $('#calendar').datepicker()
 
   // SLIMSCROLL FOR CHAT WIDGET
   $('#chat-box').slimScroll({
     height: '250px'
-  });
+  })
 
   /* Morris.js Charts */
   // Sales chart
@@ -144,9 +142,9 @@ $(function () {
     xkey      : 'y',
     ykeys     : ['item1', 'item2'],
     labels    : ['Item 1', 'Item 2'],
-    lineColors: ['#a0d0e0', '#3c8dbc'],
+    lineColors: ['#495057', '#007cff'],
     hideHover : 'auto'
-  });
+  })
   var line = new Morris.Line({
     element          : 'line-chart',
     resize           : true,
@@ -175,36 +173,25 @@ $(function () {
     gridLineColor    : '#efefef',
     gridTextFamily   : 'Open Sans',
     gridTextSize     : 10
-  });
+  })
 
   // Donut Chart
   var donut = new Morris.Donut({
     element  : 'sales-chart',
     resize   : true,
-    colors   : ['#3c8dbc', '#f56954', '#00a65a'],
+    colors   : ['#007bff', '#dc3545', '#28a745'],
     data     : [
       { label: 'Download Sales', value: 12 },
       { label: 'In-Store Sales', value: 30 },
       { label: 'Mail-Order Sales', value: 20 }
     ],
     hideHover: 'auto'
-  });
+  })
 
   // Fix for charts under tabs
   $('.box ul.nav a').on('shown.bs.tab', function () {
-    area.redraw();
-    donut.redraw();
-    line.redraw();
-  });
-
-  /* The todo list plugin */
-  $('.todo-list').todoList({
-    onCheck  : function () {
-      window.console.log($(this), 'The element has been checked');
-    },
-    onUnCheck: function () {
-      window.console.log($(this), 'The element has been unchecked');
-    }
-  });
-
-});
+    area.redraw()
+    donut.redraw()
+    line.redraw()
+  })
+})

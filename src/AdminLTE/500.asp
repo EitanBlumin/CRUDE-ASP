@@ -17,19 +17,23 @@ strPageTitle = "500 Server Error"
   <title><%= constPortalTitle %></title>
 <!--#include file="dist/asp/inc_meta.asp" -->
 </head>
-<body class="hold-transition skin-blue sidebar-mini fixed">
-<div class="wrapper">
+<body>
 
-  <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <section class="content-header">
-      <h1><%= strPageTitle %></h1>
-
-      <ol class="breadcrumb">
-        <li><a href="default.asp"><i class="fas fa-tachometer-alt"></i> Home</a></li>
-        <li class="active"><%= strPageTitle %></li>
-      </ol>
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0 text-dark"><%= strPageTitle %></h1>
+                </div><!-- /.col -->
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="<%= SITE_ROOT %>default.asp">Home</a></li>
+                        <li class="breadcrumb-item active"><%= strPageTitle %></li>
+                    </ol>
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+        </div>
 
     </section>
 
@@ -37,10 +41,10 @@ strPageTitle = "500 Server Error"
     <section class="content container-fluid">
         
       <div class="error-page">
-        <h2 class="headline text-red">500</h2>
+        <h2 class="headline text-danger">500</h2>
 
         <div class="error-content">
-          <h3><i class="fas fa-exclamation-triangle text-red"></i> Oops! Something went wrong.</h3>
+          <h3><i class="fas fa-exclamation-triangle text-danger"></i> Oops! Something went wrong.</h3>
 
           <p>
             We will work on fixing that right away.
@@ -64,20 +68,10 @@ strPageTitle = "500 Server Error"
 
     </section>
     <!-- /.content -->
-  </div>
-  <!-- /.content-wrapper -->
 
-</div>
-<!-- ./wrapper -->
 
 <!-- REQUIRED JS SCRIPTS -->
 <!--#include file="dist/asp/inc_footer_jscripts.asp" -->
 
-<!-- AdminLTE App -->
-<script src="dist/js/adminlte.min.js"></script>
-
-<!-- Optionally, you can add Slimscroll and FastClick plugins.
-     Both of these plugins are recommended to enhance the
-     user experience. -->
 </body>
 </html>

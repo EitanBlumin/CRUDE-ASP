@@ -1,30 +1,29 @@
-﻿
-  <!-- Left side column. contains the logo and sidebar -->
-  <aside class="main-sidebar">
+﻿<!-- Main Sidebar Container -->
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a href="<%= SITE_ROOT %>default.asp" class="brand-link">
+        <!-- mini logo for sidebar mini 50x50 pixels -->
+        <span class="brand-image img-circle elevation-3">
+            <span class="fa-stack fa-1x">
+            <i class="far fa-circle fa-stack-2x"></i>
+            <i class="fas fa-tint fa-stack-1x"></i>
+            </span>
+        </span>
+        <!-- logo for regular state and mobile devices -->
+        <span class="brand-text font-weight-light">Crude<b>ASP</b></span>
+    </a>
     <!-- sidebar: style can be found in sidebar.less -->
     <section class="sidebar">
-
-        <% IF False THEN %>
-      <!-- Sidebar user panel (optional) -->
-      <div class="user-panel">
-        <div class="pull-left image">
-          <img src="<%= SITE_ROOT %>dist/img/user2-160x160.jpg" class="img-circle" alt="User Image">
-        </div>
-        <div class="pull-left info">
-          <p>Alexander Pierce</p>
-          <!-- Status -->
-          <a href="#"><i class="fas fa-circle text-success"></i> Online</a>
-        </div>
-      </div>
-        <% END IF %>
-
       <!-- Sidebar Menu -->
-        
-      <ul class="sidebar-menu" data-widget="tree" id="sideNavMenu">
-        <li class="header">Menu</li>
+      <nav class="mt-2">
+        <ul class="nav nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false" id="sideNavMenu">
+            <!-- Add icons to the links using the .nav-icon class
+                    with font-awesome or any other icon font library -->
+        <li class="nav-header">Menu</li>
         <!-- Optionally, you can add icons to the links -->
-        <li><a href="#"><i class="fas fa-spinner fa-pulse"></i> Loading...</a></li>
+        <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-spinner fa-pulse"></i> Loading...</a></li>
       </ul>
+      </nav>
 <script>
 function getCookie(cname) {
     var name = cname + "=";
@@ -50,9 +49,9 @@ function isNavLinkActive(navLink) {
 }
 function displayNavLink(navLink) {
     var txt = "";
-    txt += '<li class="nav-link';
+    txt += '<li class="nav-item';
     if (navLink.ChildItems == undefined || navLink.ChildItems.length > 0)
-        txt += ' treeview';
+        txt += ' has-treeview';
     if (isNavLinkActive(navLink))
         txt += ' active';
     if (navLink["ViewID"] != null && navLink["ViewID"] != undefined && navLink["ViewID"] != "")
@@ -60,7 +59,7 @@ function displayNavLink(navLink) {
     if (navLink["OpenUriInIFRAME"])
         txt += '" nav-id="' + navLink.NavId;
 
-    txt += '"><a href="';
+    txt += '"><a class="nav-link" href="';
 
     if (navLink.ChildItems == undefined || navLink.ChildItems.length > 0)
         txt += "javascript:"
@@ -77,17 +76,17 @@ function displayNavLink(navLink) {
     if (navLink["NavTooltip"] && (navLink.ChildItems == undefined || navLink.ChildItems.length == 0))
         txt += ' data-toggle="tooltip" data-placement="right"';
 
-    txt += '><i class="' + navLink.NavGlyph + '"></i> <span>' + navLink.NavLabel + '</span>'
+    txt += '><i class="nav-icon ' + navLink.NavGlyph + '"></i> <p>' + navLink.NavLabel;
     
     if (navLink.ChildItems != undefined && navLink.ChildItems.length > 0)
     {
-        txt += '<span class="pull-right-container"><i class="fas fa-angle-left pull-right"></i></span><ul class="treeview-menu">';
+        txt += '<i class="fas fa-angle-left pull-right"></i></p><ul class="nav nav-treeview">';
         for (y in navLink.ChildItems) {
             txt += displayNavLink(navLink.ChildItems[y]);
         }
         txt += '</ul>'
     } else {
-        txt += '</a>';
+        txt += '</p></a>';
     }
 
     txt += '</li>'
