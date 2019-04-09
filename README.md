@@ -83,13 +83,13 @@ But when there would be a first release, then it would be something like this:
 
 ## Dependencies
 
-* [AdminLTE 2.4.5](https://adminlte.io/) - Free starter web template
+* [AdminLTE v3](https://adminlte.io/) - Free starter web template
 * [DataTables](https://www.datatables.net/)
-* [Bootstrap v3.3.7](http://getbootstrap.com)
-* [Font Awesome v5.1.1](https://www.fontawesome.com)
+* [Bootstrap v4](http://getbootstrap.com)
+* [Font Awesome v5](https://www.fontawesome.com)
 * [Summernote WYSIWYG Editor](https://summernote.org/)
 * [Toastr Notifications](https://github.com/CodeSeven/toastr)
-* [JQuery](https://jquery.com/)
+* [JQuery v3](https://jquery.com/)
 
 ## Authors
 
