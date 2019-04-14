@@ -44,6 +44,55 @@
 </script>
 
 <script>
+function isNavLinkActive(navLink) {
+    // not implemented. use loadSideNav and setActiveAndBubbleUp instead
+    return false;
+}
+function displayNavLink(navLink) {
+    var txt = "";
+    txt += '<li class="nav-item';
+    if (navLink.ChildItems == undefined || navLink.ChildItems.length > 0)
+        txt += ' has-treeview';
+    if (isNavLinkActive(navLink))
+        txt += ' active';
+    if (navLink["ViewID"] != null && navLink["ViewID"] != undefined && navLink["ViewID"] != "")
+        txt += '" view-id="' + navLink.ViewID;
+    if (navLink["OpenUriInIFRAME"])
+        txt += '" nav-id="' + navLink.NavId;
+
+    txt += '"><a class="nav-link" href="';
+
+    if (navLink.ChildItems == undefined || navLink.ChildItems.length > 0)
+        txt += "javascript:"
+    else if (navLink["OpenUriInIFRAME"])
+        txt += "<%= SITE_ROOT %>view.asp?NavID=" + navLink.NavId;
+    else if (navLink["NavUri"])
+        txt += navLink.NavUri;
+    else if (navLink["ViewID"] != null && navLink["ViewID"] != undefined && navLink["ViewID"] != "")
+        txt += "<%= SITE_ROOT %>dataview.asp?ViewID=" + navLink.ViewID;
+    else
+        txt += "#"
+
+    txt += '" title="' + navLink.NavTooltip + '"';
+    if (navLink["NavTooltip"] && (navLink.ChildItems == undefined || navLink.ChildItems.length == 0))
+        txt += ' data-toggle="tooltip" data-placement="right"';
+
+    txt += '><i class="nav-icon ' + navLink.NavGlyph + '"></i> <p>' + navLink.NavLabel;
+    
+    if (navLink.ChildItems != undefined && navLink.ChildItems.length > 0)
+    {
+        txt += '<i class="fas fa-angle-left pull-right"></i></p><ul class="nav nav-treeview">';
+        for (y in navLink.ChildItems) {
+            txt += displayNavLink(navLink.ChildItems[y]);
+        }
+        txt += '</ul>'
+    } else {
+        txt += '</p></a>';
+    }
+
+    txt += '</li>'
+    return txt;
+}
 function getPageName(path) {
     if (!path) path = window.location.href;
     var segments = path.split('?')[0].split('/');
@@ -91,6 +140,11 @@ function setActiveAndBubbleUp(element) {
 function loadSideNav()
 {
     var nav = "[]";
+
+    // make sure nav menu exists
+    if (document.getElementById("sideNavMenu") == undefined)
+        return;
+
     $.get('<%= SITE_ROOT %>ajax_dataview.asp?mode=getSiteNav', "", function(response) {
      //console.log(response);
      nav = response;
