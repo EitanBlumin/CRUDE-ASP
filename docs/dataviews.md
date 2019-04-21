@@ -1,3 +1,7 @@
+---
+title: CRUDE-ASP DataViews
+---
+
 # What is a Data View?
 
 A Data View (or "dataview") is a web page that displays data from a database, generally in the form of a datatable.
