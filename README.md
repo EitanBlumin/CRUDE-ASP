@@ -1,3 +1,6 @@
+---
+title: CRUDE-ASP
+---
 # CRUDE-ASP
 
 ![logo](docs/favicon.png "CRUDE ASP Logo")
