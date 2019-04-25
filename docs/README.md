@@ -3,7 +3,7 @@ title: CRUDE-ASP
 ---
 # CRUDE-ASP
 
-![logo](docs/favicon.png "CRUDE ASP Logo")
+![logo](favicon.png "CRUDE ASP Logo")
 
 CRUDE:
 
@@ -22,9 +22,9 @@ The project should be optimal for rapid application development of simple LOB (l
 There's absolutely NO programming knowledge required.
 It could of course come in handy for the more advanced scenarios, but in the most part, you should be able to implement most common application features using the easy-to-understand UI of CRUDE, without writing a single word of code.
 
-![Data View Example](docs/images/dataview_basic_toastr.png "Featuring angular datatables and toastr notifications")
+![Data View Example](images/dataview_basic_toastr.png "Featuring angular datatables and toastr notifications")
 
-![Data View Editing Example](docs/images/dataview_editing.png "Bootstrap Modals are supported")
+![Data View Editing Example](images/dataview_editing.png "Bootstrap Modals are supported")
 
 [Please see the Wiki for more info](https://github.com/EitanBlumin/CRUDE-ASP/wiki)
 
