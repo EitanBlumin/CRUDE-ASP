@@ -43,7 +43,7 @@ In other words: Use the CRUD generator platform to manage the CRUD generator pla
 
 If all functionality needed for the management of these tables can be implemented using the CRUDE platform itself, that would, indeed, be a True Show of Strength of the CRUDE platform, right off the shelf.
 
-/(only exception, possibly, would be the management of the navigation menu items, which would be managed using an editable treeview control)/
+> (only exception, possibly, would be the management of the navigation menu items, which would be managed using an editable treeview control)
 
 Also, leveraging the crud generator abilities for the administrative sections should tremendously reduce development time and effort, since we won't need to hard-code these sections ourselves.
 
