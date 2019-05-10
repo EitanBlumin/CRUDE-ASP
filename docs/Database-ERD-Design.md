@@ -34,7 +34,7 @@ In this page:
 - [crude.FilterOperator](#crudefilteroperator)
 - [crude.FieldType](#crudefieldtype)
 
-# True Show of Strength
+## True Show of Strength
 
 The CRUDE-NET platform is very extensive and contains many database tables needed for its implementation and management.
 However, a true show of strength of the CRUDE platform, would be to implement the management of these tables using the very platform they're used for implementing.
@@ -47,7 +47,7 @@ If all functionality needed for the management of these tables can be implemente
 
 Also, leveraging the crud generator abilities for the administrative sections should tremendously reduce development time and effort, since we won't need to hard-code these sections ourselves.
 
-# crude.Configuration
+## crude.Configuration
 
 Controls various site settings.
 
@@ -55,7 +55,7 @@ Each setting would have its own column in this table. Please see [Site Settings]
 
 Exact structure and implementation of this table is TBD
 
-# crude.DataSource
+## crude.DataSource
 
 The data source would be the equivalent of a connection string, defining the source server, authentication and default database. However, this table won't contain the connection string itself.
 This table could be managed dynamically, but the actual use of it would be by correlating the data from it with a secured configuration file (i.e appSettings.json or web.config or something equivalent). This is so that we won't save secure connection strings inside the database.
@@ -77,7 +77,7 @@ In other words, this table would contain identifiers that the controller layer w
 
 More fields are TBD.
 
-# crude.DataView
+## crude.DataView
 
 Equivalent of Evolutility's `form` element.
 
@@ -155,7 +155,7 @@ Each record in this table represents a single data model, with a single underlyi
 | `ViewTemplate` |String|This will determine the HTML template to be used for rendering this dataview. TBD whether this would be a foreign key to another table, or a string path to a template file.|
 | `DBDTRowClassColumn` |String (255)|Optional database column (SQL name) containing the CSS class name to be used as DT_RowClass which automatically sets the class of the TR element. Example value: "table-success".|
 
-# crude.DataViewPanel
+## crude.DataViewPanel
 
 Equivalent of Evolutility's `panel` , `tab` and `panel-details` elements.
 
@@ -203,7 +203,7 @@ Grid Panels cannot contain fields or sub-panels.
 |||  - Grid Panel (whether this panel is to be used as a grid displaying data from another dataview (utilizing the `GridViewID` and `DBFKColumn` fields). *Note: Grid panels cannot contain fields within them*.|
 | `CSSPanel` |String|CSS class for the panel element. Default is '' (using base element styling)|
 
-# crude.DataViewField
+## crude.DataViewField
 
 Equivalent of Evolutility's `field` element.
 
@@ -273,7 +273,7 @@ The data view fields represent fields on the screen, and database columns at onc
 |||    - Switches
 | `LOVIsMultiple` |Boolean|Determines whether single value or multi value|
 
-# crude.DataViewQueryGroup
+## crude.DataViewQueryGroup
 
 Equivalent of Evolutility's `queries` also know as "Selections"
 
@@ -290,7 +290,7 @@ Queries are also grouped into Query Groups.
 | `Description` |String(max)|Introduction rich-text displayed above the list of queries.|
 | `GroupOrder` |Int|Number determining the order in which the query group will be displayed within the list of groups (if there's more than one).|
 
-# crude.DataViewQuery
+## crude.DataViewQuery
 
 Equivalent of Evolutility's `query` used within "Selections".
 
@@ -304,7 +304,7 @@ Equivalent of Evolutility's `query` used within "Selections".
 | `QueryIdentifier` |String(50)|Key used to identity each query within the list. Each key can be used in links within the page to force the control to display the corresponding query. Example: Assuming "sfo" is a QueryIdentifier you entered for one of the queries, a link to it would look like this: "<a href`"javascript:__doPostBack('evo1','q:sfo')">Restaurants in San Francisco</a>"|
 | `DBWhere` |String(4000)|SQL Where clause for the query (will be appended to the regular query of the parent data view)|
 
-# crude.DataViewAction
+## crude.DataViewAction
 
 Each dataview can have, in addition to its data displayed, also a set of customizable "action buttons".
 
@@ -340,7 +340,7 @@ After activating an action, a modal will be displayed with the text string retur
 |||  - If ActionType is DataTable Javascript Function, this expression will be used as the Javascript function body ([more info](https://datatables.net/extensions/buttons/custom))
 | `CSSBtn` |String|CSS class name for the button element. Default: "btn btn-primary".|
 
-# crude.DataViewActionParameter
+## crude.DataViewActionParameter
 
 Action parameters can be configured for all action types (HTTP Link, DB SQL Command, DB SQL Procedure, JavaScript function).
 A modal dialog will be displayed for setting parameter values before execution, and/or use pre-configured "default" values.
@@ -396,7 +396,7 @@ Parameters for http links would be appended to the URL querystring. DB Commands 
 |||    - Switches
 | `LOVIsMultiple` |Boolean|Determines whether single value or multi value|
 
-# crude.DataViewChart
+## crude.DataViewChart
 
 Configures the set of charts that would be available for a data view.
 
@@ -404,13 +404,13 @@ Defines the type of chart (line, area, pie, bubble, bars, etc.) and the various 
 
 TBA
 
-# crude.Comment
+## crude.Comment
 
 Equivalent of Evolutility's `EVOL_Comment`.
 
 TBA
 
-# crude.User
+## crude.User
 
 Used for authentication, registration and profiles.
 Equivalent of evolutility's `EVOL_User`. Also comparable to aspnet_Users.
@@ -433,7 +433,7 @@ Passwords are saved as one-way hash values, with a salt randomly generated per e
 I'm not sure yet what's the best way to go about the extendable user's profile fields. Whether to save them in a single document column (JSON or XML), or as regular relational table columns.
 Also, there may be more columns TBA.
 
-# crude.Role
+## crude.Role
 
 Various roles such as user, moderator, admin, and any other custom role.
 
@@ -447,7 +447,7 @@ Comparable to aspnet_Roles.
 | `Description` |String|Description for the role|
 | `Enabled` |Boolean|Sets whether this role is enabled or not. Can be used for toggling access of entire groups of users, based on their role.|
 
-# crude.PermissionSegment
+## crude.PermissionSegment
 
 A logical group of site objects and sections (i.e. data views, navigation menus, etc.) to be used for setting permissions.
 
@@ -458,7 +458,7 @@ A logical group of site objects and sections (i.e. data views, navigation menus,
 | `Description` |String|Description for the segment|
 | `Enabled` |Boolean|Sets whether this segment is enabled or not. Can be used for shutting off entire sections of the portal.|
 
-# crude.UserRoles
+## crude.UserRoles
 
 Mapping between users and roles. A user must be mapped to at least one role in order to have any sort of permissions.
 
@@ -468,7 +468,7 @@ Mapping between users and roles. A user must be mapped to at least one role in o
 | `UserID` |Foreign Key|References [crude.User](#crudeUser)|
 | `RoleID` |Foreign Key|References [crude.Role](#crudeRole)|
 
-# crude.RolePermissions
+## crude.RolePermissions
 
 Determines the permissions configured per each role, for each permission segment.
 
@@ -518,7 +518,7 @@ Determines the permissions configured per each role, for each permission segment
 |||  - Queries
 |||  - More (TBD)
 
-# crude.AuthProvider
+## crude.AuthProvider
 
 A table holding settings of various SSO authentication service providers (i.e. OAuth and OAuth2), such as: Facebook, Google, Twitter, Office365, LinkedIn, Yammer, etc.
 
@@ -542,7 +542,7 @@ A table holding settings of various SSO authentication service providers (i.e. O
 
 I'm not actually experienced with OAuth implementation so I don't know what other fields may be needed here.
 
-# crude.CustomPage
+## crude.CustomPage
 
 Custom pages are rich text format pages used as non data bound web pages.
 
@@ -562,7 +562,7 @@ Theoretically, this entity may not be needed, if one was to create a data view w
 | `SEOTags` |String|SEO meta tags|
 | `SEOAuthor` |String|SEO meta author|
 
-# crude.NavSection
+## crude.NavSection
 
 A logical "super-group" of navigation items.
 
@@ -579,7 +579,7 @@ Clicking on a top-navbar menu item would open a page with the side-navbar menu c
 | `SectionOrder` |Int|Number used for determining this section's sort order in the top-navbar, if there's more than one section.|
 | `DefaultPage` |String(200)|A URL to be used for this section, when clicking on the related top-navbar menu item.|
 
-# crude.Navigation
+## crude.Navigation
 
 Equivalent of CRUDE-ASP's `Navigation`.
 
@@ -606,7 +606,7 @@ If more than one is set anyway, the one chosen will be based on the following pr
 In either case, if this menu item is also the parent of another menu item, no link will be created for this item.
 Instead, it will serve exclusively as a parent tree node, clicking which would show or hide its sub-nodes.
 
-# crude.FilterOperator
+## crude.FilterOperator
 
 Based on the [Dynamic Filters](/EitanBlumin/DynamicFilters) solution, to be used for advanced search.
 
@@ -633,7 +633,7 @@ The template for "in" is:
 | `MultiValue` |Boolean|Sets whether parameters affected by this operator should be treated as multi-valued (i.e. table variable with a single `value` column).|
 | `DBTemplate` |String|Defines the database expression template for this operator. {Column} and {Parameter} can be used as palceholders within the template. For example, the template for "starts with" is: "{Column} LIKE {Parameter} + '%'" and the template for "in" (which is a multi-value operator), is: "{Column} IN (SELECT [value] FROM {Parameter})".|
 
-# crude.FieldType
+## crude.FieldType
 
 Shared lookup table between [field types](Field-Types) and parameter types.
 
