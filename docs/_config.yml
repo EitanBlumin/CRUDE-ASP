@@ -1,5 +1,5 @@
 title: CRUDE-ASP
-url: "http://eitanblumin.github.io/CRUDE-ASP"
+url: "https://git.eitanblumin.com/CRUDE-ASP/"
 baseurl: "/CRUDE-ASP"
 logo: /crude-logo.png
 social-network-links:
@@ -17,7 +17,7 @@ share-links-active:
 navbar-links:
   About Me: "aboutme"
   Resources:
-    - Google Plus: "https://plus.google.com/+EitanBlumin"
+    - LinkedIn: "https://www.linkedin.com/in/eitanblumin/"
     - GitHub Gists: "https://gist.github.com/EitanBlumin"
-  Author's home: "https://www.linkedin.com/in/eitanblumin/"
+  Author's home: "https://www.eitanblumin.com/"
 theme: jekyll-theme-leap-day
