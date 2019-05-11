@@ -189,6 +189,23 @@ ELSEIF strMode = "sortFields" THEN
 
 ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) THEN
 	Dim srcCMD, rsTarget
+    Dim ExistingColumns
+
+    SET ExistingColumns = Server.CreateObject("Scripting.Dictionary")
+
+    strSQL = "SELECT FieldSource FROM portal.DataViewField WHERE ViewID = " & nViewID
+
+    SET rsTarget = Server.CreateObject("ADODB.Recordset")
+    rsTarget.CursorLocation = adUseClient
+    rsTarget.CursorType = adOpenKeyset
+    rsTarget.LockType = adLockOptimistic
+    rsTarget.Open strSQL, adoConn
+
+    WHILE NOT rsTarget.EOF
+        ExistingColumns.Add rsTarget("FieldSource"), rsTarget("FieldSource")
+
+        rsTarget.MoveNext
+    WEND
 
     Set adoConnSrc = Server.CreateObject("ADODB.Connection")
     adoConnSrc.ConnectionString = adoConnSource
@@ -248,31 +265,27 @@ ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) THEN
 
     strSQL = "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID
 
-    SET rsTarget = Server.CreateObject("ADODB.Recordset")
-    rsTarget.CursorLocation = adUseClient
-    rsTarget.CursorType = adOpenKeyset
-    rsTarget.LockType = adLockOptimistic
-    rsTarget.Open strSQL, adoConn
-
     WHILE NOT rsItems.EOF
-        rsTarget.AddNew
+        IF NOT ExistingColumns.Exists(rsItems("ColumnName")) THEN
+            rsTarget.AddNew
 
-        rsTarget("ViewID") = nViewID
-        rsTarget("FieldSource") = rsItems("ColumnName")
-        rsTarget("FieldLabel") = AutoFormatLabels(rsItems("ColumnName"))
-        rsTarget("FieldType") = rsItems("fieldtype")
-        rsTarget("FieldFlags") = rsItems("fieldflags")
-        rsTarget("FieldOrder") = rsItems("fieldorder")
-        rsTarget("DefaultValue") = rsItems("fielddefault")
-        rsTarget("MaxLength") = rsItems("max_length")
-        rsTarget("LinkedTable") = rsItems("LinkedTable")
-        rsTarget("LinkedTableValueField") = rsItems("LinkedColumnValue")
-        rsTarget("LinkedTableTitleField") = rsItems("LinkedColumnLabel")
+            rsTarget("ViewID") = nViewID
+            rsTarget("FieldSource") = rsItems("ColumnName")
+            rsTarget("FieldLabel") = AutoFormatLabels(rsItems("ColumnName"))
+            rsTarget("FieldType") = rsItems("fieldtype")
+            rsTarget("FieldFlags") = rsItems("fieldflags")
+            rsTarget("FieldOrder") = rsItems("fieldorder")
+            rsTarget("DefaultValue") = rsItems("fielddefault")
+            rsTarget("MaxLength") = rsItems("max_length")
+            rsTarget("LinkedTable") = rsItems("LinkedTable")
+            rsTarget("LinkedTableValueField") = rsItems("LinkedColumnValue")
+            rsTarget("LinkedTableTitleField") = rsItems("LinkedColumnLabel")
 
-        IF rsItems("fieldtype") = 2 AND (IsNull(rsItems("max_length")) OR rsItems("max_length") >= 1000) THEN rsTarget("Height") = 10
-        IF rsItems("fieldtype") = 1 OR rsItems("fieldtype") = 2 OR rsItems("fieldtype") = 5 OR rsItems("fieldtype") = 9 THEN rsTarget("FieldFlags") = rsTarget("FieldFlags") + 16
+            IF rsItems("fieldtype") = 2 AND (IsNull(rsItems("max_length")) OR rsItems("max_length") >= 1000) THEN rsTarget("Height") = 10
+            IF rsItems("fieldtype") = 1 OR rsItems("fieldtype") = 2 OR rsItems("fieldtype") = 5 OR rsItems("fieldtype") = 9 THEN rsTarget("FieldFlags") = rsTarget("FieldFlags") + 16
 
-        rsTarget.Update
+            rsTarget.Update
+        END IF
 
         rsItems.MoveNext
     WEND
@@ -281,8 +294,6 @@ ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) THEN
     SET rsItems = Nothing
     rsTarget.Close
     SET rsTarget = Nothing
-	
-	'adoConn.Execute "EXEC portal.AutoInitDataViewFields @ViewID = " & nViewID & ";"
 	
 	adoConn.Close
 	SET adoConn = Nothing

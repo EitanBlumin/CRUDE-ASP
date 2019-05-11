@@ -112,6 +112,146 @@ IF strMode = "getSiteNav" THEN
         Response.Write "[ ]"
     END IF
     rsItems.Close
+ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) AND strMainTableName <> "" THEN
+	Dim srcCMD, rsTarget
+    Dim ExistingColumns, NewColumns
+    Dim currColumn
+    
+    IF strDataSource <> "" THEN
+        adoConnCrudeSource = GetConfigValue("connectionStrings", "name", "connectionString", strDataSource, adoConStr)
+
+        IF adoConnCrudeSource = "" THEN strError = GetWord("No connection string found for data source") & " " & strDataSource
+    ELSE
+        strError = GetWord("No Data Source specified!")
+    END IF
+
+    SET ExistingColumns = Server.CreateObject("Scripting.Dictionary")
+    SET NewColumns = Server.CreateObject("Scripting.Dictionary")
+
+    strSQL = "SELECT FieldSource FROM portal.DataViewField WHERE ViewID = " & nViewID
+
+    SET rsTarget = Server.CreateObject("ADODB.Recordset")
+    rsTarget.CursorLocation = adUseClient
+    rsTarget.CursorType = adOpenKeyset
+    rsTarget.LockType = adLockOptimistic
+    rsTarget.Open strSQL, adoConn
+
+    WHILE NOT rsTarget.EOF
+        currColumn = rsTarget("FieldSource").Value
+        ExistingColumns.Add currColumn, currColumn
+
+        rsTarget.MoveNext
+    WEND
+
+    Set adoConnCrudeSrc = Server.CreateObject("ADODB.Connection")
+    adoConnCrudeSrc.ConnectionString = adoConnCrudeSource
+    adoConnCrudeSrc.CommandTimeout = 0
+    adoConnCrudeSrc.Open
+
+    SET srcCMD = Server.CreateObject("ADODB.Command")
+    srcCMD.ActiveConnection= adoConnCrudeSrc
+    srcCMD.CommandType = adCmdText
+    srcCMD.CommandText = "SELECT c.name AS ColumnName, " & vbCrLf & _
+"	CASE WHEN fk.REFERENCED_COLUMN IS NOT NULL THEN 5 " & vbCrLf & _
+"       WHEN t.name LIKE '%varchar' AND (c.max_length NOT BETWEEN 1 AND 400) THEN 2 " & vbCrLf & _
+"       WHEN t.name LIKE '%char' THEN 1 " & vbCrLf & _
+"		WHEN t.name LIKE '%text' OR t.name = 'xml' THEN 2 " & vbCrLf & _
+"		WHEN t.name LIKE '%int' THEN 3 " & vbCrLf & _
+"		WHEN t.name IN ('real', 'decimal', 'numeric', 'float', 'double') THEN 4 " & vbCrLf & _
+"		WHEN t.name = 'date' THEN 7 " & vbCrLf & _
+"		WHEN t.name LIKE '%datetime%' THEN 8 " & vbCrLf & _
+"		WHEN t.name = 'bit' THEN 9 " & vbCrLf & _
+"		WHEN t.name = 'time' THEN 13 " & vbCrLf & _
+"		ELSE 1 " & vbCrLf & _
+"	END AS fieldtype, " & vbCrLf & _
+"	fieldflags = 1 + CASE WHEN c.is_nullable = 1 OR t.name = 'bit' THEN 0 ELSE 2 END + CASE WHEN c.is_computed = 1 THEN 4 ELSE 0 END + CASE WHEN c.max_length BETWEEN 1 AND 200 THEN 8 ELSE 0 END, " & vbCrLf & _
+"	fieldorder = ROW_NUMBER() OVER (ORDER BY c.column_id ASC), " & vbCrLf & _
+"	'' AS fielddefault, max_length = CASE WHEN c.max_length = -1 THEN NULL WHEN t.name IN ('nchar', 'nvarchar') THEN c.max_length / 2 ELSE c.max_length END, QUOTENAME(fk.REFERENCED_SCHEMA) + '.' + QUOTENAME(fk.REFERENCED_TABLE) AS LinkedTable " & vbCrLf & _
+"   , fk.REFERENCED_COLUMN AS LinkedColumnValue, ISNULL(fk_table.REFERENCED_COLUMN_TEXT, fk.REFERENCED_COLUMN) AS LinkedColumnLabel " & vbCrLf & _
+"FROM sys.columns c INNER JOIN sys.types t " & vbCrLf & _
+"ON c.user_type_id = t.user_type_id AND c.system_type_id = t.system_type_id " & vbCrLf & _
+"OUTER APPLY ( " & vbCrLf & _
+"	SELECT " & vbCrLf & _
+"	  OBJECT_SCHEMA_NAME(fkc.referenced_object_id) AS REFERENCED_SCHEMA " & vbCrLf & _
+"	, OBJECT_NAME(fkc.referenced_object_id) AS REFERENCED_TABLE " & vbCrLf & _
+"	, refc.name AS REFERENCED_COLUMN " & vbCrLf & _
+"	FROM sys.foreign_keys AS fk " & vbCrLf & _
+"	INNER JOIN sys.foreign_key_columns AS fkc " & vbCrLf & _
+"	ON fkc.constraint_object_id = fk.object_id " & vbCrLf & _
+"	INNER JOIN sys.columns AS refc " & vbCrLf & _
+"	ON fkc.referenced_object_id = refc.object_id " & vbCrLf & _
+"	AND fkc.referenced_column_id = refc.column_id " & vbCrLf & _
+"	WHERE fk.parent_object_id = c.object_id " & vbCrLf & _
+"	AND fkc.parent_column_id = c.column_id " & vbCrLf & _
+") AS fk OUTER APPLY ( " & vbCrLf & _
+"	SELECT TOP (1) refcol.COLUMN_NAME AS REFERENCED_COLUMN_TEXT " & vbCrLf & _
+"	FROM INFORMATION_SCHEMA.COLUMNS AS refcol " & vbCrLf & _
+"	WHERE refcol.TABLE_SCHEMA = fk.REFERENCED_SCHEMA " & vbCrLf & _
+"	AND refcol.TABLE_NAME = fk.REFERENCED_TABLE " & vbCrLf & _
+"	AND refcol.COLUMN_NAME <> fk.REFERENCED_COLUMN " & vbCrLf & _
+"	AND (refcol.DATA_TYPE LIKE '%char' OR refcol.DATA_TYPE LIKE '%text') " & vbCrLf & _
+"	ORDER BY refcol.ORDINAL_POSITION ASC " & vbCrLf & _
+") AS fk_table " & vbCrLf & _
+"WHERE object_id = OBJECT_ID(?) AND c.name <> ?"
+    
+    srcCMD.Parameters.Append srcCMD.CreateParameter("@TableName", adVarChar, adParamInput, 255, strMainTableName)
+    srcCMD.Parameters.Append srcCMD.CreateParameter("@PK", adVarChar, adParamInput, 255, strPrimaryKey)
+    
+    SET rsItems = srcCMD.Execute
+
+    strSQL = "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID
+
+    WHILE NOT rsItems.EOF
+        currColumn = rsItems("ColumnName").Value
+
+        IF NOT ExistingColumns.Exists(currColumn) THEN
+            rsTarget.AddNew
+
+            rsTarget("ViewID") = nViewID
+            rsTarget("FieldSource") = currColumn
+            rsTarget("FieldLabel") = AutoFormatLabels(currColumn)
+
+            NewColumns.Add currColumn, AutoFormatLabels(currColumn)
+
+            rsTarget("FieldType") = rsItems("fieldtype")
+            rsTarget("FieldFlags") = rsItems("fieldflags")
+            rsTarget("FieldOrder") = rsItems("fieldorder")
+            rsTarget("DefaultValue") = rsItems("fielddefault")
+            rsTarget("MaxLength") = rsItems("max_length")
+            rsTarget("LinkedTable") = rsItems("LinkedTable")
+            rsTarget("LinkedTableValueField") = rsItems("LinkedColumnValue")
+            rsTarget("LinkedTableTitleField") = rsItems("LinkedColumnLabel")
+
+            IF rsItems("fieldtype") = 2 AND (IsNull(rsItems("max_length")) OR rsItems("max_length") >= 1000) THEN rsTarget("Height") = 10
+            IF rsItems("fieldtype") = 1 OR rsItems("fieldtype") = 2 OR rsItems("fieldtype") = 5 OR rsItems("fieldtype") = 9 THEN rsTarget("FieldFlags") = rsTarget("FieldFlags") + 16
+
+            rsTarget.Update
+        END IF
+
+        rsItems.MoveNext
+    WEND
+
+    rsItems.Close
+    SET rsItems = Nothing
+    rsTarget.Close
+    SET rsTarget = Nothing
+	
+	adoConn.Close
+	SET adoConn = Nothing
+    adoConnCrudeSrc.Close
+    SET adoConnCrudeSrc = Nothing
+	
+    For Each currColumn IN ExistingColumns.Keys
+        Response.Write GetWord("Skipping existing column") & ": " & ExistingColumns.Item(currColumn) & " (" & currColumn & ")<br/>" & vbCrLf
+    Next
+
+    For Each currColumn IN NewColumns.Keys
+        Response.Write GetWord("Added new column") & ": " & NewColumns.Item(currColumn) & " (" & currColumn & ")<br/>" & vbCrLf
+    Next
+
+    SET ExistingColumns = Nothing
+    SET NewColumns = Nothing
+	'Response.Redirect(constPageScriptName & "?ViewID=" & nViewID & "&MSG=autoinit")
 ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "delete" OR strMode = "delete_multiple" OR strMode = "reorder") AND Request.Form("postback") <> "" AND Request("ViewID") <> "" AND IsNumeric(Request("ViewID")) THEN
     nItemID = Request("DT_RowID")
     IF NOT IsNumeric(nItemID) AND strMode <> "delete_multiple" AND strMode <> "reorder" THEN nItemID = ""
