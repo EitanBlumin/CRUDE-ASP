@@ -368,20 +368,20 @@ END IF
 <!-- Update/Insert Form -->
     <br />
 <div class="container-fluid">
-<div class="panel panel-primary">
-<div class="box-header with-border">
-    <h3 class="box-title">
+<div class="card panel-primary">
+<div class="card-header with-border">
+    <!-- tools box -->
+    <div class="float-right box-tools">
+    <a role="button" class="btn btn-default btn-sm" title="Cancel" href="<%= constPageScriptName %>?ViewID=<%= nViewID %>"><i class="fas fa-times"></i></a>
+    </div>
+    <!-- /. tools -->
+    <h3 class="card-title">
         <% IF strMode = "edit" AND nItemID <> "" THEN Response.Write "Edit" ELSE Response.Write "Add" %> Data View Field
 
     </h3>
-    <!-- tools box -->
-    <div class="pull-right box-tools">
-    <a role="button" class="btn btn-primary btn-sm" title="Cancel" href="<%= constPageScriptName %>?ViewID=<%= nViewID %>"><i class="fas fa-times"></i></a>
-    </div>
-    <!-- /. tools -->
 </div>
 <form class="form-horizontal" action="<%= constPageScriptName %>" method="post">
-    <div class="panel-body">
+    <div class="card-body">
     <div class="form-group">
         <label for="inputFieldLabel" class="col-sm-3 col-md-3 col-lg-2 control-label">Field Label</label>
 
@@ -527,14 +527,14 @@ END IF
     </div>
     </div>
     <!-- /.panel-body -->
-    <div class="panel-footer">
+    <div class="card-footer">
     <input type="hidden" name="ItemID" value="<%= nItemID %>" />
     <input type="hidden" name="ViewID" value="<%= nViewID %>" />
     <input type="hidden" name="mode" value="<%= strMode %>" />
 
     <a class="btn btn-default" role="button" href="<%= constPageScriptName %>?ViewID=<%= nViewID %>">Cancel</a>
 
-    <button type="submit" class="btn btn-success pull-right">Submit</button>
+    <button type="submit" class="btn btn-success float-right">Submit</button>
     </div>
     <!-- /.panel-footer -->
 </form>
@@ -546,15 +546,15 @@ END IF
         <!-- Items List -->
         
 <form name="frmFieldSorting" action="<%= constPageScriptName %>?ViewID=<%= nViewID %>" method="post">
-<div class="box">
+<div class="card">
     
-<div class="box-header">
-    <div class="box-title">
+<div class="card-header">
+    <div class="card-title">
         <a class="btn btn-success btn-sm" role="button" href="<%= constPageScriptName %>?mode=add&ViewID=<%= nViewID %>"><i class="fas fa-plus"></i> Add Field</a>
         <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-sort-amount-down"></i> Update Sorting</button>
     </div>
 </div>
-<div class="box-body table-responsive">
+<div class="card-body table-responsive">
 <table class="table table-bordered table-hover">
 <thead class="bg-primary">
 <tr>

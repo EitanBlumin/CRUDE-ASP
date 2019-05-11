@@ -234,10 +234,10 @@ END IF
 %>
 <!-- Update/Insert Form -->
 <div class="container-fluid">
-<div class="panel panel-primary">
-<div class="box-header with-border">
-    <!-- tools box -->
-    <div class="box-tools pull-right">
+<div class="card panel-primary">
+<div class="card-header with-border">
+    <!-- tools card -->
+    <div class="box-tools ml-auto float-right">
         <% IF strMode = "edit" AND nItemID <> "" THEN %>
         <a role="button" href="admin_dataviewfields.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fas fa-bars"></i> Manage Fields</a>
         <a role="button" href="dataview.asp?ViewID=<%= nItemID %>" class="btn btn-primary btn-sm"><i class="fas fa-eye"></i> Open Data View</a>
@@ -246,12 +246,12 @@ END IF
     </div>
     <!-- /. tools -->
 
-    <h3 class="box-title pull-left">
+    <h3 class="card-title mr-auto float-left">
         <% IF strMode = "edit" AND nItemID <> "" THEN Response.Write "Edit" ELSE Response.Write "Add" %> Data View
     </h3>
 </div>
 <form class="form-horizontal" action="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>" method="post">
-    <div class="box-body">
+    <div class="card-body">
     <div class="form-group">
         <label for="inputTitle" class="col-sm-2 control-label" data-toggle="tooltip" title="The title will be displayed at the top of the page">Title</label>
 
@@ -417,7 +417,7 @@ END IF
 
     <a class="btn btn-default" role="button" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>">Cancel</a>
 
-    <button type="submit" class="btn btn-success pull-right">Submit</button>
+    <button type="submit" class="btn btn-success float-right">Submit</button>
     </div>
     <!-- /.panel-footer -->
 </form>
@@ -428,13 +428,13 @@ END IF
         
 
         <!-- Items List -->
-<div class="box">
-<div class="box-header">
-    <div class="box-title">
+<div class="card">
+<div class="card-header">
+    <div class="card-title">
         <a class="btn btn-success" role="button" href="<%= Sanitizer.HTMLFormControl(constPageScriptName) %>?mode=add"><i class="fas fa-plus"></i> Add Data View</a>
     </div>
 </div>
-<div class="box-body table-responsive">
+<div class="panel-body table-responsive">
 <table class="table table-border table-hover">
 <thead class="bg-primary">
 <tr>
