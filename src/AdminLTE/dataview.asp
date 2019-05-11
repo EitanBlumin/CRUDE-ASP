@@ -88,8 +88,6 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
         blnAllowDelete = CBool((nViewFlags AND 4) > 0)
         blnAllowClone = CBool((nViewFlags AND 8) > 0)
 
-        blnShowRowActions = CBool(blnAllowUpdate OR blnAllowDelete OR blnAllowClone)
-
         blnShowForm = CBool((nViewFlags AND 16) > 0)
         blnShowList = CBool((nViewFlags AND 32) > 0)
         blnShowCharts = CBool((nViewFlags AND 64) > 0)
@@ -111,6 +109,8 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
         blnExportExcel = CBool((nDtFlags AND 8192) > 0)
         blnExportPDF = CBool((nDtFlags AND 16384) > 0)
         blnExportPrint = CBool((nDtFlags AND 32768) > 0)
+    
+        blnShowRowActions = CBool(blnAllowUpdate OR blnAllowDelete OR blnAllowClone OR strRowReorderCol <> "" OR blnAllowRowDetails)
 
         blnAllowExport = CBool(blnExportClipboard OR blnExportCSV OR blnExportExcel OR blnExportPDF OR blnExportPrint)
         blnAllowExportAll = CBool(blnExportClipboard AND blnExportCSV AND blnExportExcel AND blnExportPDF AND blnExportPrint)
