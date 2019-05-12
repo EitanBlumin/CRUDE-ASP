@@ -41,28 +41,33 @@ function displayNavLink(navLink, siteRoot) {
     if (navLink["NavTooltip"]) {
         navlink.attr("title", navLink.NavTooltip);
 
-        if (navLink.ChildItems == undefined || navLink.ChildItems.length == 0) {
-            navlink.attr("data-toggle", "tooltip");
-            navlink.attr("data-placement", "right");
-        }
+        //if (navLink.ChildItems == undefined || navLink.ChildItems.length == 0) {
+        //    navlink.attr("data-toggle", "tooltip");
+        //    navlink.attr("data-placement", "right");
+        //}
     }
 
     navlink.append('<i class="nav-icon ' + navLink.NavGlyph + '"></i>');
 
-    var navInner = $('<p><span>' + navLink.NavLabel + '</span></p>');
+    var navParagraph = $('<p>' + navLink.NavLabel + '</p>');
 
     if (navLink.ChildItems != undefined && navLink.ChildItems.length > 0) {
-        navInner.append($('<i class="fas fa-angle-left pull-right"></i>'));
+        navParagraph.append($('<i class="fas fa-angle-left right float-right pull-right"></i>'));
+        navlink.append(navParagraph);
+        navitem.append(navlink);
+
         var navInnerChild = $('<ul class="nav nav-treeview"></ul>');
         for (y in navLink.ChildItems) {
             navInnerChild.append(displayNavLink(navLink.ChildItems[y], siteRoot));
         }
-        navInner.append(navInnerChild);
+
+        navitem.append(navInnerChild);
+    } else {
+        navlink.append(navParagraph);
+        navitem.append(navlink);
     }
 
-    navlink.append(navInner);
-    navitem.append(navlink);
-    return navitem;
+    return navitem.clone();
 }
 function getPageName(path) {
     if (!path) path = window.location.href;
@@ -94,13 +99,26 @@ var currNavID = getParameterByName("NavID");
 
 function setActiveAndBubbleUp(element) {
     //console.log($(element).parent().get(0).tagName);
-    if (!$(element).parent().hasClass("active")) {
+    $(element).addClass('active');
+
+    if ($(element).get(0).tagName == "LI")
+        $(element).addClass('menu-open');
+    else if ($(element).get(0).tagName == "UL")
+        $(element).attr('style', 'display:block');
+
+    if (!($(element).parent().hasClass("active"))) {
         if ($(element).parent().get(0).tagName == "LI" && $(element).parent().hasClass("nav-item")) {
-            $(element).parent().addClass('active');
+            //console.log("bubbling from LI:");
+            //console.log($(element));
+            //console.log($(element).parent());
+
             setActiveAndBubbleUp($(element).parent());
         }
         else if ($(element).parent().get(0).tagName == "UL" && $(element).parent().hasClass("nav-treeview")) {
-            $(element).parent().addClass('active');
+            //console.log("bubbling from UL:");
+            //console.log($(element));
+            //console.log($(element).parent());
+
             setActiveAndBubbleUp($(element).parent());
         }
     }
@@ -141,13 +159,12 @@ function loadSideNav(sideNavId, ajaxUri, navHeader, siteRoot, appendExisting) {
                     if ($(this).parent().attr("view-id") == currViewID) {
                         //console.log("found match (ViewID)");
                         //console.log($(this).parent());
-                        $(this).addClass('active');
                         setActiveAndBubbleUp(this);
                     }
                 }
                 else if (currFileName == "view.asp") {
                     if ($(this).parent().attr("nav-id") == currNavID) {
-                        console.log("found match (NavID)");
+                        //console.log("found match (NavID)");
                         //console.log($(this).parent());
                         setActiveAndBubbleUp(this);
                     }
