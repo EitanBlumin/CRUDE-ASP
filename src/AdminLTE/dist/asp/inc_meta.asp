@@ -9,9 +9,9 @@
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/v4-shims.css">
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <!-- Theme style -->
-    <link rel="stylesheet" href="dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="<%= SITE_ROOT %>dist/css/adminlte.min.css">
     <!-- iCheck -->
-    <link rel="stylesheet" href="plugins/iCheck/flat/blue.css">
+    <link rel="stylesheet" href="<%= SITE_ROOT %>plugins/iCheck/flat/blue.css">
     <!-- Pace style -->
   <link rel="stylesheet" href="<%= SITE_ROOT %>plugins/pace/pace.min.css">
 <!-- Summernote styles -->
@@ -37,7 +37,7 @@
 <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
 <script>if ($.widget) $.widget.bridge('uibutton', $.ui.button)</script>
 <!-- Bootstrap 4 -->
-<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="<%= SITE_ROOT %>plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 
 <!-- PACE -->
 <script src="<%= SITE_ROOT %>bower_components/PACE/pace.min.js"></script>
@@ -46,11 +46,11 @@
 <!-- CodeSeven toastr notifications -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <!-- Slimscroll -->
-<script src="plugins/slimScroll/jquery.slimscroll.min.js"></script>
+<script src="<%= SITE_ROOT %>plugins/slimScroll/jquery.slimscroll.min.js"></script>
 <!-- FastClick -->
-<script src="plugins/fastclick/fastclick.js"></script>
+<script src="<%= SITE_ROOT %>plugins/fastclick/fastclick.js"></script>
 <!-- AdminLTE App -->
-<script src="dist/js/adminlte.js"></script>
+<script src="<%= SITE_ROOT %>dist/js/adminlte.js"></script>
     
 <!-- DataTables -->
 <script src="<%= SITE_ROOT %>plugins/datatables/jquery.dataTables.min.js"></script>
