@@ -36,6 +36,8 @@ SET myRegEx = New RegExp
 myRegEx.IgnoreCase = True
 myRegEx.Global = True
     
+' Read JSON Payload Body
+'=========================
 'IF (strMode = "add" OR strMode = "edit") AND Request.Form <> "" THEN
 '    Dim bytecount, bytes, stream, jsonPayload
 '
@@ -53,6 +55,7 @@ myRegEx.Global = True
 '    stream.Close()
 '    'Response.Write jsonPayload  
 'END IF
+
 SET adoConnCrude = adoConn
 adoConnCrude.Open
     
@@ -676,7 +679,7 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
     END IF
     'END IF
 ELSEIF strError = "" AND strMode = "dataviewcontents" AND Request("ViewID") <> "" AND IsNumeric(Request("ViewID")) THEN
-    nItemID = Request("ViewID")
+    nViewID = Request("ViewID")
 
     strJsonOutput = ""
     
@@ -686,7 +689,7 @@ ELSEIF strError = "" AND strMode = "dataviewcontents" AND Request("ViewID") <> "
     cmdStoredProc.CommandType = adCmdStoredProc  
     cmdStoredProc.Parameters.Refresh
     
-	cmdStoredProc.Parameters(1).Value = nItemID
+	cmdStoredProc.Parameters(1).Value = nViewID
 
     ON ERROR RESUME NEXT
 	
@@ -768,12 +771,13 @@ ELSEIF strError = "" AND strMode = "dataviewcontents" AND Request("ViewID") <> "
         Response.Write " }"
     END IF
 ELSEIF strError = "" AND strMode = "datatable" THEN
-    nItemID = Request("ViewID")
+    nViewID = Request("ViewID")
     
     Dim nDraw, recordsTotal, recordsFiltered, nLength, nRowIndex, nRowStart, blnRegExSearch, dtRowClass, strParams
 
     ' Draw must be returned as is to response
     nDraw = Request("draw")
+    IF nDraw = "" THEN nDraw = "1"
 
     ' Length tells us how many rows max are expected in the response
     IF IsNumeric(Request("length")) AND Request("length") <> "" THEN
@@ -811,8 +815,12 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
     'Columns root element and append it to the XML document.
     Set objColumns = objDom.createElement("Columns")
     objDom.appendChild objColumns   
-
-    nColIndex = 1
+    
+    IF Request("browse") = "true" THEN
+        nColIndex = 0
+    ELSE
+        nColIndex = 1
+    END IF
 
     WHILE Request("columns[" & nColIndex & "][searchable]") <> ""
         Set objColumn = objDom.createElement("Column")
@@ -900,7 +908,7 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
     cmdStoredProc.CommandType = adCmdStoredProc  
     cmdStoredProc.Parameters.Refresh
     
-	cmdStoredProc.Parameters(1).Value = nItemID
+	cmdStoredProc.Parameters(1).Value = nViewID
 	cmdStoredProc.Parameters(2).Value = nDraw
 	cmdStoredProc.Parameters(3).Value = nRowStart
 	cmdStoredProc.Parameters(4).Value = nLength
@@ -908,6 +916,10 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
 	cmdStoredProc.Parameters(6).Value = blnRegExSearch
 	cmdStoredProc.Parameters(7).Value = sColumnsOptions
 	cmdStoredProc.Parameters(8).Value = sColumnsOrder
+
+    IF Request("browse") = "true" THEN
+	    cmdStoredProc.Parameters(9).Value = True
+    END IF
 
     ON ERROR RESUME NEXT
 	
@@ -923,7 +935,7 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
             strSQL = rsItems("Command")
             strDataSource = rsItems("DataSource")
         ELSE
-            strError = GetWord("Nothing Returned for ViewID") & " " & nItemID
+            strError = GetWord("Nothing Returned for ViewID") & " " & nViewID
         END IF
         rsItems.Close
     END IF
@@ -957,16 +969,14 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
         ON ERROR GOTO 0
     END IF
 
-    'Response.Write vbCrLf & "DataSource: " & strDataSource & vbCrLf & "ConnString: " & adoConnCrudeSource & vbCrLf & "SQL: " & strSQL
-
     SET cmdStoredProc = Nothing
-    SET rsItems = Nothing
+    'SET rsItems = Nothing
     
     IF strError = "" AND strSQL <> "" THEN
         Dim paramColumnOptions, paramStart, paramLength, paramSearch
 
         SET cmdStoredProc = Server.CreateObject("ADODB.Command")
-        cmdStoredProc.ActiveConnection = adoConnCrudeSrc
+        cmdStoredProc.ActiveConnection = adoConnCrudeSource
         cmdStoredProc.CommandText = strSQL
         'cmdStoredProc.CommandType = adCmdText
 
@@ -990,13 +1000,15 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
 	
         SET rsItems = cmdStoredProc.Execute (,params,adOptionUnspecified)
         
-        IF adoConnCrudeSrc.Errors.Count > 0 THEN
+        IF Err.number <> 0 THEN
+            strError = "ERROR " & Err.number & ": " & Err.Description
+        ElseIF adoConnCrudeSrc.Errors.Count > 0 THEN
 	        strError = "ERROR while trying to retrieve datatable:<br>"
             For Each CurrErr In adoConnCrudeSrc.Errors
 		        strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & "<br/>"
                 IF globalIsAdmin THEN strError = strError & strSQL & "<br/>"
             Next
-        ELSE
+        ELSEIF rsItems.State > 0 THEN
             ON ERROR GOTO 0
 
 	        'Response.Write adoConnCrudeSource & "<br>"
@@ -1014,6 +1026,12 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
             WEND
 
             rsItems.Close
+        ELSE
+            Response.Write vbCrLf & "DataSource: " & strDataSource & vbCrLf & "ConnString: " & adoConnCrudeSource & vbCrLf & "SQL: " & strSQL & vbCrLf & vbCrLf
+            For nIndex = 0 TO UBound(params)
+                Response.Write "params(" & nIndex & "): " & params(nIndex) & vbCrLf
+            Next
+            Response.Write vbCrLf
         END IF
 	END IF
 
