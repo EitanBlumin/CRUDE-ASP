@@ -417,7 +417,7 @@ IF strError <> "" THEN
                     END IF
                     IF dvFields(nIndex)("Height") <> "" AND NOT IsNull(dvFields(nIndex)("Height")) THEN
                     %>, "<%
-                    IF dvFields(nIndex)("FieldType") = 1 OR dvFields(nIndex)("FieldType") = 2 OR dvFields(nIndex)("FieldType") = 14 THEN
+                    IF dvFields(nIndex)("FieldType") = 1 OR dvFields(nIndex)("FieldType") = 2 THEN
                         Response.Write "rows"
                     ELSE
                         Response.Write "height"

@@ -567,6 +567,7 @@ class respite_crud {
         if (!respite_crud.DM_form_rendered) {
             $('.summernote textarea').each(function (i) {
                 var currObj = $(this);
+
                 currObj.summernote({
                     minHeight: currObj.attr('minHeight'),
                     maxHeight: currObj.attr('maxHeight'),
@@ -580,10 +581,15 @@ class respite_crud {
                         theme: 'monokai'
                     }
                 });
-            });
 
+                if (currObj.attr('readonly'))
+                    currObj.next().find(".note-editable").attr("contenteditable", false);
+            });
             //respite_crud.DM_form_rendered = true;
         }
+
+        $('select[readonly] option:not(:selected)').attr('disabled', true);
+
         respite_crud.focusFirstField(e);
     }
     // Data Manipulation Modals
@@ -694,11 +700,12 @@ class respite_crud {
             function (e, modalId) {
                 $('.summernote textarea').each(function (i) {
                     var currObj = $(this);
+
                     currObj.summernote({
-                        minHeight: currObj.attr('minHeight'),
-                        maxHeight: currObj.attr('maxHeight'),
-                        height: currObj.attr('height'),
-                        width: currObj.attr('width'),
+                        minHeight: parseInt(currObj.attr('minHeight')),
+                        maxHeight: parseInt(currObj.attr('maxHeight')),
+                        height: parseInt(currObj.attr('height')),
+                        width: parseInt(currObj.attr('width')),
                         placeholder: currObj.attr('placeholder'),
                         focus: true,
                         tabsize: 2,
@@ -707,7 +714,13 @@ class respite_crud {
                             theme: 'monokai'
                         }
                     });
+
+                    if (currObj.attr('readonly'))
+                        currObj.next().find(".note-editable").attr("contenteditable", false);
                 });
+
+                $('select[readonly] option:not(:selected)').attr('disabled', true);
+
                 //console.log($(this));
                 $('#' + form_id).attr('form-modal', '#' + modalId);
 
