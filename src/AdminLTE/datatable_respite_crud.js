@@ -800,12 +800,15 @@ class respite_crud {
         var r = {}
         var ed = {}
         var cn = {}
+        var searchCols = respite_crud.dt.settings()[0].aoPreSearchCols;
 
         for (var i = 0; i < respite_crud.dt.columns()[0].length; i++) {
             ed = respite_crud.dt.column(i).editor_data();
             cn = respite_crud.dt.column(i).dataSrc();
 
-            if (ed != undefined && cn != undefined) {
+            if (searchCols[i]["sSearch"] != undefined && searchCols[i]["sSearch"] != "") {
+                r[cn] = searchCols[i]["sSearch"];
+            } else if (ed != undefined && cn != undefined) {
                 r[cn] = ed["default_value"];
             } else {
                 r[cn] = null;
