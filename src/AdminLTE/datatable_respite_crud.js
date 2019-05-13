@@ -236,9 +236,6 @@ class respite_crud {
                         width = parseInt((col['attributes']['width']).replace('%', ''));
                         if (width == 0) width = 100;
                         widthClass = "col-md-" + Math.ceil(width * 0.12).toString();
-                        console.log('width for ' + col['label'] + ': ' + width + ' - ' + widthClass);
-                    } else {
-                        console.log('no width property for ' + col['label']);
                     }
                 }
 
@@ -249,8 +246,6 @@ class respite_crud {
                     // simple string (stop condition):
                     currVal = "<b>" + col['label'] + ":</b> " + respite_crud.renderAutomatic_ed(d[dKey], col, d) + "<br/> ";
                 }
-
-                console.log(currVal);
 
                 if (currVal != "")
                     rv += '<div class="col ' + widthClass + '">' + currVal + '</div>';
