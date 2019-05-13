@@ -215,27 +215,48 @@ class respite_crud {
     static renderDetailsRow(d) {
         if (d != undefined) {
             var rv = "";
+            var currVal = "";
             var col = {};
+            var width = 100;
+            var widthClass = "col-md-12";
+
             for (var dKey in d) {
                 col = respite_crud.getColumnByData(dKey);
+                width = 100;
+                widthClass = "col-md-12";
+                currVal = "";
 
                 if (col == undefined)
                     col = "";
                 else if (col['editor_data'] == undefined)
                     col = "";
-                else
+                else {
                     col = col['editor_data'];
+                    if (col['attributes']['width']) {
+                        width = parseInt((col['attributes']['width']).replace('%', ''));
+                        if (width == 0) width = 100;
+                        widthClass = "col-md-" + Math.ceil(width * 0.12).toString();
+                        console.log('width for ' + col['label'] + ': ' + width + ' - ' + widthClass);
+                    } else {
+                        console.log('no width property for ' + col['label']);
+                    }
+                }
 
                 if (typeof d[dKey] === "object" || typeof d[dKey] === "array") {
                     // recursive:
-                    rv += "<b>" + col['label'] + ':</b><div class="container-fluid">' + renderDetailsRow(d[dKey]) + '</div>';
+                    currVal = "<b>" + col['label'] + ':</b><div class="container-fluid">' + renderDetailsRow(d[dKey]) + '</div>';
                 } else if (col != "") {
                     // simple string (stop condition):
-                    rv += "<b>" + col['label'] + ":</b> " + respite_crud.renderAutomatic_ed(d[dKey], col, d) + "<br/> ";
+                    currVal = "<b>" + col['label'] + ":</b> " + respite_crud.renderAutomatic_ed(d[dKey], col, d) + "<br/> ";
                 }
+
+                console.log(currVal);
+
+                if (currVal != "")
+                    rv += '<div class="col ' + widthClass + '">' + currVal + '</div>';
             }
             
-            return rv;
+            return '<div class="row">' + rv + '</div>';
         }
         else
             return 'Empty row';

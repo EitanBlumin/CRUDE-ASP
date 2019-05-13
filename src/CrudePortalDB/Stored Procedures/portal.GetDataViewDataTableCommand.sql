@@ -108,6 +108,16 @@ ELSE
 
 SET @SQLColumns = @SQLColumns + N')'
 
+-- Prepare indexed temp table to force sorting on the columns
+IF OBJECT_ID('tempdb..#Columns') IS NOT NULL DROP TABLE #Columns;
+CREATE TABLE #Columns
+(
+  ColIndex int NULL, DataSrc nvarchar(1000) NULL, IsRegEx bit NULL, SearchVal nvarchar(max) NULL, OperandTemplate nvarchar(200) NULL
+, FieldType nvarchar(50) NOT NULL, FieldSource nvarchar(300) NULL
+, FieldOrder int NOT NULL
+);
+CREATE CLUSTERED INDEX IX ON #Columns (FieldOrder ASC);
+
 ;WITH ColsXML
 AS
 (
@@ -125,6 +135,22 @@ AS
 						  END
 	FROM @ColumnsOptions.nodes('/Columns/Column') AS T(X)
 )
+INSERT INTO #Columns
+SELECT
+	  c.ColIndex
+	, DataSrc = COALESCE(c.DataSrc, dvf.FieldIdentifier, 'Field_' + CONVERT(nvarchar,dvf.FieldID))
+	, c.IsRegEx
+	, c.SearchVal
+	, c.OperandTemplate
+	, dvf.FieldType
+	, dvf.FieldSource
+	, FieldOrder = ROW_NUMBER() OVER (ORDER BY dvf.FieldOrder ASC, dvf.FieldID ASC)
+FROM portal.DataViewField AS dvf
+LEFT JOIN ColsXML AS c
+ON CONVERT(nvarchar,dvf.FieldIdentifier) = c.ColName
+OR (@FilteringByPK = 1 AND c.ColIndex = 0)
+WHERE ViewID = @ViewID;
+
 SELECT
 	@ParametersDeclaration = @ParametersDeclaration +
 	CASE
@@ -148,14 +174,9 @@ SELECT
 		ELSE N''
 	END
 	,@SQLColumns = @SQLColumns + N',
-		' + QUOTENAME(COALESCE(c.DataSrc, dvf.FieldIdentifier, 'Field_' + CONVERT(nvarchar,dvf.FieldID))) + N' = ' + CASE WHEN FieldType = 12 THEN N'''''' WHEN FieldType IN (7,8) THEN N'ISNULL(CONVERT(nvarchar(19),' + FieldSource + N', 126), '''')' ELSE N'ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''')' END
+		' + QUOTENAME(c.DataSrc) + N' = ' + CASE WHEN FieldType = 12 THEN N'''''' WHEN FieldType IN (7,8) THEN N'ISNULL(CONVERT(nvarchar(19),' + FieldSource + N', 126), '''')' ELSE N'ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''')' END
 	,@StopFiltering = @FilteringByPK
-FROM portal.DataViewField AS dvf
-LEFT JOIN ColsXML AS c
-ON CONVERT(nvarchar,dvf.FieldIdentifier) = c.ColName
-OR (@FilteringByPK = 1 AND c.ColIndex = 0)
-WHERE ViewID = @ViewID
---ORDER BY FieldOrder ASC
+FROM #Columns AS c
 
 SET @CMD = N'DECLARE @RTotal INT, @RFiltered INT;
 DECLARE @ColumnsOptions XML, @Start INT, @Length INT, @SearchValue NVARCHAR(MAX)
