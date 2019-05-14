@@ -1364,7 +1364,7 @@ class respite_crud {
                 var r = respite_crud.dt.row(tr).data();
 
                 if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
-                    window.location.href = 'browse.asp?mode=clone&ViewID=' + respite_crud.getUrlParam('ViewID') + '&DT_ItemId=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                    window.location.href = 'browse.asp?mode=add&ViewID=' + respite_crud.getUrlParam('ViewID') + '&DT_ItemId=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
                 } else {
                     respite_crud.showDMModal(r, "add");
                 }
@@ -1375,7 +1375,7 @@ class respite_crud {
                 var id = r.DT_RowId;
 
                 if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
-                    window.location.href = 'browse.asp?mode=clone&ViewID=' + respite_crud.getUrlParam('ViewID') + '&DT_ItemId=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                    window.location.href = 'browse.asp?mode=add&ViewID=' + respite_crud.getUrlParam('ViewID') + '&DT_ItemId=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
                 } else {
                     respite_crud.showDMModal(r, "add");
                 }
