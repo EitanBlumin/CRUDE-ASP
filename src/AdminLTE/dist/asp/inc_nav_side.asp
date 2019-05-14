@@ -21,7 +21,7 @@
                     with font-awesome or any other icon font library -->
         <li class="nav-header">Menu</li>
         <!-- Optionally, you can add icons to the links -->
-        <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-spinner fa-pulse"></i> Loading...</a></li>
+        <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-circle-notch fa-spin"></i> Loading...</a></li>
       </ul>
       </nav>
       <!-- /.sidebar-menu -->

@@ -195,8 +195,11 @@ IF strError <> "" THEN
 <% ELSE %>
 
 <div class="card">
-    <div class="grid-buttons-container"></div>
-    <div class="card-body container-fluid">
+    <div class="card-header">
+        <div class="grid-buttons-container"></div>
+    </div>
+    <div class="card-body" id="contents">
+        <h3 class="text-center"><i class="fas fa-circle-notch fa-spin"></i></h3>
     </div>
 </div>
 
@@ -218,21 +221,86 @@ IF strError <> "" THEN
         }});
 
     // Override some options
-    respite_crud.respite_editor_options.dt_Options.dt_AjaxGet = "<%= SITE_ROOT %>ajax_dataview.asp?mode=datatable&ViewID=<%= nViewID %>";
+    respite_crud.respite_editor_options.dt_Options.dt_AjaxGet = "<%= SITE_ROOT %>ajax_dataview.asp?mode=datatable&browse=true&columns[0][searchable]=true&columns[0][name]=DT_RowID&columns[0][data]=DT_RowID&columns[0][search][regex]=false&search[value]=&ViewID=<%= nViewID %>&columns[0][search][value]=<%= nItemID %>";
     respite_crud.respite_editor_options.modal_Options.modal_delete.modal_form_target = "<%= SITE_ROOT %>ajax_dataview.asp?ViewID=<%= nViewID %>";
+    respite_crud.respite_editor_options.dt_Options.dt_BrowseMode = true;
 
-    // DataTable Columns:
+    // DataView Fields:
     respite_crud
         <% IF strError = "" THEN
             InitDataViewFieldsJS dvFields
         END IF %>
    // Inline buttons
-<% 
-IF blnShowCustomActions THEN
-    InitDataViewInlineActionButtonsJS dvActionsInline
+<%
+IF strMode <> "add" THEN
+
+    IF blnAllowClone THEN %>
+        .addCloneButton("<%= GetWord("Clone") %>", "<%= GetWord("Clone") %>")<% 
+    END IF
+    IF blnAllowUpdate THEN %>
+        .addEditButton("<%= GetWord("Edit") %>", "<%= GetWord("Edit") %>")<% 
+    END IF
+    IF blnAllowDelete THEN %>
+        .addDeleteButton("<%= GetWord("Delete") %>", "<%= GetWord("Delete") %>")<% 
+    END IF
+    IF blnShowCustomActions THEN
+        InitDataViewInlineActionButtonsJS dvActionsInline
+    END IF
+
 END IF
 %>;
-    </script>
+
+// prepare function for handling error
+function handleError(errorThrown, textStatus) {
+    console.log('returned ' + textStatus + ': ' + errorThrown);
+    toastr.error(errorThrown, textStatus);
+}
+
+// request page contents
+$.ajax(respite_crud.respite_editor_options.dt_Options.dt_AjaxGet
+    , {
+        method: 'GET',
+        dataType: 'json',
+        error: function (jqXHR, textStatus, errorThrown) {
+            handleError(errorThrown, textStatus);
+        },
+        success: function( response, textStatus, jqXHR ) {
+            console.log('returned ' + textStatus);
+            console.log(response);
+
+            if (response['error']) {
+                handleError(response['error'], textStatus);
+            } else if (response.recordsFiltered <= 0) {
+                handleError("<%= GetWord("Requested record not found") %>", "<%= GetWord("Not Found") %>");
+            } else {
+                var d = response.data[0];
+                respite_crud.row = d;
+                var content = respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(d);
+                $('#contents').html(content);
+
+                var backBtn = $('<a class="btn btn-sm btn-primary" data-toggle="tooltip" title="<%= GetWord("Return to List") %>"><i class="fas fa-arrow-left"></i> <%= GetWord("Back") %></a>');
+                var backUrl = respite_crud.getUrlParam("prev_link");
+                var urlLink = window.location.href;
+
+                if (backUrl == "undefined")
+                    backUrl = "dataview.asp?ViewID=<%= nViewID %>";
+
+                backBtn.attr('href', backUrl);
+
+                $('.grid-buttons-container')
+                    .append(backBtn)
+                    .append(respite_crud.renderInlineActionButtons());
+
+                ($('.grid-buttons-container').parent())
+                        .append(
+                            $('<div class="card-tools"></div>')
+                                .append($('<a class="btn btn-sm btn-light text-muted" role="button" data-toggle="tooltip" title="Get URL for this page"><i class="fas fa-link"></i></a>').attr('href', urlLink))
+                            );
+            }
+        }
+    }
+);
+</script>
 <!-- /scripts -->
 <% END IF %>
 <!--#include file="dist/asp/inc_footer.asp" -->

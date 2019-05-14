@@ -131,7 +131,7 @@ ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) AND strMain
     SET ExistingColumns = Server.CreateObject("Scripting.Dictionary")
     SET NewColumns = Server.CreateObject("Scripting.Dictionary")
 
-    strSQL = "SELECT FieldSource FROM portal.DataViewField WHERE ViewID = " & nViewID
+    strSQL = "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID
 
     SET rsTarget = Server.CreateObject("ADODB.Recordset")
     rsTarget.CursorLocation = adUseClient

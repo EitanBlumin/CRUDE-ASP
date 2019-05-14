@@ -183,9 +183,9 @@ console.log(r);',N'fas fa-info-circle',0,N'btn btn-info btn-sm','javascript'),
 		(8,-2,N'Open Data View',NULL,N'View this dataview live',N'',2,0,0,N'dataview.asp?ViewID={{urlparam[dataview[search]]}}',N'fas fa-eye',0,N'btn btn-primary btn-lg','url'),
 		(9,-2,N'Data View Actions',NULL,N'Manage Custom Actions for this DataView',N'',3,0,0,N'dataview.asp?ViewID=-3&dataview[search]={{urlparam[dataview[search]]}}',N'fas fa-bolt',0,N'btn btn-primary btn-lg','url'),
 		(10,-2,N'Manage Data Views',NULL,N'Return to Data View Management',N'',1,0,0,N'dataview.asp?ViewID=-1',N'fas fa-th-list',0,N'btn btn-primary btn-lg','url'),
-		(11,-1,N'Open Data View',NULL,N'Open Data View',N'',1,0,0,N'dataview.asp?ViewID={{row[DT_RowId]}}',N'fas fa-eye',1,N'btn btn-primary btn-sm','url'),
-		(12,-1,N'Data View Fields',NULL,N'Data View Fields',N'',2,0,0,N'dataview.asp?ViewID=-2&dataview[search]={{row[DT_RowId]}}',N'fas fa-bars',1,N'btn btn-primary btn-sm','url'),
-		(13,-1,N'Data View Actions',NULL,N'Data View Actions',N'',3,0,0,N'dataview.asp?ViewID=-3&dataview[search]={{row[DT_RowId]}}',N'fas fa-bolt',1,N'btn btn-primary btn-sm','url')
+		(11,-1,N'Open',NULL,N'Open Data View',N'',1,0,0,N'dataview.asp?ViewID={{row[DT_RowId]}}',N'fas fa-eye',1,N'btn btn-primary btn-sm','url'),
+		(12,-1,N'Fields',NULL,N'Data View Fields',N'',2,0,0,N'dataview.asp?ViewID=-2&dataview[search]={{row[DT_RowId]}}',N'fas fa-bars',1,N'btn btn-primary btn-sm','url'),
+		(13,-1,N'Actions',NULL,N'Data View Actions',N'',3,0,0,N'dataview.asp?ViewID=-3&dataview[search]={{row[DT_RowId]}}',N'fas fa-bolt',1,N'btn btn-primary btn-sm','url')
 		) AS src([ActionID],[ViewID],[ActionLabel],[ParentActionID],[ActionTooltip],[ActionDescription],[ActionOrder],[RequireConfirmation],[OpenURLInNewWindow],[ActionExpression],[GlyphIcon],[IsPerRow],[CSSButton],[ActionType])
 ON
 	trgt.[ActionID] = src.[ActionID]

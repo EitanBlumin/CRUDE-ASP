@@ -167,7 +167,7 @@ class respite_crud {
 
     // Helper function for retrieving URL Parameters (Querystring)
     static getUrlParam(sParam) {
-        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        var sPageURL = window.location.search.substring(1),
             sURLVariables = sPageURL.split('&'),
             sParameterName,
             i;
@@ -175,8 +175,8 @@ class respite_crud {
         for (i = 0; i < sURLVariables.length; i++) {
             sParameterName = sURLVariables[i].split('=');
 
-            if (sParameterName[0].toLowerCase() == sParam.toLowerCase()) {
-                return sParameterName[1] == undefined ? true : sParameterName[1];
+            if (decodeURIComponent(sParameterName[0].toLowerCase()) == sParam.toLowerCase()) {
+                return sParameterName[1] == undefined ? true : decodeURIComponent(sParameterName[1]);
             }
         }
     }
@@ -221,7 +221,7 @@ class respite_crud {
             var widthClass = "col-md-12";
 
             for (var dKey in d) {
-                col = respite_crud.getColumnByData(dKey);
+                col = respite_crud.getColumnByData(dKey) || respite_crud.getColumnByName(dKey);
                 width = 100;
                 widthClass = "col-md-12";
                 currVal = "";
@@ -251,7 +251,7 @@ class respite_crud {
                     rv += '<div class="col ' + widthClass + '">' + currVal + '</div>';
             }
             
-            return '<div class="row">' + rv + '</div>';
+            return '<div class="container-fluid">' + rv + '</div>';
         }
         else
             return 'Empty row';
@@ -274,7 +274,8 @@ class respite_crud {
                         pre_submit_callback: function () { return true },
                         response_success_callback: respite_crud.callbackPostResponseSimple,
                         response_error_callback: respite_crud.callbackPostResponseSimple
-                    }
+                    },
+                    dt_BrowseMode: false
                 },
                 modal_Options: {
                     ajax_forms_selector: "form.ajax-form",
@@ -507,13 +508,13 @@ class respite_crud {
             }
         }
 
-        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        var sPageURL = window.location.search.substring(1),
             sURLVariables = sPageURL.split('&'),
             sParameterName;
 
         for (var i = 0; i < sURLVariables.length; i++) {
             sParameterName = sURLVariables[i].split('=');
-            data = data.replace('{{urlparam[' + sParameterName[0] + ']}}', sParameterName[1] === undefined ? true : sParameterName[1]);
+            data = data.replace('{{urlparam[' + decodeURIComponent(sParameterName[0]) + ']}}', sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]));
         }
 
         return data;
@@ -721,7 +722,7 @@ class respite_crud {
                         minHeight: parseInt(currObj.attr('minHeight')),
                         maxHeight: parseInt(currObj.attr('maxHeight')),
                         height: parseInt(currObj.attr('height')),
-                        width: parseInt(currObj.attr('width')),
+                        width: currObj.attr('width'),
                         placeholder: currObj.attr('placeholder'),
                         focus: true,
                         tabsize: 2,
@@ -1204,14 +1205,13 @@ class respite_crud {
         var a = $('<a></a>');
 
         for (var i = 0; respite_crud.dt_InlineActionButtons != undefined && i < respite_crud.dt_InlineActionButtons['length']; i++) {
-
             a = $('<a href="' + respite_crud.dt_InlineActionButtons[i]['href'] + '" class="' + respite_crud.dt_InlineActionButtons[i]['class'] + '" role="button" data-toggle="tooltip" data-placement="bottom" title="' + respite_crud.dt_InlineActionButtons[i]['title'] + '"></a>');
 
             if (respite_crud.dt_InlineActionButtons[i]['glyph'] != "" && respite_crud.dt_InlineActionButtons[i]['glyph'] != undefined)
                 a.append($('<i class="' + respite_crud.dt_InlineActionButtons[i]['glyph'] + '"></i>'));
 
             if (respite_crud.dt_InlineActionButtons[i]['label'] != "" && respite_crud.dt_InlineActionButtons[i]['label'] != undefined)
-                a.append($(' ' + respite_crud.dt_InlineActionButtons[i]['label']));
+                a.append($('<span> ' + respite_crud.dt_InlineActionButtons[i]['label'] + '</span>'));
 
             rv.append($('<span>&nbsp;</span>')).append(a.clone());
         }
@@ -1269,32 +1269,33 @@ class respite_crud {
 
         $('tbody', $(respite_crud.respite_editor_options.dt_Options.dt_Selector)).on('click', 'tr td a.details-control', function (e) {     // datatable_selector
             var tr = $(this).closest('tr');
-            var row = respite_crud.dt.row(tr);                                                   // dt object
-            var idx = $.inArray(tr.attr('id'), respite_crud.detailRows);
-            var glyph = $('i', $(this));
+            var row = respite_crud.dt.row(tr);
 
-            if (row.child.isShown()) {
-                tr.removeClass('details');
-                glyph.removeClass('fa-minus-circle');
-                glyph.addClass('fa-plus-circle');
-                $(this).removeClass('text-danger');
-                $(this).addClass('text-success');
-                row.child.hide();
+            if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
+                window.location.href = "browse.asp?ViewID=" + respite_crud.getUrlParam('ViewID') + "&ItemID=" + tr.attr('id') + "&prev_link=" + encodeURIComponent(window.location.href);
+            } else {
+                var idx = $.inArray(tr.attr('id'), respite_crud.detailRows);
+                var glyph = $('i', $(this));
 
-                // Remove from the 'open' array
-                respite_crud.detailRows.splice(idx, 1);
-            }
-            else {
-                tr.addClass('details');
-                glyph.removeClass('fa-plus-circle');
-                glyph.addClass('fa-minus-circle');
-                $(this).removeClass('text-success');
-                $(this).addClass('text-danger');
-                row.child(respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(row.data())).show();
+                if (row.child.isShown()) {
+                    tr.removeClass('details');
+                    glyph.removeClass('fa-minus-circle').addClass('fa-plus-circle');
+                    $(this).removeClass('btn-danger').addClass('btn-success');
+                    row.child.hide();
 
-                // Add to the 'open' array
-                if (idx === -1) {
-                    respite_crud.detailRows.push(tr.attr('id'));
+                    // Remove from the 'open' array
+                    respite_crud.detailRows.splice(idx, 1);
+                }
+                else {
+                    tr.addClass('details');
+                    glyph.removeClass('fa-plus-circle').addClass('fa-minus-circle');
+                    $(this).removeClass('btn-success').addClass('btn-danger');
+                    row.child(respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(row.data())).show();
+
+                    // Add to the 'open' array
+                    if (idx === -1) {
+                        respite_crud.detailRows.push(tr.attr('id'));
+                    }
                 }
             }
         });
@@ -1305,7 +1306,7 @@ class respite_crud {
         return respite_crud.addInlineActionButton(
             {
                 "href": "javascript:void(0)",
-                "class": "btn-link text-success details-control",
+                "class": "btn btn-sm btn-success details-control",
                 "title": "Details",
                 "glyph": "fas fa-plus-circle",
                 "label": ""
@@ -1316,17 +1317,37 @@ class respite_crud {
     static addEditButton(title, label, glyph, customClass) {
         var btnClassName = "respite_btn_" + respite_crud.getNextActionButtonIndex();
         respite_crud.edit_button_selector = btnClassName;
+        var objDt = $(respite_crud.respite_editor_options.dt_Options.dt_Selector);
 
-        $('tbody', $(respite_crud.respite_editor_options.dt_Options.dt_Selector)).on('click', 'tr td a.' + btnClassName, function (e) {     // datatable_selector
-            var tr = $(this).closest('tr');
-            var r = respite_crud.dt.row(tr).data();                                             // dt object
-            respite_crud.showDMModal(r, "edit");
-        });
+        if (objDt.length > 0) {
+            $('tbody', objDt).on('click', 'tr td a.' + btnClassName, function (e) {
+                var tr = $(this).closest('tr');
+                var id = tr.attr('id');
+                var r = respite_crud.dt.row(tr).data();
+
+                if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
+                    window.location.href = 'browse.asp?mode=edit&ViewID=' + respite_crud.getUrlParam('ViewID') + '&ItemID=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                } else {
+                    respite_crud.showDMModal(r, "edit");
+                }
+            });
+        } else {
+            $('.grid-buttons-container').on('click', 'a.' + btnClassName, function (e) {
+                var r = respite_crud.row;
+                var id = r.DT_RowId;
+
+                if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
+                    window.location.href = 'browse.asp?mode=edit&ViewID=' + respite_crud.getUrlParam('ViewID') + '&ItemID=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                } else {
+                    respite_crud.showDMModal(r, "edit");
+                }
+            });
+        }
 
         return respite_crud.addInlineActionButton(
             {
                 "href": "javascript:void(0)",
-                "class": (customClass == undefined || customClass == null ? "btn btn-success btn-sm" : customClass) + " " + btnClassName,
+                "class": (customClass == undefined || customClass == null ? "btn btn-warning btn-sm" : customClass) + " " + btnClassName,
                 "title": (title == undefined || title == null ? "Edit" : title),
                 "glyph": (glyph == undefined || glyph == null ? "fas fa-edit" : glyph),
                 "label": (label == undefined || label == null ? "" : label)
@@ -1334,12 +1355,32 @@ class respite_crud {
     }
     static addCloneButton(title, label, glyph, customClass) {
         var btnClassName = "respite_btn_" + respite_crud.getNextActionButtonIndex();
+        var objDt = $(respite_crud.respite_editor_options.dt_Options.dt_Selector);
+        
+        if (objDt.length > 0) {
+            $('tbody', objDt).on('click', 'tr td a.' + btnClassName, function (e) {
+                var tr = $(this).closest('tr');
+                var id = tr.attr('id');
+                var r = respite_crud.dt.row(tr).data();
 
-        $('tbody', $(respite_crud.respite_editor_options.dt_Options.dt_Selector)).on('click', 'tr td a.' + btnClassName, function (e) {
-            var tr = $(this).closest('tr');
-            var r = respite_crud.dt.row(tr).data();
-            respite_crud.showDMModal(r, "add");
-        });
+                if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
+                    window.location.href = 'browse.asp?mode=clone&ViewID=' + respite_crud.getUrlParam('ViewID') + '&ItemID=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                } else {
+                    respite_crud.showDMModal(r, "add");
+                }
+            });
+        } else {
+            $('.grid-buttons-container').on('click', 'a.' + btnClassName, function (e) {
+                var r = respite_crud.row;
+                var id = r.DT_RowId;
+
+                if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
+                    window.location.href = 'browse.asp?mode=clone&ViewID=' + respite_crud.getUrlParam('ViewID') + '&ItemID=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                } else {
+                    respite_crud.showDMModal(r, "add");
+                }
+            });
+        }
 
         return respite_crud.addInlineActionButton(
             {
@@ -1353,12 +1394,23 @@ class respite_crud {
     static addDeleteButton(title, label, glyph, customClass) {
         var btnClassName = "respite_btn_" + respite_crud.getNextActionButtonIndex();
         respite_crud.delete_button_selector = btnClassName;
+        var objDt = $(respite_crud.respite_editor_options.dt_Options.dt_Selector);
 
-        $('tbody', $(respite_crud.respite_editor_options.dt_Options.dt_Selector)).on('click', 'tr td a.' + btnClassName, function (e) {    // datatable_selector
-            var tr = $(this).closest('tr');
-            var r = respite_crud.dt.row(tr).data();                                              // dt object
-            respite_crud.showDelete(r);
-        });
+        if (objDt.length > 0) {
+            $('tbody', objDt).on('click', 'tr td a.' + btnClassName, function (e) {
+                var tr = $(this).closest('tr');
+                var id = tr.attr('id');
+                var r = respite_crud.dt.row(tr).data();
+                respite_crud.showDelete(r);
+            });
+        } else {
+            $('.grid-buttons-container').on('click', 'a.' + btnClassName, function (e) {
+                var r = respite_crud.row;
+                var id = r.DT_RowId;
+
+                respite_crud.showDelete({ DT_RowId: id });
+            });
+        }
 
         return respite_crud.addInlineActionButton(
             {
@@ -1396,7 +1448,11 @@ class respite_crud {
                 text: (glyph == undefined || glyph == null ? '<i class="fas fa-plus"></i>' : '<i class="' + glyph + '"></i> ') + (title == undefined || title == null ? "Add" : title),
                 className: (customClass == undefined || customClass == null ? "btn btn-success btn-sm" : customClass),
                 action: function (e, dt, node, config) {
-                    respite_crud.showDMModal(null, "add");
+                    if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
+                        window.location.href = 'browse.asp?mode=add&ViewID=' + respite_crud.getUrlParam('ViewID') + '&prev_link=' + encodeURIComponent(window.location.href);
+                    } else {
+                        respite_crud.showDMModal(null, "add");
+                    }
                 }
             });
     }
@@ -1634,7 +1690,7 @@ class respite_crud {
             "searchDelay": 700,
 
             //// DOM setting: //// more info here: https://datatables.net/reference/option/dom
-            "dom": "<'dt-dynamic-filter-details'>Bilfpr<'table-responsive't>p", // TODO: the B section should only be added if toolbar buttons were added
+            "dom": "<'card'<'card-header'B><'card-body container-fluid'<'dt-dynamic-filter-details'>ilfpr<'table-responsive't>p>>",
 
             //// Custom Buttons: ////
             "buttons": {
@@ -1746,7 +1802,7 @@ class respite_crud {
 
         // if not buttons were added, remove the B dom placeholder
         if (setOptions.buttons.length <= 0) {
-            setOptions.dom = setOptions.dom.replace("B", "");
+            setOptions.dom = "<'card'<'card-body container-fluid'<'dt-dynamic-filter-details'>ilfpr<'table-responsive't>p>>";
         }
 
         // if URL search parameters were specified, use them to apply column filters
@@ -1815,11 +1871,15 @@ class respite_crud {
                         hasFilters = true;
                     }
                 }
+
+                var urlLink = window.location.pathname + '?' + $.param(urlParams);
+                window.history.pushState(null, null, urlLink);
+
                 if (hasFilters) {
-                    var urlLink = window.location.pathname + '?' + $.param(urlParams);
+
                     $('body').find('.dt-dynamic-filter-details')
                         .append($('<div class="card card-info"></div>')
-                            .append($('<div class="card-header"><h6 class="card-title"><i class="fas fa-filter"></i> Active Filters:</h6></div>')
+                            .append($('<div class="card-header with-border"><h6 class="card-title"><i class="fas fa-filter"></i> Active Filters:</h6></div>')
                                 .append($('<div class="card-tools"></div>')
                                     .append($('<a class="btn btn-sm btn-info" role="button" data-toggle="tooltip" title="Get URL for this set of filters"><i class="fas fa-link"></i></a>').attr('href', urlLink))
                                     .append($('<button type="button" class="btn btn-sm btn-info" data-widget="collapse" data-toggle="tooltip" title="Collapse"><i class="fa fa-minus"></i></button>'))

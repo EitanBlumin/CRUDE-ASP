@@ -11,4 +11,5 @@ FROM (VALUES
 ,(POWER(2,5), 'Enable Items List', 'fas fa-table', CONVERT(bit, 1))
 ,(POWER(2,6), 'Enable Charts', 'fas fa-chart-pie', CONVERT(bit, 0))
 ,(POWER(2,7), 'Enable Custom Actions', 'fas fa-bolt', CONVERT(bit, 0))
+,(POWER(2,8), 'Enable Browse Module', 'far fa-window-maximize', CONVERT(bit, 0))
 ) AS V(FlagValue, FlagLabel, FlagGlyph, FlagDefault)

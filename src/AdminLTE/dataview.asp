@@ -29,7 +29,7 @@ Dim blnShowCustomActions, blnShowForm, blnShowList, blnShowCharts, blnAllowUpdat
 Dim blnDtInfo, blnDtColumnFooter, blnDtQuickSearch, blnDtSort, blnDtPagination, blnDtPageSizeSelection, blnDtStateSave
 Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle
 Dim strLastOptGroup, blnOptGroupStarted, strCSSTable
-Dim blnAllowColumnsToggle, blnAllowRowDetails, blnAllowRowSelection, blnFixedHeaders
+Dim blnAllowColumnsToggle, blnAllowRowDetails, blnAllowRowSelection, blnFixedHeaders, blnBrowseMode
 Dim blnExportClipboard, blnExportCSV, blnExportExcel, blnExportPDF, blnExportPrint, blnAllowExport, blnAllowExportAll
 Set rsItems = Server.CreateObject("ADODB.Recordset")
 
@@ -92,6 +92,7 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
         blnShowList = CBool((nViewFlags AND 32) > 0)
         blnShowCharts = CBool((nViewFlags AND 64) > 0)
         blnShowCustomActions = CBool((nViewFlags AND 128) > 0)
+        blnBrowseMode = CBool((nViewFlags AND 256) > 0)
 
         blnDtInfo = CBool((nDtFlags AND 1) > 0)
         blnDtColumnFooter = CBool((nDtFlags AND 2) > 0)
@@ -255,18 +256,13 @@ IF strError <> "" THEN
             </div>
         </div>
 <!-- grid -->
-<div class="card">
-    <div class="grid-buttons-container"></div>
-    <div class="card-body container-fluid">
-
-        <div class="table-responsive">
-            <table datatable="" id="mainGrid" class="<%= strCSSTable %>">
+    <table datatable="" id="mainGrid" class="<%= strCSSTable %>">
         <thead>
         <tr class="bg-primary">
         <% IF strRowReorderCol <> "" AND Not IsNull(strRowReorderCol) THEN %>
             <th></th>
         <% END IF %>
-            <% IF blnShowRowActions THEN %><th><%= GetWord("Actions") %></th><% END IF 
+            <% IF blnShowRowActions THEN %><th>&nbsp;</th><% END IF 
     FOR nIndex = 0 TO dvFields.UBound
         IF strRowReorderCol = dvFields(nIndex)("FieldSource") AND strRowReorderColMasked = "" THEN strRowReorderColMasked = dvFields(nIndex)("FieldIdentifier")
         IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN %>
@@ -287,7 +283,7 @@ IF strError <> "" THEN
         <% IF strRowReorderCol <> "" AND Not IsNull(strRowReorderCol) THEN %>
             <th class="dt-non-searchable"></th>
         <% END IF %>
-    <% IF blnShowRowActions THEN %><th class="dt-non-searchable"><%= GetWord("Actions") %></th><% END IF 
+    <% IF blnShowRowActions THEN %><th class="dt-non-searchable">&nbsp;</th><% END IF 
             FOR nIndex = 0 TO dvFields.UBound
                 IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN %>
             <th class="dt-exportable dt-toggleable<%
@@ -304,9 +300,6 @@ IF strError <> "" THEN
         </tr>
         </tfoot><% END IF %>
         </table>
-        </div>
-    </div>
-</div>
 <!-- /grid -->
 
 <!-- respite_crud -->
@@ -370,6 +363,7 @@ IF strError <> "" THEN
     respite_crud.respite_editor_options.dt_Options.dt_AjaxGet = "<%= SITE_ROOT %>ajax_dataview.asp?mode=datatable&ViewID=<%= nViewID %>";
     respite_crud.respite_editor_options.modal_Options.modal_edit.modal_form_target = "<%= SITE_ROOT %>ajax_dataview.asp?ViewID=<%= nViewID %>";
     respite_crud.respite_editor_options.modal_Options.modal_delete.modal_form_target = "<%= SITE_ROOT %>ajax_dataview.asp?ViewID=<%= nViewID %>";
+    <% IF blnBrowseMode THEN %>respite_crud.respite_editor_options.dt_Options.dt_BrowseMode = true;<% END IF %>
 
     // DataTable Columns:
     respite_crud
