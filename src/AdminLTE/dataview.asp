@@ -226,6 +226,10 @@ tr.details td.details-control {
 td.actions-control {
     background: none;
 }
+.table-striped > tbody > tr.selected > td,
+.table-striped > tbody > tr.selected > th {
+  background-color: rgb(180, 200, 242);
+}
 </style>
 </head>
 <body class="<%= globalBodyClass %>">
