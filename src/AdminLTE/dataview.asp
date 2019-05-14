@@ -51,7 +51,7 @@ strError = ""
 strSearchFilter = ""
 strRowReorderColMasked = ""
 
-nItemID = Request("ItemID")
+nItemID = Request("DT_ItemId")
 IF NOT IsNumeric(nItemID) THEN nItemID = ""
 strMode = Request("mode")
 IF strMode = "" THEN strMode = "none"

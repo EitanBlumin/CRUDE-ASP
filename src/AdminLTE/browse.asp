@@ -29,7 +29,7 @@ Dim blnShowCustomActions, blnShowForm, blnShowList, blnShowCharts, blnAllowUpdat
 Dim blnDtInfo, blnDtColumnFooter, blnDtQuickSearch, blnDtSort, blnDtPagination, blnDtPageSizeSelection, blnDtStateSave
 Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle
 Dim strLastOptGroup, blnOptGroupStarted, strCSSTable
-Dim blnAllowColumnsToggle, blnAllowRowDetails, blnAllowRowSelection, blnFixedHeaders
+Dim blnAllowColumnsToggle, blnAllowRowDetails, blnAllowRowSelection, blnFixedHeaders, blnBrowseMode
 Dim blnExportClipboard, blnExportCSV, blnExportExcel, blnExportPDF, blnExportPrint, blnAllowExport, blnAllowExportAll
 Set rsItems = Server.CreateObject("ADODB.Recordset")
 
@@ -51,7 +51,7 @@ strError = ""
 strSearchFilter = ""
 strRowReorderColMasked = ""
 
-nItemID = Request("ItemID")
+nItemID = Request("DT_ItemId")
 IF NOT IsNumeric(nItemID) THEN nItemID = ""
 strMode = Request("mode")
 IF strMode = "" THEN strMode = "none"
@@ -92,6 +92,7 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
         blnShowList = CBool((nViewFlags AND 32) > 0)
         blnShowCharts = CBool((nViewFlags AND 64) > 0)
         blnShowCustomActions = CBool((nViewFlags AND 128) > 0)
+        blnBrowseMode = CBool((nViewFlags AND 256) > 0)
 
         blnDtInfo = CBool((nDtFlags AND 1) > 0)
         blnDtColumnFooter = CBool((nDtFlags AND 2) > 0)
@@ -140,6 +141,8 @@ Dim strFilteredValue : strFilteredValue = Request(strFilterField & nViewID)
 strViewQueryString = "&ViewID=" & nViewID
 IF strFilteredValue <> "" THEN strViewQueryString = strViewQueryString & "&seek_" & Sanitizer.Querystring(strFilterField) & "=" & Sanitizer.Querystring(strFilteredValue)
 IF strDataSource <> "" THEN adoConnCrudeSource = GetConfigValue("connectionStrings", "name", "connectionString", strDataSource, adoConStr)
+
+IF NOT blnBrowseMode THEN Response.Redirect("dataview.asp?" & Request.QueryString)
 
 Set adoConnCrudeSrc = Server.CreateObject("ADODB.Connection")
 adoConnCrudeSrc.ConnectionString = adoConnCrudeSource

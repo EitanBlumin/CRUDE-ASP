@@ -1272,7 +1272,7 @@ class respite_crud {
             var row = respite_crud.dt.row(tr);
 
             if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
-                window.location.href = "browse.asp?ViewID=" + respite_crud.getUrlParam('ViewID') + "&ItemID=" + tr.attr('id') + "&prev_link=" + encodeURIComponent(window.location.href);
+                window.location.href = "browse.asp?ViewID=" + respite_crud.getUrlParam('ViewID') + "&DT_ItemId=" + tr.attr('id') + "&prev_link=" + encodeURIComponent(window.location.href);
             } else {
                 var idx = $.inArray(tr.attr('id'), respite_crud.detailRows);
                 var glyph = $('i', $(this));
@@ -1326,7 +1326,7 @@ class respite_crud {
                 var r = respite_crud.dt.row(tr).data();
 
                 if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
-                    window.location.href = 'browse.asp?mode=edit&ViewID=' + respite_crud.getUrlParam('ViewID') + '&ItemID=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                    window.location.href = 'browse.asp?mode=edit&ViewID=' + respite_crud.getUrlParam('ViewID') + '&DT_ItemId=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
                 } else {
                     respite_crud.showDMModal(r, "edit");
                 }
@@ -1337,7 +1337,7 @@ class respite_crud {
                 var id = r.DT_RowId;
 
                 if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
-                    window.location.href = 'browse.asp?mode=edit&ViewID=' + respite_crud.getUrlParam('ViewID') + '&ItemID=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                    window.location.href = 'browse.asp?mode=edit&ViewID=' + respite_crud.getUrlParam('ViewID') + '&DT_ItemId=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
                 } else {
                     respite_crud.showDMModal(r, "edit");
                 }
@@ -1364,7 +1364,7 @@ class respite_crud {
                 var r = respite_crud.dt.row(tr).data();
 
                 if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
-                    window.location.href = 'browse.asp?mode=clone&ViewID=' + respite_crud.getUrlParam('ViewID') + '&ItemID=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                    window.location.href = 'browse.asp?mode=clone&ViewID=' + respite_crud.getUrlParam('ViewID') + '&DT_ItemId=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
                 } else {
                     respite_crud.showDMModal(r, "add");
                 }
@@ -1375,7 +1375,7 @@ class respite_crud {
                 var id = r.DT_RowId;
 
                 if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
-                    window.location.href = 'browse.asp?mode=clone&ViewID=' + respite_crud.getUrlParam('ViewID') + '&ItemID=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                    window.location.href = 'browse.asp?mode=clone&ViewID=' + respite_crud.getUrlParam('ViewID') + '&DT_ItemId=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
                 } else {
                     respite_crud.showDMModal(r, "add");
                 }
