@@ -152,8 +152,9 @@ adoConnCrudeSrc.Open
 
 IF adoConnCrudeSrc.Errors.Count > 0 THEN
 	strError = "ERROR while tring to open data source " & strDataSource & ":<br>"
-    For Each Err In adoConnCrudeSrc.Errors
-		strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+    Dim currErr
+    For Each currErr In adoConnCrudeSrc.Errors
+		strError = strError & "[" & currErr.Source & "] Error " & currErr.Number & ": " & currErr.Description & " | Native Error: " & currErr.NativeError & "<br/>"
     Next
 'ELSE
 '        Response.Write "<!-- Opened ConnString (" & strDataSource & ") " & adoConnCrudeSource & " -->" 

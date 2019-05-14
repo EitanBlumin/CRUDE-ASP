@@ -151,8 +151,9 @@ adoConnCrudeSrc.Open
 
 IF adoConnCrudeSrc.Errors.Count > 0 THEN
 	strError = "ERROR while tring to open data source " & strDataSource & ":<br>"
-    For Each Err In adoConnCrudeSrc.Errors
-		strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+    Dim currErr
+    For Each currErr In adoConnCrudeSrc.Errors
+		strError = strError & "[" & currErr.Source & "] Error " & currErr.Number & ": " & currErr.Description & " | Native Error: " & currErr.NativeError & "<br/>"
     Next
 'ELSE
 '        Response.Write "<!-- Opened ConnString (" & strDataSource & ") " & adoConnCrudeSource & " -->" 
@@ -186,7 +187,7 @@ ON ERROR GOTO 0
 <%
 IF strError <> "" THEN
 %>
-    <div class="callout callout-danger">
+    <div class="callout callout-danger alert-danger">
     <h4><%= GetWord("Critical Error!") %></h4>
 
     <p><%= strError %></p>
@@ -232,7 +233,7 @@ IF strError <> "" THEN
         END IF %>
    // Inline buttons
 <%
-IF strMode <> "add" THEN
+IF strMode <> "add" AND strMode <> "clone" THEN
 
     IF blnAllowClone THEN %>
         .addCloneButton("<%= GetWord("Clone") %>", "<%= GetWord("Clone") %>")<% 
@@ -250,56 +251,64 @@ IF strMode <> "add" THEN
 END IF
 %>;
 
-// prepare function for handling error
+// function for handling error
 function handleError(errorThrown, textStatus) {
     console.log('returned ' + textStatus + ': ' + errorThrown);
     toastr.error(errorThrown, textStatus);
+    $('#contents').html('<div class="callout callout-danger alert-danger"><h4>' + textStatus + '</h4><p>' + errorThrown + '</p></div>');
 }
+function loadPageContent() {
+    // init toolbar
+    var backBtn = $('<a class="btn btn-sm btn-primary" data-toggle="tooltip" title="<%= GetWord("Return to List") %>"><i class="fas fa-arrow-left"></i> <%= GetWord("Back") %></a>');
+    var backUrl = respite_crud.getUrlParam("prev_link");
+    var urlLink = window.location.href;
 
-// request page contents
-$.ajax(respite_crud.respite_editor_options.dt_Options.dt_AjaxGet
-    , {
-        method: 'GET',
-        dataType: 'json',
-        error: function (jqXHR, textStatus, errorThrown) {
-            handleError(errorThrown, textStatus);
-        },
-        success: function( response, textStatus, jqXHR ) {
-            console.log('returned ' + textStatus);
-            console.log(response);
+    if (backUrl == "undefined" || backUrl == undefined || backUrl == "")
+        backUrl = "dataview.asp?ViewID=<%= nViewID %>";
 
-            if (response['error']) {
-                handleError(response['error'], textStatus);
-            } else if (response.recordsFiltered <= 0) {
-                handleError("<%= GetWord("Requested record not found") %>", "<%= GetWord("Not Found") %>");
-            } else {
-                var d = response.data[0];
-                respite_crud.row = d;
-                var content = respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(d);
-                $('#contents').html(content);
+    backBtn.attr('href', backUrl);
 
-                var backBtn = $('<a class="btn btn-sm btn-primary" data-toggle="tooltip" title="<%= GetWord("Return to List") %>"><i class="fas fa-arrow-left"></i> <%= GetWord("Back") %></a>');
-                var backUrl = respite_crud.getUrlParam("prev_link");
-                var urlLink = window.location.href;
+    $('.grid-buttons-container').empty().append(backBtn).append($('<span>&nbsp;</span>'));
+    $('.grid-buttons-container').append($('<a href="javascript:void(0)" class="btn btn-sm btn-primary" data-toggle="tooltip" title="<%= GetWord("Refresh") %>"><i class="fas fa-sync"></i> <%= GetWord("Refresh") %></a>')
+        .on('click', function() {loadPageContent();}));
 
-                if (backUrl == "undefined")
-                    backUrl = "dataview.asp?ViewID=<%= nViewID %>";
+    ($('.grid-buttons-container').parent())
+            .append(
+                $('<div class="card-tools"></div>')
+                    .append($('<a class="btn btn-sm btn-light text-muted" role="button" data-toggle="tooltip" title="Get URL for this page"><i class="fas fa-link"></i></a>').attr('href', urlLink))
+                );
 
-                backBtn.attr('href', backUrl);
+    // request page contents
+    $.ajax(respite_crud.respite_editor_options.dt_Options.dt_AjaxGet
+        , {
+            method: 'GET',
+            dataType: 'json',
+            error: function (jqXHR, textStatus, errorThrown) {
+                handleError(errorThrown, textStatus);
+            },
+            success: function( response, textStatus, jqXHR ) {
+                console.log('returned ' + textStatus);
+                console.log(response);
 
-                $('.grid-buttons-container')
-                    .append(backBtn)
-                    .append(respite_crud.renderInlineActionButtons());
+                if (response['error']) {
+                    handleError(response['error'], textStatus);
+                } else if (response.recordsFiltered <= 0) {
+                    handleError("<%= GetWord("Requested record not found") %>", "<%= GetWord("Not Found") %>");
+                } else {
+                    var d = response.data[0];
+                    respite_crud.row = d;
+                    var content = respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(d);
+                    $('#contents').html(content);
 
-                ($('.grid-buttons-container').parent())
-                        .append(
-                            $('<div class="card-tools"></div>')
-                                .append($('<a class="btn btn-sm btn-light text-muted" role="button" data-toggle="tooltip" title="Get URL for this page"><i class="fas fa-link"></i></a>').attr('href', urlLink))
-                            );
+                    $('.grid-buttons-container')
+                        .append(respite_crud.renderInlineActionButtons());
+                }
             }
         }
-    }
-);
+    );
+}
+
+loadPageContent();
 </script>
 <!-- /scripts -->
 <% END IF %>
