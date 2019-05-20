@@ -1921,6 +1921,12 @@ class respite_crud {
 
             // Implement row reordering event
             respite_crud.dt.on('row-reorder', function (e, diff, edit) {
+
+                //console.log('Reorder started on row:');
+                //console.log(edit.triggerRow.data());
+                //console.log('Diff:');
+                //console.log(diff);
+
                 var changed = false;
                 var inputList = $('<select name="DT_RowId" multiple="multiple"></select>');
                 var options = respite_crud.respite_editor_options.dt_Options.dt_RowReorder;
@@ -1928,10 +1934,6 @@ class respite_crud {
                 var frmBody = $(options.form_body_selector).empty();
                 var rowData = {}
                 var inputField = $('<input type="hidden" />');
-
-                //console.log('Reorder started on row:');
-                //console.log(edit.triggerRow.data());
-
                 for (var i = 0, ien = diff.length ; i < ien ; i++) {
                     // if data indeed changed
                     if (diff[i].newData != diff[i].oldData) {

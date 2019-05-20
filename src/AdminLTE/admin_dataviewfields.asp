@@ -193,7 +193,7 @@ ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) THEN
 
     SET ExistingColumns = Server.CreateObject("Scripting.Dictionary")
 
-    strSQL = "SELECT FieldSource FROM portal.DataViewField WHERE ViewID = " & nViewID
+    strSQL = "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID
 
     SET rsTarget = Server.CreateObject("ADODB.Recordset")
     rsTarget.CursorLocation = adUseClient
@@ -262,8 +262,6 @@ ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) THEN
     srcCMD.Parameters.Append srcCMD.CreateParameter("@PK", adVarChar, adParamInput, 255, strPK)
     
     SET rsItems = srcCMD.Execute
-
-    strSQL = "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID
 
     WHILE NOT rsItems.EOF
         IF NOT ExistingColumns.Exists(rsItems("ColumnName")) THEN

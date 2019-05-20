@@ -397,7 +397,7 @@ SUB InitDataViewFieldsJS(ByRef dvFields)
       IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN
         %>.addColumn({
         "name": "<%= dvFields(nIndex)("FieldIdentifier") %>",
-        "data": "Field_<%= dvFields(nIndex)("FieldID") %>",
+        "data": "<%= dvFields(nIndex)("FieldIdentifier") %>",
             "render": respite_crud.renderAutomatic<%
         
         IF (dvFields(nIndex)("FieldFlags") AND 8) = 0 THEN  %>,
