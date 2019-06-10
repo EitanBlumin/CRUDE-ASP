@@ -106,6 +106,9 @@
     <Build Include="Views\portal.DataViewActionTypes.sql" />
     <Build Include="Functions\dbo.GetDataViewLabel.sql" />
     <Build Include="Security\CrudeLogin.login.sql" />
+    <Build Include="Views\portal.UserDataViews.sql" />
+    <Build Include="Views\portal.UserDataViewFields.sql" />
+    <Build Include="Views\portal.UserDataViewActions.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="CrudePortalDB.refactorlog" />
