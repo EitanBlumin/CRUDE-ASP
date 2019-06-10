@@ -25,7 +25,7 @@
             <hr class="mb-2">
             <h6>Manage</h6>
             <ul class="nav nav-sidebar flex-column">
-                <li class="nav-item"><a class="nav-link" href="<%= SITE_ROOT %>dataview.asp?ViewID=-1"><i class="fas fa-th-list"></i> Manage Data Views</a></li>
+                <li class="nav-item"><a class="nav-link" href="<%= SITE_ROOT %>dataview.asp?ViewID=-1"><i class="fas fa-cogs"></i> Manage Data Views</a></li>
                 <li class="nav-item"><a class="nav-link" href="<%= SITE_ROOT %>dataview.asp?ViewID=-4"><i class="fas fa-link"></i> Manage Navigation</a></li>
             </ul>
 <% IF Right(Request.ServerVariables("SCRIPT_NAME"), Len("/dataview.asp")) = "/dataview.asp" THEN %>
