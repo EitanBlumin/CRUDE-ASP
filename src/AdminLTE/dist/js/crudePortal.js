@@ -184,7 +184,7 @@ $(document).ready(function () {
     $('body').tooltip({
         selector: '[data-toggle="tooltip"]'
     });
-    if (currFileName != "dataview.asp") {
+    if (currFileName != "dataview.asp" && currFileName != "browse.asp") {
         $('.summernote textarea').summernote({
             placeholder: 'You can enter rich text here.',
             tabsize: 2,

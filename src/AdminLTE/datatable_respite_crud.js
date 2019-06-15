@@ -90,7 +90,8 @@ class respite_crud {
         // DOM element for the form do this: 
         var formElement = jqForm[0];
 
-        BstrapModal.Close();
+        if (BstrapModal.Close != undefined)
+            BstrapModal.Close();
 
         $(formElement.getAttribute('form-modal')).modal('hide');
 
@@ -130,7 +131,8 @@ class respite_crud {
         bsm.Show();
 
         // refresh datatable:
-        respite_crud.dt.ajax.reload();
+        if (respite_crud.dt != undefined)
+            respite_crud.dt.ajax.reload();
 
         //alert('status: ' + statusType + '\n\nresponse: \n' + response['data'] + 
         //    '\n\nThe output div should have already been updated with the responseText.'); 
@@ -584,20 +586,22 @@ class respite_crud {
         if (!respite_crud.DM_form_rendered) {
             $('.summernote textarea').each(function (i) {
                 var currObj = $(this);
-
-                currObj.summernote({
-                    minHeight: currObj.attr('minHeight'),
-                    maxHeight: currObj.attr('maxHeight'),
-                    height: currObj.attr('height'),
-                    width: currObj.attr('width'),
-                    placeholder: currObj.attr('placeholder'),
-                    focus: true,
-                    tabsize: 2,
-                    dialogsInBody: true,
-                    codemirror: { // codemirror options
-                        theme: 'monokai'
-                    }
-                });
+                var nextSibling = currObj.next().find(".note-editable");
+                //console.log("postRenderDMFormFields: " + nextSibling.length);
+                if (nextSibling.length == 0)
+                    currObj.summernote({
+                        minHeight: currObj.attr('minHeight'),
+                        maxHeight: currObj.attr('maxHeight'),
+                        height: currObj.attr('height'),
+                        width: currObj.attr('width'),
+                        placeholder: currObj.attr('placeholder'),
+                        focus: true,
+                        tabsize: 2,
+                        dialogsInBody: true,
+                        codemirror: { // codemirror options
+                            theme: 'monokai'
+                        }
+                    });
 
                 if (currObj.attr('readonly'))
                     currObj.next().find(".note-editable").attr("contenteditable", false);
@@ -678,8 +682,99 @@ class respite_crud {
         $('input[name=mode]', $(modal_options.form_selector)).val("delete_multiple");  // modal_form_name
         $(modal_options.modal_selector).modal({ show: true, keyboard: true, focus: true });      // modal_to_show, modal_options = {}
     }
+    // Data Manipulation Utility Function
+    static renderDM_modalElements(r, mode) {
+        var modal_options = respite_crud.respite_editor_options.modal_Options.modal_edit;
+        var form_id = 'form_modal_modify_' + mode;
+        var title = "";
+        var buttons = [];
+
+        // save to static row object for the Deletion modal to access
+        if (r == undefined || r == null)
+            respite_crud.row = respite_crud.initDefaultRow();
+        else
+            respite_crud.row = r;
+
+        // init modal title and deletion button
+        if (mode == "edit") {
+            title = "Edit Item RowID: " + respite_crud.row.DT_RowId;   // localization.modal_edit_title
+            buttons.push({ Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger mr-auto", Callback: function (e) { respite_crud.showDelete_dynamic(respite_crud.row) } });
+        }
+        else {
+            title = "Add Item";                         // localization.modal_add_title
+        }
+        buttons.push({ Value: "Cancel", Css: "btn-default" }); // localization['Cancel']
+        buttons.push({ Value: "<i class='fas fa-save'></i> Save Changes", Css: "btn-success", Callback: function (e) { $('#' + form_id).submit(); } });
+
+        var body = $('<form class="ajax-form" name="modal_edit_form" action="' + respite_crud.site_root + 'ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
+                .attr('action', modal_options.modal_form_target)
+                .append(respite_crud.renderDMFormFields(respite_crud.row, respite_crud.dt_Columns));
+
+        // init form global fields
+        body.append($('<input type="hidden" name="postback" value="true" />'))
+        .append($('<input type="hidden" name="DT_RowId" value="" />').val(respite_crud.row.DT_RowId))
+        .append($('<input type="hidden" name="mode" value="add" />').val(mode))
+        .append($('<input type="submit" autofocus style="position:absolute; left:-9999px; width:0px; height:0px;" />'));
+
+        return {
+            form_id: form_id,
+            title: title,
+            bodyHtml: body.clone().wrap('<div>').parent().html(),
+            buttons: buttons,
+            callbackPostRender:
+            function (e, modalId) {
+                $('.summernote textarea').each(function (i) {
+                    var currObj = $(this);
+                    var nextSibling = currObj.next().find(".note-editable");
+                    //console.log("modalElementPostRender: " + nextSibling.length);
+                    if (nextSibling.length == 0)
+                        currObj.summernote({
+                            minHeight: parseInt(currObj.attr('minHeight')),
+                            maxHeight: parseInt(currObj.attr('maxHeight')),
+                            height: parseInt(currObj.attr('height')),
+                            width: currObj.attr('width'),
+                            placeholder: currObj.attr('placeholder'),
+                            focus: true,
+                            tabsize: 2,
+                            dialogsInBody: true,
+                            codemirror: { // codemirror options
+                                theme: 'monokai'
+                            }
+                        });
+
+                    if (currObj.attr('readonly'))
+                        currObj.next().find(".note-editable").attr("contenteditable", false);
+                });
+
+                $('select[readonly] option:not(:selected)').attr('disabled', true);
+
+                //console.log($(this));
+                if (modalId != undefined)
+                    $('#' + form_id).attr('form-modal', '#' + modalId);
+
+                // init ajax form
+                $('#' + form_id).ajaxForm({
+                    target: respite_crud.respite_editor_options.modal_Options.modal_response.modal_body_selector    // target element(s) to be updated with server response
+                    , beforeSubmit: respite_crud.respite_editor_options.modal_Options.pre_submit_callback           // pre-submit callback
+                    , success: respite_crud.respite_editor_options.modal_Options.response_success_callback          // post-submit callback
+                    , error: respite_crud.respite_editor_options.modal_Options.response_error_callback              // post-submit callback
+                    , dataType: 'json'                                     // 'xml', 'script', or 'json' (expected server response type)
+                });
+
+                respite_crud.focusFirstField(e, $('#' + form_id));
+            }
+        };
+    }
     // Data Manipulation Modals (Dynamic Modal)
     static showDMModal_dynamic(r, mode) {
+        var modalElements = respite_crud.renderDM_modalElements(r, mode);
+        new BstrapModal(
+            modalElements.title,
+            modalElements.bodyHtml,
+            modalElements.buttons,
+            modalElements.callbackPostRender
+            ).Show();
+        /*
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_edit;
         var form_id = 'form_modal_modify_' + mode;
         var title = "";
@@ -753,6 +848,7 @@ class respite_crud {
                 respite_crud.focusFirstField(e, $('#' + form_id));
             }
             ).Show();
+            */
     }
     static showDelete_dynamic(r) {
         if (respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender == undefined)

@@ -201,9 +201,12 @@ IF strError <> "" THEN
 <div class="card">
     <div class="card-header">
         <div class="grid-buttons-container"></div>
+        <h1 class="card-title" id="browse_title"></h1>
     </div>
     <div class="card-body" id="contents">
         <h3 class="text-center"><i class="fas fa-circle-notch fa-spin"></i></h3>
+    </div>
+    <div class="card-footer" id="browse_footer">
     </div>
 </div>
 
@@ -300,8 +303,22 @@ function loadPageContent() {
                 } else {
                     var d = response.data[0];
                     respite_crud.row = d;
+                    <% IF strMode <> "add" AND strMode <> "clone" AND strMode <> "edit" THEN %>
+                    console.log('rendering Row Details');
                     var content = respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(d);
                     $('#contents').html(content);
+                    <% ELSE %>
+                    console.log('rendering Form Modal');
+                    var modalElements = respite_crud.renderDM_modalElements(d, '<%= strMode %>');
+                    $('#contents').html(modalElements.bodyHtml);
+                    $('#browse_title').text(modalElements.title);
+                    $('#browse_footer').append(
+                        $('<a href="javascript:void(0)" class="btn btn-success"><i class="fas fa-save"></i> Save Changes</a>')
+                        .on("click", function() { $('#' + modalElements.form_id).submit();})
+                        );
+                    modalElements.callbackPostRender();
+                    console.log(modalElements);
+                    <% END IF %>
 
                     $('.grid-buttons-container')
                         .append(respite_crud.renderInlineActionButtons());
