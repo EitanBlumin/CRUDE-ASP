@@ -361,7 +361,8 @@ IF strError <> "" THEN
         "key": "dataview",
         "values": {
             "id": <%= nViewID %>,
-            "title": "<%= Sanitizer.JSON(strPageTitle) %>"
+            "title": "<%= Sanitizer.JSON(strPageTitle) %>",
+            "mode": "<%= strMode %>"
         }});
 
     // Override some options

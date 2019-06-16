@@ -228,7 +228,9 @@ IF strError <> "" THEN
         "key": "dataview",
         "values": {
             "id": <%= nViewID %>,
-            "title": "<%= Sanitizer.JSON(strPageTitle) %>"
+            "title": "<%= Sanitizer.JSON(strPageTitle) %>",
+            "mode": "<%= strMode %>",
+            "DT_ItemId": "<%= Request("DT_ItemId") %>"
         }});
 
     // Override some options
@@ -335,7 +337,7 @@ function loadPageContent() {
                     <% END IF %>
 
                     $('.grid-buttons-container')
-                        .empty().append(respite_crud.renderInlineActionButtons());
+                        .append(respite_crud.renderInlineActionButtons());
                 }
             }
         }

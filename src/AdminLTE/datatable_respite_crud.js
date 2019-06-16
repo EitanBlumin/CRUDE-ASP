@@ -130,9 +130,15 @@ class respite_crud {
 
         bsm.Show();
 
+        var formMode = $form.find('input[name="mode"]').val();
+
+        console.log("successful " + formMode);
+
         // refresh datatable:
         if (respite_crud.dt != undefined)
             respite_crud.dt.ajax.reload();
+        else if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode && formMode != 'edit')
+            respite_crud.actionUrl('dataview.asp?ViewID={{dataview[id]}}&MSG=' + formMode);
 
         //alert('status: ' + statusType + '\n\nresponse: \n' + response['data'] + 
         //    '\n\nThe output div should have already been updated with the responseText.'); 
@@ -522,6 +528,32 @@ class respite_crud {
         return data;
     }
 
+    static getPlaceholderValue(placeholderKey, fieldKey)
+    {
+        var placeholderReplacements = respite_crud.placeholderReplacements;
+        var data = undefined;
+
+        if (placeholderKey == 'urlparam') {
+            var sPageURL = window.location.search.substring(1),
+                sURLVariables = sPageURL.split('&'),
+                sParameterName;
+
+            for (var i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+                if (decodeURIComponent(sParameterName[0]) == fieldKey)
+                    data = sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+            }
+        } else {
+            for (var i = 0; i < placeholderReplacements.length; i++) {
+                if (placeholderKey == placeholderReplacements[i]['key']) {
+                    data = placeholderReplacements[i]['values'][fieldKey];
+                }
+            }
+        }
+
+        return data;
+    }
+
     static actionUrl(url, isNewWindow, params, row, self) {
         if (params != undefined) {
             if (url.indexOf('?') == -1) url += '?';
@@ -856,7 +888,7 @@ class respite_crud {
 
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_delete;
         var form_id = 'form_modal_delete';
-        var title = "Are you sure you want to delete?";
+        var title = "Are you sure you want to delete?"; // localization
         var buttons = [{ Value: "Cancel", Css: "btn-default mr-auto" }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
         var content = respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(r);
         var body = $('<form class="ajax-form" name="modal_delete_form" action="' + respite_crud.site_root + 'ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
