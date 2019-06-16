@@ -2001,7 +2001,6 @@ class respite_crud {
                 }
 
                 var urlLink = window.location.pathname + '?' + $.param(urlParams);
-                window.history.pushState(null, null, urlLink);
 
                 if (hasFilters) {
 
@@ -2020,23 +2019,30 @@ class respite_crud {
 
 
                 // Implement URL-based editing
-                if (!respite_crud.url_dml_opened && respite_crud.getUrlParam('mode') == 'edit' && respite_crud.getUrlParam('DT_ItemId') != undefined) {
-                    var tr = $(respite_crud.respite_editor_options.dt_Options.dt_Selector).find('tr#' + respite_crud.getUrlParam('DT_ItemId'));
+                var dtItemId = respite_crud.getUrlParam('DT_ItemId');
+
+                if (!respite_crud.url_dml_opened && respite_crud.getUrlParam('mode') == 'edit' && dtItemId != undefined) {
+                    var tr = $(respite_crud.respite_editor_options.dt_Options.dt_Selector).find('tr#' + dtItemId);
                     if (tr.length>0) {
+                        console.log('Editing Item ' + dtItemId);
                         tr.find('.' + respite_crud.edit_button_selector).trigger('click');
                         respite_crud.url_dml_opened = true;
                     } else {
-                        console.log('Item ' + respite_crud.getUrlParam('DT_ItemId') + ' was not found in the datatable');
+                        console.log('Item ' + dtItemId + ' was not found in the datatable');
                     }
-                } else if (!respite_crud.url_dml_opened && respite_crud.getUrlParam('mode') == 'delete' && respite_crud.getUrlParam('DT_ItemId') != undefined) {
-                        var tr = $(respite_crud.respite_editor_options.dt_Options.dt_Selector).find('tr#' + respite_crud.getUrlParam('DT_ItemId'));
+                } else if (!respite_crud.url_dml_opened && respite_crud.getUrlParam('mode') == 'delete' && dtItemId != undefined) {
+                        var tr = $(respite_crud.respite_editor_options.dt_Options.dt_Selector).find('tr#' + dtItemId);
                         if (tr.length > 0) {
+                            console.log('Deleting Item ' + dtItemId);
                             tr.find('.' + respite_crud.delete_button_selector).trigger('click');
                             respite_crud.url_dml_opened = true;
                         } else {
-                            console.log('Item ' + respite_crud.getUrlParam('DT_ItemId') + ' was not found in the datatable');
+                            console.log('Item ' + dtItemId + ' was not found in the datatable');
                         }
-                    }
+                } else {
+                    window.history.pushState(null, null, urlLink);
+                }
+
 
                 // If detail rows enabled
                 if (respite_crud.isDetailRowsAdded) {
