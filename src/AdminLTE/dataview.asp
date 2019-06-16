@@ -29,7 +29,7 @@ Dim blnShowCustomActions, blnShowForm, blnShowList, blnShowCharts, blnAllowUpdat
 Dim blnDtInfo, blnDtColumnFooter, blnDtQuickSearch, blnDtSort, blnDtPagination, blnDtPageSizeSelection, blnDtStateSave
 Dim nDtModBtnStyle, nDtFlags, nDtDefaultPageSize, strDtPagingStyle
 Dim strLastOptGroup, blnOptGroupStarted, strCSSTable
-Dim blnAllowColumnsToggle, blnAllowRowDetails, blnAllowRowSelection, blnFixedHeaders
+Dim blnAllowColumnsToggle, blnAllowRowDetails, blnAllowRowSelection, blnFixedHeaders, blnBrowseMode
 Dim blnExportClipboard, blnExportCSV, blnExportExcel, blnExportPDF, blnExportPrint, blnAllowExport, blnAllowExportAll
 Set rsItems = Server.CreateObject("ADODB.Recordset")
 
@@ -51,7 +51,7 @@ strError = ""
 strSearchFilter = ""
 strRowReorderColMasked = ""
 
-nItemID = Request("ItemID")
+nItemID = Request("DT_ItemId")
 IF NOT IsNumeric(nItemID) THEN nItemID = ""
 strMode = Request("mode")
 IF strMode = "" THEN strMode = "none"
@@ -92,6 +92,7 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
         blnShowList = CBool((nViewFlags AND 32) > 0)
         blnShowCharts = CBool((nViewFlags AND 64) > 0)
         blnShowCustomActions = CBool((nViewFlags AND 128) > 0)
+        blnBrowseMode = CBool((nViewFlags AND 256) > 0)
 
         blnDtInfo = CBool((nDtFlags AND 1) > 0)
         blnDtColumnFooter = CBool((nDtFlags AND 2) > 0)
@@ -110,7 +111,7 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
         blnExportPDF = CBool((nDtFlags AND 16384) > 0)
         blnExportPrint = CBool((nDtFlags AND 32768) > 0)
     
-        blnShowRowActions = CBool(blnAllowUpdate OR blnAllowDelete OR blnAllowClone OR strRowReorderCol <> "" OR blnAllowRowDetails)
+        blnShowRowActions = CBool(blnShowCustomActions OR blnAllowUpdate OR blnAllowDelete OR blnAllowClone OR strRowReorderCol <> "" OR blnAllowRowDetails)
 
         blnAllowExport = CBool(blnExportClipboard OR blnExportCSV OR blnExportExcel OR blnExportPDF OR blnExportPrint)
         blnAllowExportAll = CBool(blnExportClipboard AND blnExportCSV AND blnExportExcel AND blnExportPDF AND blnExportPrint)
@@ -151,8 +152,9 @@ adoConnCrudeSrc.Open
 
 IF adoConnCrudeSrc.Errors.Count > 0 THEN
 	strError = "ERROR while tring to open data source " & strDataSource & ":<br>"
-    For Each Err In adoConnCrudeSrc.Errors
-		strError = strError & "[" & Err.Source & "] Error " & Err.Number & ": " & Err.Description & " | Native Error: " & Err.NativeError & "<br/>"
+    Dim currErr
+    For Each currErr In adoConnCrudeSrc.Errors
+		strError = strError & "[" & currErr.Source & "] Error " & currErr.Number & ": " & currErr.Description & " | Native Error: " & currErr.NativeError & "<br/>"
     Next
 'ELSE
 '        Response.Write "<!-- Opened ConnString (" & strDataSource & ") " & adoConnCrudeSource & " -->" 
@@ -224,6 +226,10 @@ tr.details td.details-control {
 td.actions-control {
     background: none;
 }
+.table-striped > tbody > tr.selected > td,
+.table-striped > tbody > tr.selected > th {
+  background-color: rgb(180, 200, 242);
+}
 </style>
 </head>
 <body class="<%= globalBodyClass %>">
@@ -255,18 +261,13 @@ IF strError <> "" THEN
             </div>
         </div>
 <!-- grid -->
-<div class="card">
-    <div class="grid-buttons-container"></div>
-    <div class="card-body container-fluid">
-
-        <div class="table-responsive">
-            <table datatable="" id="mainGrid" class="<%= strCSSTable %>">
+    <table datatable="" id="mainGrid" class="<%= strCSSTable %>">
         <thead>
         <tr class="bg-primary">
         <% IF strRowReorderCol <> "" AND Not IsNull(strRowReorderCol) THEN %>
             <th></th>
         <% END IF %>
-            <% IF blnShowRowActions THEN %><th><%= GetWord("Actions") %></th><% END IF 
+            <% IF blnShowRowActions THEN %><th>&nbsp;</th><% END IF 
     FOR nIndex = 0 TO dvFields.UBound
         IF strRowReorderCol = dvFields(nIndex)("FieldSource") AND strRowReorderColMasked = "" THEN strRowReorderColMasked = dvFields(nIndex)("FieldIdentifier")
         IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN %>
@@ -287,7 +288,7 @@ IF strError <> "" THEN
         <% IF strRowReorderCol <> "" AND Not IsNull(strRowReorderCol) THEN %>
             <th class="dt-non-searchable"></th>
         <% END IF %>
-    <% IF blnShowRowActions THEN %><th class="dt-non-searchable"><%= GetWord("Actions") %></th><% END IF 
+    <% IF blnShowRowActions THEN %><th class="dt-non-searchable">&nbsp;</th><% END IF 
             FOR nIndex = 0 TO dvFields.UBound
                 IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN %>
             <th class="dt-exportable dt-toggleable<%
@@ -304,9 +305,6 @@ IF strError <> "" THEN
         </tr>
         </tfoot><% END IF %>
         </table>
-        </div>
-    </div>
-</div>
 <!-- /grid -->
 
 <!-- respite_crud -->
@@ -363,136 +361,32 @@ IF strError <> "" THEN
         "key": "dataview",
         "values": {
             "id": <%= nViewID %>,
-            "title": "<%= Sanitizer.JSON(strPageTitle) %>"
+            "title": "<%= Sanitizer.JSON(strPageTitle) %>",
+            "mode": "<%= strMode %>"
         }});
 
     // Override some options
     respite_crud.respite_editor_options.dt_Options.dt_AjaxGet = "<%= SITE_ROOT %>ajax_dataview.asp?mode=datatable&ViewID=<%= nViewID %>";
     respite_crud.respite_editor_options.modal_Options.modal_edit.modal_form_target = "<%= SITE_ROOT %>ajax_dataview.asp?ViewID=<%= nViewID %>";
     respite_crud.respite_editor_options.modal_Options.modal_delete.modal_form_target = "<%= SITE_ROOT %>ajax_dataview.asp?ViewID=<%= nViewID %>";
+    <% IF blnBrowseMode THEN %>respite_crud.respite_editor_options.dt_Options.dt_BrowseMode = true;<% END IF %>
 
     // DataTable Columns:
-    // TODO: Simplify the addColumn() function interface
     respite_crud
         <% IF strRowReorderCol <> "" AND Not IsNull(strRowReorderCol) THEN
             IF strRowReorderColMasked = "" THEN strRowReorderColMasked = strRowReorderCol
         %>.addRowReorderColumn("<%= Sanitizer.JSON(strRowReorderColMasked) %>")
         <% END IF 
+
+        IF blnShowRowActions THEN
         %>.addInlineActionButtonsColumn()
-        <% IF strError = "" THEN
-        FOR nIndex = 0 TO dvFields.UBound
-        IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN
-    %>.addColumn({
-        "name": "<%= dvFields(nIndex)("FieldIdentifier") %>",
-        "data": "Field_<%= dvFields(nIndex)("FieldID") %>",
-            "render": respite_crud.renderAutomatic<%
-    IF (dvFields(nIndex)("FieldFlags") AND 8) = 0 THEN  %>,
-            "visible": false<%
-    END IF
-    IF (dvFields(nIndex)("FieldFlags") AND 16) = 0 THEN  %>,
-            "searchable": false<%
-    END IF %>,
-            "editor_data": {<% 
-    IF (dvFields(nIndex)("FieldFlags") AND 1) = 0 THEN %>
-                "hidden": true,<%
-    END IF
-    IF dvFields(nIndex)("UriPath") <> "" THEN %>
-                "wrap_link": {
-                    "href": "<%= Sanitizer.JSON(dvFields(nIndex)("UriPath")) %>",
-                    "css": "<%= Sanitizer.JSON(luDataViewUriStyles(dvFields(nIndex)("UriStyle")).CSSClass) %>"
-                },<%
-    END IF %>
-                "label": "<%= Sanitizer.JSON(dvFields(nIndex)("FieldLabel")) %>",
-                "type": "<%= luDataViewFieldTypes(dvFields(nIndex)("FieldType")).Identifier %>",       // field type
-                "tooltip": "<%= Sanitizer.JSON(dvFields(nIndex)("FieldTooltip")) %>",
-                "default_value": "<%= Sanitizer.JSON(dvFields(nIndex)("DefaultValue")) %>",   // default value
-                <%
-                IF (dvFields(nIndex)("FieldFlags") AND 16) > 0 THEN %>"searchable": false,<%
-                END IF
-                %>
-                // collection of custom attributes to apply to the input field element: { attrName: attrValue, ... }
-                "attributes": { "placeholder": "<%= Sanitizer.JSON(dvFields(nIndex)("FieldLabel")) %>"<%
-                    IF dvFields(nIndex)("MaxLength") <> "" AND NOT IsNull(dvFields(nIndex)("MaxLength")) THEN
-                    %>, "maxlength": <%= dvFields(nIndex)("MaxLength") %><%
-                    END IF
-                    IF dvFields(nIndex)("Height") <> "" AND NOT IsNull(dvFields(nIndex)("Height")) THEN
-                    %>, "<%
-                    IF dvFields(nIndex)("FieldType") = 1 OR dvFields(nIndex)("FieldType") = 2 THEN
-                        Response.Write "rows"
-                    ELSE
-                        Response.Write "height"
-                    END IF %>": <%= dvFields(nIndex)("Height") %><%
-                    END IF
-                    IF dvFields(nIndex)("Width") <> "" AND NOT IsNull(dvFields(nIndex)("Width")) THEN
-                    %>, "width": '<%= dvFields(nIndex)("Width") %>%'<%
-                    END IF
-                    IF dvFields(nIndex)("FormatPattern") <> "" AND NOT IsNull(dvFields(nIndex)("FormatPattern")) THEN
-                    %>, "pattern": "<%= Sanitizer.JSON(dvFields(nIndex)("FormatPattern")) %>"<%
-                    END IF
-                    IF (dvFields(nIndex)("FieldFlags") AND 2) > 0 THEN
-                    %>, "required": true<%
-                    END IF
-                    IF (dvFields(nIndex)("FieldFlags") AND 4) > 0 THEN 
-                    %>, "readonly": true<%
-                    END IF %>}
-                <% 
-                IF dvFields(nIndex)("FieldType") = 5 OR dvFields(nIndex)("FieldType") = 6 OR (dvFields(nIndex)("FieldType") >= 17 AND dvFields(nIndex)("FieldType") <= 21) OR (dvFields(nIndex)("FieldType") >= 27 AND dvFields(nIndex)("FieldType") <= 29) THEN
-                    Response.Write ", ""options"": [ "
-
-                    IF dvFields(nIndex)("LinkedTableValueField") <> "" AND Not IsNull(dvFields(nIndex)("LinkedTableValueField")) AND dvFields(nIndex)("LinkedTable") <> "" AND NOT IsNull(dvFields(nIndex)("LinkedTable")) THEN
-                        Dim rsOptions
-                        SET rsOptions = Server.CreateObject("ADODB.Recordset")
-                        strSQL = "SELECT * FROM (SELECT " & dvFields(nIndex)("LinkedTableValueField") & " AS [value], "
-                    
-                        IF dvFields(nIndex)("LinkedTableTitleField") <> "" THEN
-                            strSQL = strSQL & dvFields(nIndex)("LinkedTableTitleField")
-                        ELSE
-                            strSQL = strSQL & dvFields(nIndex)("LinkedTableValueField")
-                        END IF
-                        strSQL = strSQL & " AS [title], "
-
-                        IF dvFields(nIndex)("LinkedTableGroupField") <> "" THEN
-                            strSQL = strSQL & dvFields(nIndex)("LinkedTableGroupField")
-                        ELSE
-                            strSQL = strSQL & "''"
-                        END IF
-                        strSQL = strSQL & " AS [group], "
-                
-                        IF dvFields(nIndex)("LinkedTableGlyphField") <> "" THEN
-                        strSQL = strSQL & dvFields(nIndex)("LinkedTableGlyphField")
-                        ELSE
-                        strSQL = strSQL & "''"
-                        END IF
-                        strSQL = strSQL & " AS [glyph], "
-
-                        IF dvFields(nIndex)("LinkedTableTooltipField") <> "" THEN
-                        strSQL = strSQL & dvFields(nIndex)("LinkedTableTooltipField")
-                        ELSE
-                        strSQL = strSQL & "''"
-                        END IF
-                        strSQL = strSQL & " AS [tooltip] "
-
-                        strSQL = strSQL & " FROM " & dvFields(nIndex)("LinkedTable") & " " & dvFields(nIndex)("LinkedTableAddition")
-                        strSQL = strSQL & ") AS q ORDER BY [group] ASC, [title] ASC, [value] ASC"
-                
-                        rsOptions.Open strSQL, adoConnCrudeSrc
-                        WHILE NOT rsOptions.EOF
-                    %>{ "value": "<%= Sanitizer.JSON(rsOptions("value")) %>", "label": "<%= Sanitizer.JSON(rsOptions("title")) %>", "group": "<%= Sanitizer.JSON(rsOptions("group")) %>", "glyph": "<%= Sanitizer.JSON(rsOptions("glyph")) %>", "tooltip": "<%= Sanitizer.JSON(rsOptions("tooltip")) %>" }<%
-                        rsOptions.MoveNext
-                        IF NOT rsOptions.EOF THEN Response.Write ", "
-                        WEND
-                        rsOptions.Close
-                    END IF
-                    Response.Write "]"
-                END IF %>
-            }
-        })
-    <%
+        <%
         END IF
-    NEXT
 
-    END IF %>;
-    // DataTable Columns Default Order:
+        IF strError = "" THEN
+            InitDataViewFieldsJS dvFields
+        END IF %>;
+    // TODO: DataTable Columns Default Order:
     //respite_crud.setColumnsOrder( [[1, 'asc'], [3, 'desc']] );
 
     // Toolbar and Inline buttons should be added before init
@@ -572,30 +466,7 @@ IF strError <> "" THEN
             IF blnAllowDelete THEN %>
         .addDeleteButton("<%= GetWord("Delete") %>")<% END IF
 IF blnShowCustomActions THEN
-    FOR nIndex = 0 TO dvActionsInline.UBound %>
-        .addInlineActionButton(
-        {
-            href: "javascript:void(0)",
-            label: "<%= Sanitizer.JSON(dvActionsInline(nIndex)("ActionLabel")) %>",
-            glyph: "<%= Sanitizer.JSON(dvActionsInline(nIndex)("GlyphIcon")) %>",
-            "class": "<%= Sanitizer.JSON(dvActionsInline(nIndex)("CSSButton")) %>",
-            title: "<%= Sanitizer.JSON(dvActionsInline(nIndex)("ActionTooltip")) %>"
-         },
-        function (e, tr, r) {
-            <%
-            Select Case dvActionsInline(nIndex)("ActionType")
-            Case "javascript"
-            Response.Write dvActionsInline(nIndex)("ActionExpression")
-            Case "url"
-            Response.Write "respite_crud.actionUrl(""" & Sanitizer.JSON(dvActionsInline(nIndex)("ActionExpression")) & """, " & LCase(dvActionsInline(nIndex)("OpenURLInNewWindow")) & ", undefined, r, undefined);"
-            Case "db_command", "db_procedure"
-            Response.Write "throw 'not yet implemented';"
-            Case Else
-            Response.Write "throw 'Action Type " & dvActionsInline(nIndex)("ActionType") & " unrecognized';"
-            End Select
-            %>}
-        )<%
-    NEXT
+    InitDataViewInlineActionButtonsJS dvActionsInline
 END IF
 %>
         /*

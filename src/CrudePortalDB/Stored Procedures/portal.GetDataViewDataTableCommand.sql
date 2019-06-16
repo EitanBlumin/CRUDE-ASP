@@ -40,7 +40,8 @@ CREATE PROCEDURE [portal].[GetDataViewDataTableCommand]
 	@SearchValue NVARCHAR(MAX) = NULL,
 	@SearchRegEx BIT = 0, -- not yet implemented
 	@ColumnsOptions XML = NULL,
-	@ColumnsOrder XML = NULL
+	@ColumnsOrder XML = NULL,
+	@FilteringByPK BIT = 0
 AS
 SET NOCOUNT ON;
 DECLARE @DataSource NVARCHAR(100), @TableName NVARCHAR(300), @PK NVARCHAR(300), @Flags INT, @RowReorder NVARCHAR(200)
@@ -54,8 +55,8 @@ DECLARE
 	@ParametersDeclaration NVARCHAR(MAX) = N'',
 	@ParametersFilter NVARCHAR(MAX) = N'',
 	@QuickFilter NVARCHAR(MAX) = N'',
-	@OrderBy NVARCHAR(MAX) = NULL
-
+	@OrderBy NVARCHAR(MAX) = NULL,
+	@StopFiltering BIT = 0
 
 SET @SQLColumns = N'
 SELECT [DT_RowId] = ' + @PK + N', [DT_RowIndex] = ROW_NUMBER() OVER (ORDER BY '
@@ -107,44 +108,75 @@ ELSE
 
 SET @SQLColumns = @SQLColumns + N')'
 
+-- Prepare indexed temp table to force sorting on the columns
+IF OBJECT_ID('tempdb..#Columns') IS NOT NULL DROP TABLE #Columns;
+CREATE TABLE #Columns
+(
+  ColIndex int NULL, DataSrc nvarchar(1000) NULL, IsRegEx bit NULL, SearchVal nvarchar(max) NULL, OperandTemplate nvarchar(200) NULL
+, FieldType nvarchar(50) NOT NULL, FieldSource nvarchar(300) NULL
+, FieldOrder int NOT NULL
+);
+CREATE CLUSTERED INDEX IX ON #Columns (FieldOrder ASC);
+
 ;WITH ColsXML
 AS
 (
 	SELECT
 		ColIndex = X.value('(@ColIndex)[1]', 'int'),
-		ColName = X.value('(@Name)[1]', 'nvarchar(1000)'),
-		DataSrc = X.value('(@DataSrc)[1]', 'nvarchar(1000)'),
+		ColName = CASE WHEN @FilteringByPK = 1 THEN NULL ELSE X.value('(@Name)[1]', 'nvarchar(1000)') END,
+		DataSrc = CASE WHEN @FilteringByPK = 1 THEN NULL ELSE X.value('(@DataSrc)[1]', 'nvarchar(1000)') END,
 		IsRegEx = X.value('(@RegEx)[1]', 'bit'),
-		SearchVal = X.value('(text())[1]', 'nvarchar(max)')
+		SearchVal = X.value('(text())[1]', 'nvarchar(max)'),
+		OperandTemplate = CASE WHEN @FilteringByPK = 1
+							THEN N'
+	AND ' + @PK + N' = {Parameter}'
+							ELSE N'
+	AND {Column} LIKE {Parameter}'
+						  END
 	FROM @ColumnsOptions.nodes('/Columns/Column') AS T(X)
 )
+INSERT INTO #Columns
 SELECT
-	@ParametersDeclaration = @ParametersDeclaration +
-	CASE
-		WHEN SearchVal <> N'' THEN N'
-	DECLARE @pFilter' + CONVERT(nvarchar, c.ColIndex) + N' nvarchar(max);
-	SET @pFilter' + CONVERT(nvarchar, c.ColIndex) + N' = @ColumnsOptions.value(''(Columns/Column[@ColIndex="' + CONVERT(nvarchar, c.ColIndex) + N'"]/text())[1]'', ''nvarchar(max)'');'
-		ELSE N''
-	END,
-	@ParametersFilter = @ParametersFilter +
-	CASE
-		WHEN c.SearchVal <> N'' THEN N'
-	AND ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''') LIKE @pFilter' + CONVERT(nvarchar, c.ColIndex)
-		ELSE N''
-	END,
-	@QuickFilter = @QuickFilter +
-	CASE
-		WHEN @SearchValue IS NOT NULL THEN N'
-		OR ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''') LIKE ''%'' + @SearchValue + ''%'''
-		ELSE N''
-	END,
-	@SQLColumns = @SQLColumns + N',
-		' + QUOTENAME(ISNULL(c.DataSrc, 'Field_' + CONVERT(nvarchar,dvf.FieldID))) + N' = ' + CASE WHEN FieldType = 12 THEN N'''''' WHEN FieldType IN (7,8) THEN N'ISNULL(CONVERT(nvarchar(19),' + FieldSource + N', 126), '''')' ELSE N'ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''')' END
+	  c.ColIndex
+	, DataSrc = COALESCE(c.DataSrc, dvf.FieldIdentifier, 'Field_' + CONVERT(nvarchar,dvf.FieldID))
+	, c.IsRegEx
+	, c.SearchVal
+	, c.OperandTemplate
+	, dvf.FieldType
+	, dvf.FieldSource
+	, FieldOrder = ROW_NUMBER() OVER (ORDER BY dvf.FieldOrder ASC, dvf.FieldID ASC)
 FROM portal.DataViewField AS dvf
 LEFT JOIN ColsXML AS c
 ON CONVERT(nvarchar,dvf.FieldIdentifier) = c.ColName
-WHERE ViewID = @ViewID
---ORDER BY FieldOrder ASC
+OR (@FilteringByPK = 1 AND c.ColIndex = 0)
+WHERE ViewID = @ViewID;
+
+SELECT
+	@ParametersDeclaration = @ParametersDeclaration +
+	CASE
+		WHEN @StopFiltering = 0 AND SearchVal <> N'' THEN N'
+	DECLARE @pFilter' + CONVERT(nvarchar, c.ColIndex) + N' nvarchar(max);
+	SET @pFilter' + CONVERT(nvarchar, c.ColIndex) + N' = @ColumnsOptions.value(''(Columns/Column[@ColIndex="' + CONVERT(nvarchar, c.ColIndex) + N'"]/text())[1]'', ''nvarchar(max)'');'
+		ELSE N''
+	END
+	,@ParametersFilter = @ParametersFilter +
+	CASE
+		WHEN @StopFiltering = 0 AND c.SearchVal <> N'' THEN
+		REPLACE(REPLACE(OperandTemplate
+			, N'{Column}', N'ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''')')
+			, N'{Parameter}', N'@pFilter' + CONVERT(nvarchar, c.ColIndex))
+		ELSE N''
+	END
+	,@QuickFilter = @QuickFilter +
+	CASE
+		WHEN @FilteringByPK = 0 AND @SearchValue IS NOT NULL THEN N'
+		OR ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''') LIKE ''%'' + @SearchValue + ''%'''
+		ELSE N''
+	END
+	,@SQLColumns = @SQLColumns + N',
+		' + QUOTENAME(c.DataSrc) + N' = ' + CASE WHEN FieldType = 12 THEN N'''''' WHEN FieldType IN (7,8) THEN N'ISNULL(CONVERT(nvarchar(19),' + FieldSource + N', 126), '''')' ELSE N'ISNULL(CONVERT(nvarchar(max), ' + FieldSource + N'), '''')' END
+	,@StopFiltering = @FilteringByPK
+FROM #Columns AS c
 
 SET @CMD = N'DECLARE @RTotal INT, @RFiltered INT;
 DECLARE @ColumnsOptions XML, @Start INT, @Length INT, @SearchValue NVARCHAR(MAX)

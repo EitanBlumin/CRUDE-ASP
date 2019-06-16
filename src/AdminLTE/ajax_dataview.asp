@@ -36,6 +36,8 @@ SET myRegEx = New RegExp
 myRegEx.IgnoreCase = True
 myRegEx.Global = True
     
+' Read JSON Payload Body
+'=========================
 'IF (strMode = "add" OR strMode = "edit") AND Request.Form <> "" THEN
 '    Dim bytecount, bytes, stream, jsonPayload
 '
@@ -53,6 +55,7 @@ myRegEx.Global = True
 '    stream.Close()
 '    'Response.Write jsonPayload  
 'END IF
+
 SET adoConnCrude = adoConn
 adoConnCrude.Open
     
@@ -128,7 +131,7 @@ ELSEIF strMode = "autoinit" AND nViewID <> "" AND IsNumeric(nViewID) AND strMain
     SET ExistingColumns = Server.CreateObject("Scripting.Dictionary")
     SET NewColumns = Server.CreateObject("Scripting.Dictionary")
 
-    strSQL = "SELECT FieldSource FROM portal.DataViewField WHERE ViewID = " & nViewID
+    strSQL = "SELECT * FROM portal.DataViewField WHERE ViewID = " & nViewID
 
     SET rsTarget = Server.CreateObject("ADODB.Recordset")
     rsTarget.CursorLocation = adUseClient
@@ -341,59 +344,59 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
             
 		    FOR nIndex = 0 TO dvFields.UBound 'AND False
 			    IF dvFields(nIndex)("FieldType") <> 10 AND (dvFields(nIndex)("FieldFlags") AND 4) = 0 THEN ' not "link" or read-only
-                    IF dvFields(nIndex)("FieldType") <> 9 AND Request("Field_" & dvFields(nIndex)("FieldID")) = "" AND (dvFields(nIndex)("FieldFlags") AND 2) > 0 THEN
+                    IF dvFields(nIndex)("FieldType") <> 9 AND Request(dvFields(nIndex)("FieldIdentifier")) = "" AND (dvFields(nIndex)("FieldFlags") AND 2) > 0 THEN
                         strError = strError & "<b>" & Sanitizer.HTMLDisplay(dvFields(nIndex)("FieldLabel")) & "</b> is required but has not been filled.<br/>"
                     ELSE
                         Select Case dvFields(nIndex)("FieldType")
                             Case 12, 1, 2, 6, 14 '"password", "text", "textarea", "multicombo", "rte"
-                                varCurrFieldValue = Request("Field_" & dvFields(nIndex)("FieldID"))
+                                varCurrFieldValue = Request(dvFields(nIndex)("FieldIdentifier"))
                             Case 9, 22, 23, 26 '"boolean"
-                                varCurrFieldValue = CBool(Request("Field_" & dvFields(nIndex)("FieldID")))
+                                varCurrFieldValue = CBool(Request(dvFields(nIndex)("FieldIdentifier")))
                             Case 7, 8 '"datetime", "date"
-                                IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
+                                IF Len(Request(dvFields(nIndex)("FieldIdentifier"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
                                     varCurrFieldValue = NULL
                                     'strMsgOutput = strMsgOutput & "<!-- setting [time] field " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
-                                ELSEIF isIsoDate(Request("Field_" & dvFields(nIndex)("FieldID"))) THEN
-				                    varCurrFieldValue = CIsoDate(Request("Field_" & dvFields(nIndex)("FieldID")))
-                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
-                                ELSEIF isDate(Request("Field_" & dvFields(nIndex)("FieldID"))) THEN
-				                    varCurrFieldValue = CDate(Request("Field_" & dvFields(nIndex)("FieldID")))
-                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+                                ELSEIF isIsoDate(Request(dvFields(nIndex)("FieldIdentifier"))) THEN
+				                    varCurrFieldValue = CIsoDate(Request(dvFields(nIndex)("FieldIdentifier")))
+                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request(dvFields(nIndex)("FieldIdentifier"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+                                ELSEIF isDate(Request(dvFields(nIndex)("FieldIdentifier"))) THEN
+				                    varCurrFieldValue = CDate(Request(dvFields(nIndex)("FieldIdentifier")))
+                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request(dvFields(nIndex)("FieldIdentifier"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
                                 ELSE
                                     Response.Status = "500 Server Error"
-                                    Response.Write "The value |" & Request("Field_" & dvFields(nIndex)("FieldID")) & "| is invalid as date and time."
+                                    Response.Write "The value |" & Request(dvFields(nIndex)("FieldIdentifier")) & "| is invalid as date and time."
                                     Response.End
                                 END IF
                             Case 13 '"time"
-                                IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
+                                IF Len(Request(dvFields(nIndex)("FieldIdentifier"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
                                     varCurrFieldValue = NULL
                                     'strMsgOutput = strMsgOutput & "<!-- setting [time] field " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
                                 ELSE
-				                    varCurrFieldValue = Mid(Request("Field_" & dvFields(nIndex)("FieldID")), 1, 8)
-                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+				                    varCurrFieldValue = Mid(Request(dvFields(nIndex)("FieldIdentifier")), 1, 8)
+                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request(dvFields(nIndex)("FieldIdentifier"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
                                 END IF
                             Case 27, 28, 29 '"bitwise"
-                                IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 THEN ' if empty, enter 0
+                                IF Len(Request(dvFields(nIndex)("FieldIdentifier"))) = 0 THEN ' if empty, enter 0
                                     varCurrFieldValue = 0
                                     'strMsgOutput = strMsgOutput & "<!-- setting " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
                                 ELSE
                                     Dim arrValues, currVal
-                                    arrValues = Split(Request("Field_" & dvFields(nIndex)("FieldID")), ",")
+                                    arrValues = Split(Request(dvFields(nIndex)("FieldIdentifier")), ",")
     
                                     varCurrFieldValue = 0
 
                                     For Each currVal In arrValues
                                         IF IsNumeric(currVal) THEN varCurrFieldValue = varCurrFieldValue + CLng(currVal)
-                                    'strMsgOutput = strMsgOutput & "<!-- " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+                                    'strMsgOutput = strMsgOutput & "<!-- " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request(dvFields(nIndex)("FieldIdentifier"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
                                     Next
                                 END IF
                             Case Else
-                                IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
+                                IF Len(Request(dvFields(nIndex)("FieldIdentifier"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
                                     varCurrFieldValue = NULL
                                     'strMsgOutput = strMsgOutput & "<!-- setting " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
                                 ELSE
-				                    varCurrFieldValue = Request("Field_" & dvFields(nIndex)("FieldID"))
-                                    'strMsgOutput = strMsgOutput & "<!-- " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+				                    varCurrFieldValue = Request(dvFields(nIndex)("FieldIdentifier"))
+                                    'strMsgOutput = strMsgOutput & "<!-- " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request(dvFields(nIndex)("FieldIdentifier"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
                                 END IF
                         End Select
 
@@ -676,7 +679,7 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
     END IF
     'END IF
 ELSEIF strError = "" AND strMode = "dataviewcontents" AND Request("ViewID") <> "" AND IsNumeric(Request("ViewID")) THEN
-    nItemID = Request("ViewID")
+    nViewID = Request("ViewID")
 
     strJsonOutput = ""
     
@@ -686,7 +689,7 @@ ELSEIF strError = "" AND strMode = "dataviewcontents" AND Request("ViewID") <> "
     cmdStoredProc.CommandType = adCmdStoredProc  
     cmdStoredProc.Parameters.Refresh
     
-	cmdStoredProc.Parameters(1).Value = nItemID
+	cmdStoredProc.Parameters(1).Value = nViewID
 
     ON ERROR RESUME NEXT
 	
@@ -768,12 +771,13 @@ ELSEIF strError = "" AND strMode = "dataviewcontents" AND Request("ViewID") <> "
         Response.Write " }"
     END IF
 ELSEIF strError = "" AND strMode = "datatable" THEN
-    nItemID = Request("ViewID")
+    nViewID = Request("ViewID")
     
     Dim nDraw, recordsTotal, recordsFiltered, nLength, nRowIndex, nRowStart, blnRegExSearch, dtRowClass, strParams
 
     ' Draw must be returned as is to response
     nDraw = Request("draw")
+    IF nDraw = "" THEN nDraw = "1"
 
     ' Length tells us how many rows max are expected in the response
     IF IsNumeric(Request("length")) AND Request("length") <> "" THEN
@@ -811,8 +815,12 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
     'Columns root element and append it to the XML document.
     Set objColumns = objDom.createElement("Columns")
     objDom.appendChild objColumns   
-
-    nColIndex = 1
+    
+    IF Request("browse") = "true" THEN
+        nColIndex = 0
+    ELSE
+        nColIndex = 1
+    END IF
 
     WHILE Request("columns[" & nColIndex & "][searchable]") <> ""
         Set objColumn = objDom.createElement("Column")
@@ -900,7 +908,7 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
     cmdStoredProc.CommandType = adCmdStoredProc  
     cmdStoredProc.Parameters.Refresh
     
-	cmdStoredProc.Parameters(1).Value = nItemID
+	cmdStoredProc.Parameters(1).Value = nViewID
 	cmdStoredProc.Parameters(2).Value = nDraw
 	cmdStoredProc.Parameters(3).Value = nRowStart
 	cmdStoredProc.Parameters(4).Value = nLength
@@ -908,6 +916,10 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
 	cmdStoredProc.Parameters(6).Value = blnRegExSearch
 	cmdStoredProc.Parameters(7).Value = sColumnsOptions
 	cmdStoredProc.Parameters(8).Value = sColumnsOrder
+
+    IF Request("browse") = "true" THEN
+	    cmdStoredProc.Parameters(9).Value = True
+    END IF
 
     ON ERROR RESUME NEXT
 	
@@ -923,7 +935,7 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
             strSQL = rsItems("Command")
             strDataSource = rsItems("DataSource")
         ELSE
-            strError = GetWord("Nothing Returned for ViewID") & " " & nItemID
+            strError = GetWord("Nothing Returned for ViewID") & " " & nViewID
         END IF
         rsItems.Close
     END IF
@@ -957,16 +969,14 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
         ON ERROR GOTO 0
     END IF
 
-    'Response.Write vbCrLf & "DataSource: " & strDataSource & vbCrLf & "ConnString: " & adoConnCrudeSource & vbCrLf & "SQL: " & strSQL
-
     SET cmdStoredProc = Nothing
-    SET rsItems = Nothing
+    'SET rsItems = Nothing
     
     IF strError = "" AND strSQL <> "" THEN
         Dim paramColumnOptions, paramStart, paramLength, paramSearch
 
         SET cmdStoredProc = Server.CreateObject("ADODB.Command")
-        cmdStoredProc.ActiveConnection = adoConnCrudeSrc
+        cmdStoredProc.ActiveConnection = adoConnCrudeSource
         cmdStoredProc.CommandText = strSQL
         'cmdStoredProc.CommandType = adCmdText
 
@@ -990,13 +1000,15 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
 	
         SET rsItems = cmdStoredProc.Execute (,params,adOptionUnspecified)
         
-        IF adoConnCrudeSrc.Errors.Count > 0 THEN
+        IF Err.number <> 0 THEN
+            strError = "ERROR " & Err.number & ": " & Err.Description
+        ElseIF adoConnCrudeSrc.Errors.Count > 0 THEN
 	        strError = "ERROR while trying to retrieve datatable:<br>"
             For Each CurrErr In adoConnCrudeSrc.Errors
 		        strError = strError & "[" & CurrErr.Source & "] Error " & CurrErr.Number & ": " & CurrErr.Description & "<br/>"
                 IF globalIsAdmin THEN strError = strError & strSQL & "<br/>"
             Next
-        ELSE
+        ELSEIF rsItems.State > 0 THEN
             ON ERROR GOTO 0
 
 	        'Response.Write adoConnCrudeSource & "<br>"
@@ -1014,6 +1026,12 @@ ELSEIF strError = "" AND strMode = "datatable" THEN
             WEND
 
             rsItems.Close
+        ELSE
+            Response.Write vbCrLf & "DataSource: " & strDataSource & vbCrLf & "ConnString: " & adoConnCrudeSource & vbCrLf & "SQL: " & strSQL & vbCrLf & vbCrLf
+            For nIndex = 0 TO UBound(params)
+                Response.Write "params(" & nIndex & "): " & params(nIndex) & vbCrLf
+            Next
+            Response.Write vbCrLf
         END IF
 	END IF
 

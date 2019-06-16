@@ -11,7 +11,7 @@ FROM (VALUES
 ,(POWER(2,6), 'Client-Side State Save', 'save a cookie in the client browser with the quick-search and paging info, which would be restored upon next visit to page', 'far fa-save', CONVERT(bit, 0))
 ,(POWER(2,7), 'Enable Advanced Search', 'allow advanced column-specific filters', 'fas fa-search', CONVERT(bit, 1))
 ,(POWER(2,8), 'Enable Columns Visibility Toggle', 'allow toggling columns to be hidden or visible in the table', 'fas fa-eye-slash', CONVERT(bit, 1))
-,(POWER(2,9), 'Enable Row Details', 'allow expanding each table row to see the rest of the record details', 'fas fa-align-left', CONVERT(bit, 1))
+,(POWER(2,9), 'Enable Row Details', 'allow expanding each table row to see the rest of the record details', 'fas fa-plus-circle', CONVERT(bit, 1))
 ,(POWER(2,10), 'Enable Row Selection', 'allows selection of multiple rows (for batch operations such as multiple delete)', 'fas fa-tasks', CONVERT(bit, 1))
 ,(POWER(2,11), 'Export to Clipboard', 'allow copying table contents to clipboard', 'fas fa-paste', CONVERT(bit, 1))
 ,(POWER(2,12), 'Export to CSV', 'allow exporting table contents to a CSV file', 'fas fa-file-alt', CONVERT(bit, 1))

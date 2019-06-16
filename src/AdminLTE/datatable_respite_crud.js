@@ -90,7 +90,8 @@ class respite_crud {
         // DOM element for the form do this: 
         var formElement = jqForm[0];
 
-        BstrapModal.Close();
+        if (BstrapModal.Close != undefined)
+            BstrapModal.Close();
 
         $(formElement.getAttribute('form-modal')).modal('hide');
 
@@ -129,8 +130,15 @@ class respite_crud {
 
         bsm.Show();
 
+        var formMode = $form.find('input[name="mode"]').val();
+
+        console.log("successful " + formMode);
+
         // refresh datatable:
-        respite_crud.dt.ajax.reload();
+        if (respite_crud.dt != undefined)
+            respite_crud.dt.ajax.reload();
+        else if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode && formMode != 'edit')
+            respite_crud.actionUrl('dataview.asp?ViewID={{dataview[id]}}&MSG=' + formMode);
 
         //alert('status: ' + statusType + '\n\nresponse: \n' + response['data'] + 
         //    '\n\nThe output div should have already been updated with the responseText.'); 
@@ -167,7 +175,7 @@ class respite_crud {
 
     // Helper function for retrieving URL Parameters (Querystring)
     static getUrlParam(sParam) {
-        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        var sPageURL = window.location.search.substring(1),
             sURLVariables = sPageURL.split('&'),
             sParameterName,
             i;
@@ -175,8 +183,8 @@ class respite_crud {
         for (i = 0; i < sURLVariables.length; i++) {
             sParameterName = sURLVariables[i].split('=');
 
-            if (sParameterName[0].toLowerCase() == sParam.toLowerCase()) {
-                return sParameterName[1] == undefined ? true : sParameterName[1];
+            if (decodeURIComponent(sParameterName[0].toLowerCase()) == sParam.toLowerCase()) {
+                return sParameterName[1] == undefined ? true : decodeURIComponent(sParameterName[1]);
             }
         }
     }
@@ -215,27 +223,43 @@ class respite_crud {
     static renderDetailsRow(d) {
         if (d != undefined) {
             var rv = "";
+            var currVal = "";
             var col = {};
+            var width = 100;
+            var widthClass = "col-md-12";
+
             for (var dKey in d) {
-                col = respite_crud.getColumnByData(dKey);
+                col = respite_crud.getColumnByData(dKey) || respite_crud.getColumnByName(dKey);
+                width = 100;
+                widthClass = "col-md-12";
+                currVal = "";
 
                 if (col == undefined)
                     col = "";
                 else if (col['editor_data'] == undefined)
                     col = "";
-                else
+                else {
                     col = col['editor_data'];
+                    if (col['attributes']['width']) {
+                        width = parseInt((col['attributes']['width']).replace('%', ''));
+                        if (width == 0) width = 100;
+                        widthClass = "col-md-" + Math.ceil(width * 0.12).toString();
+                    }
+                }
 
                 if (typeof d[dKey] === "object" || typeof d[dKey] === "array") {
                     // recursive:
-                    rv += "<b>" + col['label'] + ':</b><div class="container-fluid">' + renderDetailsRow(d[dKey]) + '</div>';
+                    currVal = "<b>" + col['label'] + ':</b><div class="container-fluid">' + renderDetailsRow(d[dKey]) + '</div>';
                 } else if (col != "") {
                     // simple string (stop condition):
-                    rv += "<b>" + col['label'] + ":</b> " + respite_crud.renderAutomatic_ed(d[dKey], col, d) + "<br/> ";
+                    currVal = "<b>" + col['label'] + ":</b> " + respite_crud.renderAutomatic_ed(d[dKey], col, d) + "<br/> ";
                 }
+
+                if (currVal != "")
+                    rv += '<div class="col ' + widthClass + '">' + currVal + '</div>';
             }
             
-            return rv;
+            return '<div class="container-fluid">' + rv + '</div>';
         }
         else
             return 'Empty row';
@@ -258,7 +282,8 @@ class respite_crud {
                         pre_submit_callback: function () { return true },
                         response_success_callback: respite_crud.callbackPostResponseSimple,
                         response_error_callback: respite_crud.callbackPostResponseSimple
-                    }
+                    },
+                    dt_BrowseMode: false
                 },
                 modal_Options: {
                     ajax_forms_selector: "form.ajax-form",
@@ -491,13 +516,39 @@ class respite_crud {
             }
         }
 
-        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+        var sPageURL = window.location.search.substring(1),
             sURLVariables = sPageURL.split('&'),
             sParameterName;
 
         for (var i = 0; i < sURLVariables.length; i++) {
             sParameterName = sURLVariables[i].split('=');
-            data = data.replace('{{urlparam[' + sParameterName[0] + ']}}', sParameterName[1] === undefined ? true : sParameterName[1]);
+            data = data.replace('{{urlparam[' + decodeURIComponent(sParameterName[0]) + ']}}', sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]));
+        }
+
+        return data;
+    }
+
+    static getPlaceholderValue(placeholderKey, fieldKey)
+    {
+        var placeholderReplacements = respite_crud.placeholderReplacements;
+        var data = undefined;
+
+        if (placeholderKey == 'urlparam') {
+            var sPageURL = window.location.search.substring(1),
+                sURLVariables = sPageURL.split('&'),
+                sParameterName;
+
+            for (var i = 0; i < sURLVariables.length; i++) {
+                sParameterName = sURLVariables[i].split('=');
+                if (decodeURIComponent(sParameterName[0]) == fieldKey)
+                    data = sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+            }
+        } else {
+            for (var i = 0; i < placeholderReplacements.length; i++) {
+                if (placeholderKey == placeholderReplacements[i]['key']) {
+                    data = placeholderReplacements[i]['values'][fieldKey];
+                }
+            }
         }
 
         return data;
@@ -567,20 +618,22 @@ class respite_crud {
         if (!respite_crud.DM_form_rendered) {
             $('.summernote textarea').each(function (i) {
                 var currObj = $(this);
-
-                currObj.summernote({
-                    minHeight: currObj.attr('minHeight'),
-                    maxHeight: currObj.attr('maxHeight'),
-                    height: currObj.attr('height'),
-                    width: currObj.attr('width'),
-                    placeholder: currObj.attr('placeholder'),
-                    focus: true,
-                    tabsize: 2,
-                    dialogsInBody: true,
-                    codemirror: { // codemirror options
-                        theme: 'monokai'
-                    }
-                });
+                var nextSibling = currObj.next().find(".note-editable");
+                //console.log("postRenderDMFormFields: " + nextSibling.length);
+                if (nextSibling.length == 0)
+                    currObj.summernote({
+                        minHeight: currObj.attr('minHeight'),
+                        maxHeight: currObj.attr('maxHeight'),
+                        height: currObj.attr('height'),
+                        width: currObj.attr('width'),
+                        placeholder: currObj.attr('placeholder'),
+                        focus: true,
+                        tabsize: 2,
+                        dialogsInBody: true,
+                        codemirror: { // codemirror options
+                            theme: 'monokai'
+                        }
+                    });
 
                 if (currObj.attr('readonly'))
                     currObj.next().find(".note-editable").attr("contenteditable", false);
@@ -661,8 +714,99 @@ class respite_crud {
         $('input[name=mode]', $(modal_options.form_selector)).val("delete_multiple");  // modal_form_name
         $(modal_options.modal_selector).modal({ show: true, keyboard: true, focus: true });      // modal_to_show, modal_options = {}
     }
+    // Data Manipulation Utility Function
+    static renderDM_modalElements(r, mode) {
+        var modal_options = respite_crud.respite_editor_options.modal_Options.modal_edit;
+        var form_id = 'form_modal_modify_' + mode;
+        var title = "";
+        var buttons = [];
+
+        // save to static row object for the Deletion modal to access
+        if (r == undefined || r == null)
+            respite_crud.row = respite_crud.initDefaultRow();
+        else
+            respite_crud.row = r;
+
+        // init modal title and deletion button
+        if (mode == "edit") {
+            title = "Edit Item RowID: " + respite_crud.row.DT_RowId;   // localization.modal_edit_title
+            buttons.push({ Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger mr-auto", Callback: function (e) { respite_crud.showDelete_dynamic(respite_crud.row) } });
+        }
+        else {
+            title = "Add Item";                         // localization.modal_add_title
+        }
+        buttons.push({ Value: "Cancel", Css: "btn-default" }); // localization['Cancel']
+        buttons.push({ Value: "<i class='fas fa-save'></i> Save Changes", Css: "btn-success", Callback: function (e) { $('#' + form_id).submit(); } });
+
+        var body = $('<form class="ajax-form" name="modal_edit_form" action="' + respite_crud.site_root + 'ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
+                .attr('action', modal_options.modal_form_target)
+                .append(respite_crud.renderDMFormFields(respite_crud.row, respite_crud.dt_Columns));
+
+        // init form global fields
+        body.append($('<input type="hidden" name="postback" value="true" />'))
+        .append($('<input type="hidden" name="DT_RowId" value="" />').val(respite_crud.row.DT_RowId))
+        .append($('<input type="hidden" name="mode" value="add" />').val(mode))
+        .append($('<input type="submit" autofocus style="position:absolute; left:-9999px; width:0px; height:0px;" />'));
+
+        return {
+            form_id: form_id,
+            title: title,
+            bodyHtml: body.clone().wrap('<div>').parent().html(),
+            buttons: buttons,
+            callbackPostRender:
+            function (e, modalId) {
+                $('.summernote textarea').each(function (i) {
+                    var currObj = $(this);
+                    var nextSibling = currObj.next().find(".note-editable");
+                    //console.log("modalElementPostRender: " + nextSibling.length);
+                    if (nextSibling.length == 0)
+                        currObj.summernote({
+                            minHeight: parseInt(currObj.attr('minHeight')),
+                            maxHeight: parseInt(currObj.attr('maxHeight')),
+                            height: parseInt(currObj.attr('height')),
+                            width: currObj.attr('width'),
+                            placeholder: currObj.attr('placeholder'),
+                            focus: true,
+                            tabsize: 2,
+                            dialogsInBody: true,
+                            codemirror: { // codemirror options
+                                theme: 'monokai'
+                            }
+                        });
+
+                    if (currObj.attr('readonly'))
+                        currObj.next().find(".note-editable").attr("contenteditable", false);
+                });
+
+                $('select[readonly] option:not(:selected)').attr('disabled', true);
+
+                //console.log($(this));
+                if (modalId != undefined)
+                    $('#' + form_id).attr('form-modal', '#' + modalId);
+
+                // init ajax form
+                $('#' + form_id).ajaxForm({
+                    target: respite_crud.respite_editor_options.modal_Options.modal_response.modal_body_selector    // target element(s) to be updated with server response
+                    , beforeSubmit: respite_crud.respite_editor_options.modal_Options.pre_submit_callback           // pre-submit callback
+                    , success: respite_crud.respite_editor_options.modal_Options.response_success_callback          // post-submit callback
+                    , error: respite_crud.respite_editor_options.modal_Options.response_error_callback              // post-submit callback
+                    , dataType: 'json'                                     // 'xml', 'script', or 'json' (expected server response type)
+                });
+
+                respite_crud.focusFirstField(e, $('#' + form_id));
+            }
+        };
+    }
     // Data Manipulation Modals (Dynamic Modal)
     static showDMModal_dynamic(r, mode) {
+        var modalElements = respite_crud.renderDM_modalElements(r, mode);
+        new BstrapModal(
+            modalElements.title,
+            modalElements.bodyHtml,
+            modalElements.buttons,
+            modalElements.callbackPostRender
+            ).Show();
+        /*
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_edit;
         var form_id = 'form_modal_modify_' + mode;
         var title = "";
@@ -705,7 +849,7 @@ class respite_crud {
                         minHeight: parseInt(currObj.attr('minHeight')),
                         maxHeight: parseInt(currObj.attr('maxHeight')),
                         height: parseInt(currObj.attr('height')),
-                        width: parseInt(currObj.attr('width')),
+                        width: currObj.attr('width'),
                         placeholder: currObj.attr('placeholder'),
                         focus: true,
                         tabsize: 2,
@@ -736,6 +880,7 @@ class respite_crud {
                 respite_crud.focusFirstField(e, $('#' + form_id));
             }
             ).Show();
+            */
     }
     static showDelete_dynamic(r) {
         if (respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender == undefined)
@@ -743,7 +888,7 @@ class respite_crud {
 
         var modal_options = respite_crud.respite_editor_options.modal_Options.modal_delete;
         var form_id = 'form_modal_delete';
-        var title = "Are you sure you want to delete?";
+        var title = "Are you sure you want to delete?"; // localization
         var buttons = [{ Value: "Cancel", Css: "btn-default mr-auto" }, { Value: "<i class='fas fa-trash-alt'></i> Delete", Css: "btn-danger", Callback: function (e) { $('#' + form_id).submit(); } }]; // localization['Cancel']
         var content = respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(r);
         var body = $('<form class="ajax-form" name="modal_delete_form" action="' + respite_crud.site_root + 'ajax_dataview.asp?ViewID=undefined" method="post" id="' + form_id + '"></form>')
@@ -1188,14 +1333,13 @@ class respite_crud {
         var a = $('<a></a>');
 
         for (var i = 0; respite_crud.dt_InlineActionButtons != undefined && i < respite_crud.dt_InlineActionButtons['length']; i++) {
-
             a = $('<a href="' + respite_crud.dt_InlineActionButtons[i]['href'] + '" class="' + respite_crud.dt_InlineActionButtons[i]['class'] + '" role="button" data-toggle="tooltip" data-placement="bottom" title="' + respite_crud.dt_InlineActionButtons[i]['title'] + '"></a>');
 
             if (respite_crud.dt_InlineActionButtons[i]['glyph'] != "" && respite_crud.dt_InlineActionButtons[i]['glyph'] != undefined)
                 a.append($('<i class="' + respite_crud.dt_InlineActionButtons[i]['glyph'] + '"></i>'));
 
             if (respite_crud.dt_InlineActionButtons[i]['label'] != "" && respite_crud.dt_InlineActionButtons[i]['label'] != undefined)
-                a.append($(' ' + respite_crud.dt_InlineActionButtons[i]['label']));
+                a.append($('<span> ' + respite_crud.dt_InlineActionButtons[i]['label'] + '</span>'));
 
             rv.append($('<span>&nbsp;</span>')).append(a.clone());
         }
@@ -1253,32 +1397,33 @@ class respite_crud {
 
         $('tbody', $(respite_crud.respite_editor_options.dt_Options.dt_Selector)).on('click', 'tr td a.details-control', function (e) {     // datatable_selector
             var tr = $(this).closest('tr');
-            var row = respite_crud.dt.row(tr);                                                   // dt object
-            var idx = $.inArray(tr.attr('id'), respite_crud.detailRows);
-            var glyph = $('i', $(this));
+            var row = respite_crud.dt.row(tr);
 
-            if (row.child.isShown()) {
-                tr.removeClass('details');
-                glyph.removeClass('fa-minus-circle');
-                glyph.addClass('fa-plus-circle');
-                $(this).removeClass('text-danger');
-                $(this).addClass('text-success');
-                row.child.hide();
+            if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
+                window.location.href = "browse.asp?ViewID=" + respite_crud.getUrlParam('ViewID') + "&DT_ItemId=" + tr.attr('id') + "&prev_link=" + encodeURIComponent(window.location.href);
+            } else {
+                var idx = $.inArray(tr.attr('id'), respite_crud.detailRows);
+                var glyph = $('i', $(this));
 
-                // Remove from the 'open' array
-                respite_crud.detailRows.splice(idx, 1);
-            }
-            else {
-                tr.addClass('details');
-                glyph.removeClass('fa-plus-circle');
-                glyph.addClass('fa-minus-circle');
-                $(this).removeClass('text-success');
-                $(this).addClass('text-danger');
-                row.child(respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(row.data())).show();
+                if (row.child.isShown()) {
+                    tr.removeClass('details');
+                    glyph.removeClass('fa-minus-circle').addClass('fa-plus-circle');
+                    $(this).removeClass('btn-danger').addClass('btn-success');
+                    row.child.hide();
 
-                // Add to the 'open' array
-                if (idx === -1) {
-                    respite_crud.detailRows.push(tr.attr('id'));
+                    // Remove from the 'open' array
+                    respite_crud.detailRows.splice(idx, 1);
+                }
+                else {
+                    tr.addClass('details');
+                    glyph.removeClass('fa-plus-circle').addClass('fa-minus-circle');
+                    $(this).removeClass('btn-success').addClass('btn-danger');
+                    row.child(respite_crud.respite_editor_options.dt_Options.dt_DetailRowRender(row.data())).show();
+
+                    // Add to the 'open' array
+                    if (idx === -1) {
+                        respite_crud.detailRows.push(tr.attr('id'));
+                    }
                 }
             }
         });
@@ -1289,7 +1434,7 @@ class respite_crud {
         return respite_crud.addInlineActionButton(
             {
                 "href": "javascript:void(0)",
-                "class": "btn-link text-success details-control",
+                "class": "btn btn-sm btn-success details-control",
                 "title": "Details",
                 "glyph": "fas fa-plus-circle",
                 "label": ""
@@ -1300,17 +1445,37 @@ class respite_crud {
     static addEditButton(title, label, glyph, customClass) {
         var btnClassName = "respite_btn_" + respite_crud.getNextActionButtonIndex();
         respite_crud.edit_button_selector = btnClassName;
+        var objDt = $(respite_crud.respite_editor_options.dt_Options.dt_Selector);
 
-        $('tbody', $(respite_crud.respite_editor_options.dt_Options.dt_Selector)).on('click', 'tr td a.' + btnClassName, function (e) {     // datatable_selector
-            var tr = $(this).closest('tr');
-            var r = respite_crud.dt.row(tr).data();                                             // dt object
-            respite_crud.showDMModal(r, "edit");
-        });
+        if (objDt.length > 0) {
+            $('tbody', objDt).on('click', 'tr td a.' + btnClassName, function (e) {
+                var tr = $(this).closest('tr');
+                var id = tr.attr('id');
+                var r = respite_crud.dt.row(tr).data();
+
+                if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
+                    window.location.href = 'browse.asp?mode=edit&ViewID=' + respite_crud.getUrlParam('ViewID') + '&DT_ItemId=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                } else {
+                    respite_crud.showDMModal(r, "edit");
+                }
+            });
+        } else {
+            $('.grid-buttons-container').on('click', 'a.' + btnClassName, function (e) {
+                var r = respite_crud.row;
+                var id = r.DT_RowId;
+
+                if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
+                    window.location.href = 'browse.asp?mode=edit&ViewID=' + respite_crud.getUrlParam('ViewID') + '&DT_ItemId=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                } else {
+                    respite_crud.showDMModal(r, "edit");
+                }
+            });
+        }
 
         return respite_crud.addInlineActionButton(
             {
                 "href": "javascript:void(0)",
-                "class": (customClass == undefined || customClass == null ? "btn btn-success btn-sm" : customClass) + " " + btnClassName,
+                "class": (customClass == undefined || customClass == null ? "btn btn-warning btn-sm" : customClass) + " " + btnClassName,
                 "title": (title == undefined || title == null ? "Edit" : title),
                 "glyph": (glyph == undefined || glyph == null ? "fas fa-edit" : glyph),
                 "label": (label == undefined || label == null ? "" : label)
@@ -1318,12 +1483,32 @@ class respite_crud {
     }
     static addCloneButton(title, label, glyph, customClass) {
         var btnClassName = "respite_btn_" + respite_crud.getNextActionButtonIndex();
+        var objDt = $(respite_crud.respite_editor_options.dt_Options.dt_Selector);
+        
+        if (objDt.length > 0) {
+            $('tbody', objDt).on('click', 'tr td a.' + btnClassName, function (e) {
+                var tr = $(this).closest('tr');
+                var id = tr.attr('id');
+                var r = respite_crud.dt.row(tr).data();
 
-        $('tbody', $(respite_crud.respite_editor_options.dt_Options.dt_Selector)).on('click', 'tr td a.' + btnClassName, function (e) {
-            var tr = $(this).closest('tr');
-            var r = respite_crud.dt.row(tr).data();
-            respite_crud.showDMModal(r, "add");
-        });
+                if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
+                    window.location.href = 'browse.asp?mode=add&ViewID=' + respite_crud.getUrlParam('ViewID') + '&DT_ItemId=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                } else {
+                    respite_crud.showDMModal(r, "add");
+                }
+            });
+        } else {
+            $('.grid-buttons-container').on('click', 'a.' + btnClassName, function (e) {
+                var r = respite_crud.row;
+                var id = r.DT_RowId;
+
+                if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
+                    window.location.href = 'browse.asp?mode=add&ViewID=' + respite_crud.getUrlParam('ViewID') + '&DT_ItemId=' + id + '&prev_link=' + encodeURIComponent(window.location.href);
+                } else {
+                    respite_crud.showDMModal(r, "add");
+                }
+            });
+        }
 
         return respite_crud.addInlineActionButton(
             {
@@ -1337,12 +1522,23 @@ class respite_crud {
     static addDeleteButton(title, label, glyph, customClass) {
         var btnClassName = "respite_btn_" + respite_crud.getNextActionButtonIndex();
         respite_crud.delete_button_selector = btnClassName;
+        var objDt = $(respite_crud.respite_editor_options.dt_Options.dt_Selector);
 
-        $('tbody', $(respite_crud.respite_editor_options.dt_Options.dt_Selector)).on('click', 'tr td a.' + btnClassName, function (e) {    // datatable_selector
-            var tr = $(this).closest('tr');
-            var r = respite_crud.dt.row(tr).data();                                              // dt object
-            respite_crud.showDelete(r);
-        });
+        if (objDt.length > 0) {
+            $('tbody', objDt).on('click', 'tr td a.' + btnClassName, function (e) {
+                var tr = $(this).closest('tr');
+                var id = tr.attr('id');
+                var r = respite_crud.dt.row(tr).data();
+                respite_crud.showDelete(r);
+            });
+        } else {
+            $('.grid-buttons-container').on('click', 'a.' + btnClassName, function (e) {
+                var r = respite_crud.row;
+                var id = r.DT_RowId;
+
+                respite_crud.showDelete({ DT_RowId: id });
+            });
+        }
 
         return respite_crud.addInlineActionButton(
             {
@@ -1380,7 +1576,11 @@ class respite_crud {
                 text: (glyph == undefined || glyph == null ? '<i class="fas fa-plus"></i>' : '<i class="' + glyph + '"></i> ') + (title == undefined || title == null ? "Add" : title),
                 className: (customClass == undefined || customClass == null ? "btn btn-success btn-sm" : customClass),
                 action: function (e, dt, node, config) {
-                    respite_crud.showDMModal(null, "add");
+                    if (respite_crud.respite_editor_options.dt_Options.dt_BrowseMode) {
+                        window.location.href = 'browse.asp?mode=add&ViewID=' + respite_crud.getUrlParam('ViewID') + '&prev_link=' + encodeURIComponent(window.location.href);
+                    } else {
+                        respite_crud.showDMModal(null, "add");
+                    }
                 }
             });
     }
@@ -1618,7 +1818,7 @@ class respite_crud {
             "searchDelay": 700,
 
             //// DOM setting: //// more info here: https://datatables.net/reference/option/dom
-            "dom": "<'dt-dynamic-filter-details'>Bilfpr<'table-responsive't>p", // TODO: the B section should only be added if toolbar buttons were added
+            "dom": "<'card'<'card-header'B><'card-body container-fluid'<'dt-dynamic-filter-details'>ilfpr<'table-responsive't>p>>",
 
             //// Custom Buttons: ////
             "buttons": {
@@ -1730,7 +1930,7 @@ class respite_crud {
 
         // if not buttons were added, remove the B dom placeholder
         if (setOptions.buttons.length <= 0) {
-            setOptions.dom = setOptions.dom.replace("B", "");
+            setOptions.dom = "<'card'<'card-body container-fluid'<'dt-dynamic-filter-details'>ilfpr<'table-responsive't>p>>";
         }
 
         // if URL search parameters were specified, use them to apply column filters
@@ -1799,11 +1999,15 @@ class respite_crud {
                         hasFilters = true;
                     }
                 }
+
+                var urlLink = window.location.pathname + '?' + $.param(urlParams);
+                window.history.pushState(null, null, urlLink);
+
                 if (hasFilters) {
-                    var urlLink = window.location.pathname + '?' + $.param(urlParams);
+
                     $('body').find('.dt-dynamic-filter-details')
                         .append($('<div class="card card-info"></div>')
-                            .append($('<div class="card-header"><h6 class="card-title"><i class="fas fa-filter"></i> Active Filters:</h6></div>')
+                            .append($('<div class="card-header with-border"><h6 class="card-title"><i class="fas fa-filter"></i> Active Filters:</h6></div>')
                                 .append($('<div class="card-tools"></div>')
                                     .append($('<a class="btn btn-sm btn-info" role="button" data-toggle="tooltip" title="Get URL for this set of filters"><i class="fas fa-link"></i></a>').attr('href', urlLink))
                                     .append($('<button type="button" class="btn btn-sm btn-info" data-widget="collapse" data-toggle="tooltip" title="Collapse"><i class="fa fa-minus"></i></button>'))
@@ -1845,6 +2049,12 @@ class respite_crud {
 
             // Implement row reordering event
             respite_crud.dt.on('row-reorder', function (e, diff, edit) {
+
+                //console.log('Reorder started on row:');
+                //console.log(edit.triggerRow.data());
+                //console.log('Diff:');
+                //console.log(diff);
+
                 var changed = false;
                 var inputList = $('<select name="DT_RowId" multiple="multiple"></select>');
                 var options = respite_crud.respite_editor_options.dt_Options.dt_RowReorder;
@@ -1852,10 +2062,6 @@ class respite_crud {
                 var frmBody = $(options.form_body_selector).empty();
                 var rowData = {}
                 var inputField = $('<input type="hidden" />');
-
-                //console.log('Reorder started on row:');
-                //console.log(edit.triggerRow.data());
-
                 for (var i = 0, ien = diff.length ; i < ien ; i++) {
                     // if data indeed changed
                     if (diff[i].newData != diff[i].oldData) {

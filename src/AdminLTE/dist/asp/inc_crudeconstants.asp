@@ -387,5 +387,186 @@ FUNCTION InitDataViewActions (pViewID, pIsInline, pDBConnection)
 END FUNCTION
 
 SET rsItems = Server.CreateObject("ADODB.Recordset")
+    
 
+' TODO: Simplify the addColumn() function interface
+SUB InitDataViewFieldsJS(ByRef dvFields)
+    Dim nIndex, strSQL
+
+    FOR nIndex = 0 TO dvFields.UBound
+      IF (dvFields(nIndex)("FieldFlags") AND 9) > 0 THEN
+        %>.addColumn({
+        "name": "<%= dvFields(nIndex)("FieldIdentifier") %>",
+        "data": "<%= dvFields(nIndex)("FieldIdentifier") %>",
+            "render": respite_crud.renderAutomatic<%
+        
+        IF (dvFields(nIndex)("FieldFlags") AND 8) = 0 THEN  %>,
+            "visible": false<%
+        END IF
+
+        IF (dvFields(nIndex)("FieldFlags") AND 16) = 0 THEN  %>,
+            "searchable": false<%
+        END IF %>,
+            "editor_data": {<% 
+        IF (dvFields(nIndex)("FieldFlags") AND 1) = 0 THEN %>
+                "hidden": true,<%
+        END IF
+
+        IF dvFields(nIndex)("UriPath") <> "" THEN %>
+                "wrap_link": {
+                    "href": "<%= Sanitizer.JSON(dvFields(nIndex)("UriPath")) %>",
+                    "css": "<%= Sanitizer.JSON(luDataViewUriStyles(dvFields(nIndex)("UriStyle")).CSSClass) %>"
+                },<%
+        END IF %>
+                "label": "<%= Sanitizer.JSON(dvFields(nIndex)("FieldLabel")) %>",
+                "type": "<%= luDataViewFieldTypes(dvFields(nIndex)("FieldType")).Identifier %>",       // field type
+                "tooltip": "<%= Sanitizer.JSON(dvFields(nIndex)("FieldTooltip")) %>",
+                "default_value": "<%= Sanitizer.JSON(dvFields(nIndex)("DefaultValue")) %>",   // default value
+                <%
+                IF (dvFields(nIndex)("FieldFlags") AND 16) > 0 THEN %>"searchable": false,<%
+                END IF
+                %>
+                // collection of custom attributes to apply to the input field element: { attrName: attrValue, ... }
+                "attributes": { "placeholder": "<%= Sanitizer.JSON(dvFields(nIndex)("FieldLabel")) %>"<%
+                    IF dvFields(nIndex)("MaxLength") <> "" AND NOT IsNull(dvFields(nIndex)("MaxLength")) THEN
+                    %>, "maxlength": <%= dvFields(nIndex)("MaxLength") %><%
+                    END IF
+
+                    IF dvFields(nIndex)("Height") <> "" AND NOT IsNull(dvFields(nIndex)("Height")) THEN
+                    %>, "<%
+                        IF dvFields(nIndex)("FieldType") = 1 OR dvFields(nIndex)("FieldType") = 2 THEN
+                            Response.Write "rows"
+                        ELSE
+                            Response.Write "height"
+                        END IF %>": <%= dvFields(nIndex)("Height") %><%
+                    END IF
+
+                    IF dvFields(nIndex)("Width") <> "" AND NOT IsNull(dvFields(nIndex)("Width")) THEN
+                    %>, "width": '<%= dvFields(nIndex)("Width") %>%'<%
+                    END IF
+
+                    IF dvFields(nIndex)("FormatPattern") <> "" AND NOT IsNull(dvFields(nIndex)("FormatPattern")) THEN
+                    %>, "pattern": "<%= Sanitizer.JSON(dvFields(nIndex)("FormatPattern")) %>"<%
+                    END IF
+
+                    IF (dvFields(nIndex)("FieldFlags") AND 2) > 0 THEN
+                    %>, "required": true<%
+                    END IF
+
+                    IF (dvFields(nIndex)("FieldFlags") AND 4) > 0 THEN 
+                    %>, "readonly": true<%
+                    END IF %>}
+                <%  
+                    IF dvFields(nIndex)("FieldType") = 5 OR dvFields(nIndex)("FieldType") = 6 OR (dvFields(nIndex)("FieldType") >= 17 AND dvFields(nIndex)("FieldType") <= 21) OR (dvFields(nIndex)("FieldType") >= 27 AND dvFields(nIndex)("FieldType") <= 29) THEN
+                        Response.Write ", ""options"": [ "
+
+                        IF dvFields(nIndex)("LinkedTableValueField") <> "" AND Not IsNull(dvFields(nIndex)("LinkedTableValueField")) AND dvFields(nIndex)("LinkedTable") <> "" AND NOT IsNull(dvFields(nIndex)("LinkedTable")) THEN
+                            Dim rsOptions
+                            SET rsOptions = Server.CreateObject("ADODB.Recordset")
+                            strSQL = "SELECT * FROM (SELECT " & dvFields(nIndex)("LinkedTableValueField") & " AS [value], "
+                    
+                            IF dvFields(nIndex)("LinkedTableTitleField") <> "" THEN
+                                strSQL = strSQL & dvFields(nIndex)("LinkedTableTitleField")
+                            ELSE
+                                strSQL = strSQL & dvFields(nIndex)("LinkedTableValueField")
+                            END IF
+                            strSQL = strSQL & " AS [title], "
+
+                            IF dvFields(nIndex)("LinkedTableGroupField") <> "" THEN
+                                strSQL = strSQL & dvFields(nIndex)("LinkedTableGroupField")
+                            ELSE
+                                strSQL = strSQL & "''"
+                            END IF
+                            strSQL = strSQL & " AS [group], "
+                
+                            IF dvFields(nIndex)("LinkedTableGlyphField") <> "" THEN
+                            strSQL = strSQL & dvFields(nIndex)("LinkedTableGlyphField")
+                            ELSE
+                            strSQL = strSQL & "''"
+                            END IF
+                            strSQL = strSQL & " AS [glyph], "
+
+                            IF dvFields(nIndex)("LinkedTableTooltipField") <> "" THEN
+                            strSQL = strSQL & dvFields(nIndex)("LinkedTableTooltipField")
+                            ELSE
+                            strSQL = strSQL & "''"
+                            END IF
+                            strSQL = strSQL & " AS [tooltip] "
+
+                            strSQL = strSQL & " FROM " & dvFields(nIndex)("LinkedTable") & " " & dvFields(nIndex)("LinkedTableAddition")
+                            strSQL = strSQL & ") AS q ORDER BY [group] ASC, [title] ASC, [value] ASC"
+                
+                            rsOptions.Open strSQL, adoConnCrudeSrc
+
+                            WHILE NOT rsOptions.EOF
+                        %>{ "value": "<%= Sanitizer.JSON(rsOptions("value")) %>", "label": "<%= Sanitizer.JSON(rsOptions("title")) %>", "group": "<%= Sanitizer.JSON(rsOptions("group")) %>", "glyph": "<%= Sanitizer.JSON(rsOptions("glyph")) %>", "tooltip": "<%= Sanitizer.JSON(rsOptions("tooltip")) %>" }<%
+                            
+                            rsOptions.MoveNext
+                            
+                            IF NOT rsOptions.EOF THEN Response.Write ", "
+                            
+                            WEND
+                            rsOptions.Close
+                        END IF
+                        Response.Write "]"
+                    END IF %>
+            }
+        })
+    <%
+        END IF
+    NEXT
+END SUB
+
+SUB InitDataViewInlineActionButtonsJS (ByRef dvActionsInline)
+    Dim nIndex
+
+    FOR nIndex = 0 TO dvActionsInline.UBound %>
+        .addInlineActionButton(
+        {
+            href: "javascript:void(0)",
+            label: "<%= Sanitizer.JSON(dvActionsInline(nIndex)("ActionLabel")) %>",
+            glyph: "<%= Sanitizer.JSON(dvActionsInline(nIndex)("GlyphIcon")) %>",
+            "class": "<%= Sanitizer.JSON(dvActionsInline(nIndex)("CSSButton")) %>",
+            title: "<%= Sanitizer.JSON(dvActionsInline(nIndex)("ActionTooltip")) %>"
+         },
+        function (e, tr, r) {
+            <%
+            Select Case dvActionsInline(nIndex)("ActionType")
+            Case "javascript"
+            Response.Write dvActionsInline(nIndex)("ActionExpression")
+            Case "url"
+            Response.Write "respite_crud.actionUrl(""" & Sanitizer.JSON(dvActionsInline(nIndex)("ActionExpression")) & """, " & LCase(dvActionsInline(nIndex)("OpenURLInNewWindow")) & ", undefined, r, undefined);"
+            Case "db_command", "db_procedure"
+            Response.Write "throw 'not yet implemented';"
+            Case Else
+            Response.Write "throw 'Action Type " & dvActionsInline(nIndex)("ActionType") & " unrecognized';"
+            End Select
+            %>}
+        )<%
+    NEXT
+END SUB
+
+
+Dim BreadCrumbCollection
+SET BreadCrumbCollection = new DataViewLookupCollectionClass
+                
+SUB AddToBreadCrumbCollection (pLabel, pURL)
+    Dim tmpObj, tmpColumn, tmpIndex
+    
+    tmpIndex = BreadCrumbCollection.UBound + 1
+
+    SET tmpObj = new DataViewLookupClassExtendable
+    tmpObj.SetProp "Label", pLabel
+    tmpObj.SetProp "URL", pURL
+
+    BreadCrumbCollection.AddItem tmpIndex, tmpObj
+END SUB
+            
+SUB RenderBreadCrumbCollection()
+    Dim nIndex
+
+    FOR nIndex = 0 TO BreadCrumbCollection.UBound %>
+                    <li class="breadcrumb-item"><a href="<%= BreadCrumbCollection(nIndex)("URL") %>"><%= BreadCrumbCollection(nIndex)("Label") %></a></li><%
+    NEXT
+END SUB
 %>
