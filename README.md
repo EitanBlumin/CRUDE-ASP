@@ -20,9 +20,13 @@ The project should be optimal for rapid application development of simple LOB (l
 There's absolutely NO programming knowledge required.
 It could of course come in handy for the more advanced scenarios, but in the most part, you should be able to implement most common application features using the easy-to-understand UI of CRUDE, without writing a single word of code.
 
-![Data View Example](docs/images/dataview_basic_toastr.png "Featuring angular datatables and toastr notifications")
+![Data View Example](docs/images/crude_screenshot_nav.png "Featuring datatables with ajax, detail rows, row re-ordering, custom actions, column filters, and more")
 
-![Data View Editing Example](docs/images/dataview_editing.png "Bootstrap Modals are supported")
+![Data View Editing Example](docs/images/crude_screenshot_nav_edit.png "Editing an item in a Bootstrap Modal")
+
+![Browse Module Example](docs/images/crude_screenshot_nav_browse.png "You can also view data in Browse Mode")
+
+![Editing in Browse Module Example](docs/images/crude_screenshot_nav_browse_delete.png "You can also edit and delete data in Browse Mode")
 
 [Please see the Wiki for more info](https://github.com/EitanBlumin/CRUDE-ASP/wiki)
 
@@ -51,11 +55,6 @@ To install **Classic ASP** on your machine, the following features will need to 
 
 You will need a **Microsoft SQL Server** database to be installed.
 If you don't have a license already, [you can download the Developer edition *for free* here](https://www.microsoft.com/en-us/sql-server/sql-server-downloads).
-
-For development:
-
-- Microsoft Visual Studio 2015 or newer
-- SSDT (SQL Server Data Tools)
 
 ### Installing
 
@@ -109,5 +108,5 @@ This project is licensed under the Mozilla Public License 2.0 - see the [LICENSE
 
 ## Future Plans
 
-A new project is in the works, to utilize modern web technologies such as .NET Core, Angular 7 and Bootstrap 4.
+A new project is in the works, to utilize modern web technologies such as .NET Core and a modern JavaScript framework.
 You can find it here: [CRUDE-NET](https://github.com/EitanBlumin/CRUDE-NET)
