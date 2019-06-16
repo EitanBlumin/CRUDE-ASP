@@ -344,59 +344,59 @@ ELSEIF strError = "" AND (strMode = "add" OR strMode = "edit" OR strMode = "dele
             
 		    FOR nIndex = 0 TO dvFields.UBound 'AND False
 			    IF dvFields(nIndex)("FieldType") <> 10 AND (dvFields(nIndex)("FieldFlags") AND 4) = 0 THEN ' not "link" or read-only
-                    IF dvFields(nIndex)("FieldType") <> 9 AND Request("Field_" & dvFields(nIndex)("FieldID")) = "" AND (dvFields(nIndex)("FieldFlags") AND 2) > 0 THEN
+                    IF dvFields(nIndex)("FieldType") <> 9 AND Request(dvFields(nIndex)("FieldIdentifier")) = "" AND (dvFields(nIndex)("FieldFlags") AND 2) > 0 THEN
                         strError = strError & "<b>" & Sanitizer.HTMLDisplay(dvFields(nIndex)("FieldLabel")) & "</b> is required but has not been filled.<br/>"
                     ELSE
                         Select Case dvFields(nIndex)("FieldType")
                             Case 12, 1, 2, 6, 14 '"password", "text", "textarea", "multicombo", "rte"
-                                varCurrFieldValue = Request("Field_" & dvFields(nIndex)("FieldID"))
+                                varCurrFieldValue = Request(dvFields(nIndex)("FieldIdentifier"))
                             Case 9, 22, 23, 26 '"boolean"
-                                varCurrFieldValue = CBool(Request("Field_" & dvFields(nIndex)("FieldID")))
+                                varCurrFieldValue = CBool(Request(dvFields(nIndex)("FieldIdentifier")))
                             Case 7, 8 '"datetime", "date"
-                                IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
+                                IF Len(Request(dvFields(nIndex)("FieldIdentifier"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
                                     varCurrFieldValue = NULL
                                     'strMsgOutput = strMsgOutput & "<!-- setting [time] field " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
-                                ELSEIF isIsoDate(Request("Field_" & dvFields(nIndex)("FieldID"))) THEN
-				                    varCurrFieldValue = CIsoDate(Request("Field_" & dvFields(nIndex)("FieldID")))
-                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
-                                ELSEIF isDate(Request("Field_" & dvFields(nIndex)("FieldID"))) THEN
-				                    varCurrFieldValue = CDate(Request("Field_" & dvFields(nIndex)("FieldID")))
-                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+                                ELSEIF isIsoDate(Request(dvFields(nIndex)("FieldIdentifier"))) THEN
+				                    varCurrFieldValue = CIsoDate(Request(dvFields(nIndex)("FieldIdentifier")))
+                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request(dvFields(nIndex)("FieldIdentifier"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+                                ELSEIF isDate(Request(dvFields(nIndex)("FieldIdentifier"))) THEN
+				                    varCurrFieldValue = CDate(Request(dvFields(nIndex)("FieldIdentifier")))
+                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request(dvFields(nIndex)("FieldIdentifier"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
                                 ELSE
                                     Response.Status = "500 Server Error"
-                                    Response.Write "The value |" & Request("Field_" & dvFields(nIndex)("FieldID")) & "| is invalid as date and time."
+                                    Response.Write "The value |" & Request(dvFields(nIndex)("FieldIdentifier")) & "| is invalid as date and time."
                                     Response.End
                                 END IF
                             Case 13 '"time"
-                                IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
+                                IF Len(Request(dvFields(nIndex)("FieldIdentifier"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
                                     varCurrFieldValue = NULL
                                     'strMsgOutput = strMsgOutput & "<!-- setting [time] field " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
                                 ELSE
-				                    varCurrFieldValue = Mid(Request("Field_" & dvFields(nIndex)("FieldID")), 1, 8)
-                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+				                    varCurrFieldValue = Mid(Request(dvFields(nIndex)("FieldIdentifier")), 1, 8)
+                                    'strMsgOutput = strMsgOutput & "<!-- [time] field " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request(dvFields(nIndex)("FieldIdentifier"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
                                 END IF
                             Case 27, 28, 29 '"bitwise"
-                                IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 THEN ' if empty, enter 0
+                                IF Len(Request(dvFields(nIndex)("FieldIdentifier"))) = 0 THEN ' if empty, enter 0
                                     varCurrFieldValue = 0
                                     'strMsgOutput = strMsgOutput & "<!-- setting " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
                                 ELSE
                                     Dim arrValues, currVal
-                                    arrValues = Split(Request("Field_" & dvFields(nIndex)("FieldID")), ",")
+                                    arrValues = Split(Request(dvFields(nIndex)("FieldIdentifier")), ",")
     
                                     varCurrFieldValue = 0
 
                                     For Each currVal In arrValues
                                         IF IsNumeric(currVal) THEN varCurrFieldValue = varCurrFieldValue + CLng(currVal)
-                                    'strMsgOutput = strMsgOutput & "<!-- " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+                                    'strMsgOutput = strMsgOutput & "<!-- " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request(dvFields(nIndex)("FieldIdentifier"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
                                     Next
                                 END IF
                             Case Else
-                                IF Len(Request("Field_" & dvFields(nIndex)("FieldID"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
+                                IF Len(Request(dvFields(nIndex)("FieldIdentifier"))) = 0 AND (dvFields(nIndex)("FieldFlags") AND 2) = 0 THEN ' if empty and not required, enter NULL
                                     varCurrFieldValue = NULL
                                     'strMsgOutput = strMsgOutput & "<!-- setting " & dvFields(nIndex)("FieldSource") & " = NULL -->" & vbCrLf
                                 ELSE
-				                    varCurrFieldValue = Request("Field_" & dvFields(nIndex)("FieldID"))
-                                    'strMsgOutput = strMsgOutput & "<!-- " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request("Field_" & dvFields(nIndex)("FieldID"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
+				                    varCurrFieldValue = Request(dvFields(nIndex)("FieldIdentifier"))
+                                    'strMsgOutput = strMsgOutput & "<!-- " & dvFields(nIndex)("FieldSource") & " is NOT NULL (" & Len(Request(dvFields(nIndex)("FieldIdentifier"))) & ", " & (dvFields(nIndex)("FieldFlags") AND 2) & ") = " & varCurrFieldValue & " -->" & vbCrLf
                                 END IF
                         End Select
 

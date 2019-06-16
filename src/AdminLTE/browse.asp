@@ -54,9 +54,11 @@ strRowReorderColMasked = ""
 nItemID = Request("DT_ItemId")
 IF NOT IsNumeric(nItemID) THEN nItemID = ""
 strMode = Request("mode")
-IF strMode = "" THEN strMode = "none"
+IF strMode = "" THEN strMode = "browse"
 
 nViewID = Request("ViewID")
+strPageTitle = UCase(Left(strMode,1)) & Mid(strMode, 2)
+IF nItemID <> "" THEN strPageTitle = strPageTitle & " " & nItemID
 
 IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
     SET rsItems = Server.CreateObject("ADODB.Command")
@@ -66,7 +68,9 @@ IF strError = "" AND nViewID <> "" AND IsNumeric(nViewID) THEN
 	IF NOT rsItems.EOF THEN
         strDataSource = rsItems("DataSource")
         IF strDataSource = "" OR IsNull(strDataSource) THEN strDataSource = "Default"
-		strPageTitle = rsItems("Title")
+    
+        AddToBreadCrumbCollection CStr(rsItems("Title")), "dataview.asp?ViewID=" & nViewID
+
         blnPublished = rsItems("Published")
         strDataViewDescription = rsItems("ViewDescription")
         strViewProcedure = rsItems("ViewProcedure")
@@ -229,6 +233,7 @@ IF strError <> "" THEN
 
     // Override some options
     respite_crud.respite_editor_options.dt_Options.dt_AjaxGet = "<%= SITE_ROOT %>ajax_dataview.asp?mode=datatable&browse=true&columns[0][searchable]=true&columns[0][name]=DT_RowID&columns[0][data]=DT_RowID&columns[0][search][regex]=false&search[value]=&ViewID=<%= nViewID %>&columns[0][search][value]=<%= nItemID %>";
+    respite_crud.respite_editor_options.modal_Options.modal_edit.modal_form_target = "<%= SITE_ROOT %>ajax_dataview.asp?ViewID=<%= nViewID %>";
     respite_crud.respite_editor_options.modal_Options.modal_delete.modal_form_target = "<%= SITE_ROOT %>ajax_dataview.asp?ViewID=<%= nViewID %>";
     respite_crud.respite_editor_options.dt_Options.dt_BrowseMode = true;
 
@@ -312,16 +317,25 @@ function loadPageContent() {
                     var modalElements = respite_crud.renderDM_modalElements(d, '<%= strMode %>');
                     $('#contents').html(modalElements.bodyHtml);
                     $('#browse_title').text(modalElements.title);
-                    $('#browse_footer').append(
-                        $('<a href="javascript:void(0)" class="btn btn-success"><i class="fas fa-save"></i> Save Changes</a>')
+                    $('#browse_footer').empty()
+                        .append(
+                        $('<a href="javascript:void(0)" class="btn btn-success"><i class="fas fa-save"></i> <%= GetWord("Save Changes") %></a>')
                         .on("click", function() { $('#' + modalElements.form_id).submit();})
                         );
+                    if ('<%= Request("DT_ItemId") %>' != '') {
+                        $('#browse_footer').append(
+                        $('<a href="javascript:void(0)" class="btn btn-secondary mr-auto pull-right float-right"><i class="fas fa-times"></i> <%= GetWord("Close") %></a>')
+                        .on("click", function() {
+                            respite_crud.actionUrl('browse.asp?ViewID=<%= Request("ViewID") %>&DT_ItemId=<%= Request("DT_ItemId") %>');
+                            })
+                        );
+                    }
                     modalElements.callbackPostRender();
                     console.log(modalElements);
                     <% END IF %>
 
                     $('.grid-buttons-container')
-                        .append(respite_crud.renderInlineActionButtons());
+                        .empty().append(respite_crud.renderInlineActionButtons());
                 }
             }
         }

@@ -13,6 +13,7 @@
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="<%= SITE_ROOT %>default.asp">Home</a></li>
+                        <% Call RenderBreadCrumbCollection() %>
                         <li class="breadcrumb-item active"><%= strPageTitle %></li>
                     </ol>
                 </div><!-- /.col -->

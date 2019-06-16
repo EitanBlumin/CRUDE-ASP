@@ -545,4 +545,28 @@ SUB InitDataViewInlineActionButtonsJS (ByRef dvActionsInline)
         )<%
     NEXT
 END SUB
+
+
+Dim BreadCrumbCollection
+SET BreadCrumbCollection = new DataViewLookupCollectionClass
+                
+SUB AddToBreadCrumbCollection (pLabel, pURL)
+    Dim tmpObj, tmpColumn, tmpIndex
+    
+    tmpIndex = BreadCrumbCollection.UBound + 1
+
+    SET tmpObj = new DataViewLookupClassExtendable
+    tmpObj.SetProp "Label", pLabel
+    tmpObj.SetProp "URL", pURL
+
+    BreadCrumbCollection.AddItem tmpIndex, tmpObj
+END SUB
+            
+SUB RenderBreadCrumbCollection()
+    Dim nIndex
+
+    FOR nIndex = 0 TO BreadCrumbCollection.UBound %>
+                    <li class="breadcrumb-item"><a href="<%= BreadCrumbCollection(nIndex)("URL") %>"><%= BreadCrumbCollection(nIndex)("Label") %></a></li><%
+    NEXT
+END SUB
 %>
