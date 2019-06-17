@@ -529,15 +529,17 @@ SUB InitDataViewInlineActionButtonsJS (ByRef dvActionsInline)
             "class": "<%= Sanitizer.JSON(dvActionsInline(nIndex)("CSSButton")) %>",
             title: "<%= Sanitizer.JSON(dvActionsInline(nIndex)("ActionTooltip")) %>"
          },
-        function (e, tr, r) {
+        function (e, tr, r, id) {
+            var params = {}; // TODO: Add any action parameters to the "params" object + placeholder replacement
             <%
             Select Case dvActionsInline(nIndex)("ActionType")
             Case "javascript"
             Response.Write dvActionsInline(nIndex)("ActionExpression")
             Case "url"
-            Response.Write "respite_crud.actionUrl(""" & Sanitizer.JSON(dvActionsInline(nIndex)("ActionExpression")) & """, " & LCase(dvActionsInline(nIndex)("OpenURLInNewWindow")) & ", undefined, r, undefined);"
+            Response.Write "respite_crud.actionUrl(""" & Sanitizer.JSON(dvActionsInline(nIndex)("ActionExpression")) & """, " & LCase(dvActionsInline(nIndex)("OpenURLInNewWindow")) & ", params, r, undefined);"
             Case "db_command", "db_procedure"
             Response.Write "throw 'not yet implemented';"
+            ' TODO: api call action type
             Case Else
             Response.Write "throw 'Action Type " & dvActionsInline(nIndex)("ActionType") & " unrecognized';"
             End Select
