@@ -394,7 +394,20 @@ class respite_crud {
 
             for (var i = 0; i < opList.length; i++) {
                 if (opList[i].value == data) {
-                    return opList[i].label;
+                    var nextOp = $('<span></span>');
+
+                    if (opList[i]['glyph'] != undefined && opList[i]['glyph'] != '')
+                        nextOp.append($('<i class="' + opList[i]['glyph'] + '"></i>'));
+
+                    if (opList[i]['tooltip'] != undefined && opList[i]['tooltip'] != '') {
+                        nextOp.attr('data-toggle', 'tooltip');
+                        nextOp.attr('title', opList[i]['tooltip']);
+                    }
+
+                    if (opList[i]['label'] != undefined)
+                        nextOp.append($('<span></span>').text(' ' + opList[i]['label']));
+
+                    return nextOp.clone().wrap('<div>').parent().html();
                 }
             }
         }
@@ -406,8 +419,6 @@ class respite_crud {
 
     static renderBitwiseLookup_ed(data, ed) {
         var rv = "";
-        var nextOp = "";
-        var glyph = $('<i></i>');
 
         if (data != '' && data != undefined && ed != undefined && ed['options'] != undefined) {
 
@@ -417,24 +428,22 @@ class respite_crud {
 
                 if ((data & opList[i].value) > 0) {
 
-                    nextOp = opList[i].label.trim();
+                    var nextOp = $('<span></span>');
 
-                    if (opList[i]['glyph'] != undefined && opList[i]['glyph'] != '') {
-
-                        glyph = $('<i class="' + opList[i]['glyph'] + '"></i>');
-                        glyph.attr('data-toggle', 'tooltip');
-
-                        if (opList[i]['tooltip'] != undefined && opList[i]['tooltip'] != '')
-                            glyph.attr('title', opList[i]['tooltip'])
-                        else if (opList[i]['label'] != undefined)
-                            glyph.attr('title', opList[i]['label'])
-
-                        nextOp = glyph.clone().wrap('<div>').parent().html();
-                    } else if (rv.length > 0) {
-                        rv += ",";
+                    if (opList[i]['glyph'] != undefined && opList[i]['glyph'] != '')
+                        nextOp.append($('<i class="' + opList[i]['glyph'] + '"></i>'));
+                    else if (rv.length > 0)
+                        rv += ", ";
+                    
+                    if (opList[i]['tooltip'] != undefined && opList[i]['tooltip'] != '') {
+                        nextOp.attr('data-toggle', 'tooltip');
+                        nextOp.attr('title', opList[i]['tooltip']);
                     }
 
-                    rv += ' ' + nextOp;
+                    if (opList[i]['label'] != undefined)
+                        nextOp.append($('<span></span>').text(' ' + opList[i]['label']));
+                    
+                    rv += ' ' + nextOp.clone().wrap('<div>').parent().html();
                 }
             }
         }
@@ -457,8 +466,23 @@ class respite_crud {
                 for (var i = 0; i < opList.length; i++) {
 
                     if (opList[i].value == dataList[j]) {
-                        if (rv.length > 0) rv += ", ";
-                        rv += opList[i].label.trim();
+
+                        var nextOp = $('<span></span>');
+
+                        if (opList[i]['glyph'] != undefined && opList[i]['glyph'] != '')
+                            nextOp.append($('<i class="' + opList[i]['glyph'] + '"></i>'));
+                        else if (rv.length > 0)
+                            rv += ", ";
+
+                        if (opList[i]['tooltip'] != undefined && opList[i]['tooltip'] != '') {
+                            nextOp.attr('data-toggle', 'tooltip');
+                            nextOp.attr('title', opList[i]['tooltip']);
+                        }
+
+                        if (opList[i]['label'] != undefined)
+                            nextOp.append($('<span></span>').text(' ' + opList[i]['label']));
+
+                        rv += ' ' + nextOp.clone().wrap('<div>').parent().html();
                     }
                 }
             }
@@ -1364,11 +1388,22 @@ class respite_crud {
 
         if (onClickFunction != undefined) {
             var btnClassName = "respite_btn_" + respite_crud.getNextActionButtonIndex();
-            $('tbody', $(respite_crud.respite_editor_options.dt_Options.dt_Selector)).on('click', 'tr td a.' + btnClassName, function (e) {     // datatable_selector
-                var tr = $(this).closest('tr');
-                var r = respite_crud.dt.row(tr).data();
-                onClickFunction(e, tr, r);
-            });
+            var objDt = $(respite_crud.respite_editor_options.dt_Options.dt_Selector);
+
+            if (objDt.length > 0) {
+                $('tbody', objDt).on('click', 'tr td a.' + btnClassName, function (e) {
+                    var tr = $(this).closest('tr');
+                    var r = respite_crud.dt.row(tr).data();
+                    onClickFunction(e, tr, r);
+                });
+            } else {
+                $('.grid-buttons-container').on('click', 'a.' + btnClassName, function (e) {
+                    var r = respite_crud.row;
+                    var id = r.DT_RowId;
+
+                    onClickFunction(e, undefined, r, id);
+                });
+            }
 
             if (objButton['class'] != undefined)
                 objButton['class'] += " " + btnClassName;
@@ -1561,7 +1596,7 @@ class respite_crud {
 
         respite_crud.dt_Buttons.push(objButton);
 
-        // if datatable is already initialized, add using api
+        // if datatable is already initialized, add using api (this doesn't seem to work currently)
         if (respite_crud.dt != undefined) {
             respite_crud.dt.button().add(respite_crud.dt_Buttons.length, objButton);
         }
