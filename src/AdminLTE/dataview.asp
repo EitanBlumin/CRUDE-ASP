@@ -430,7 +430,7 @@ IF strError <> "" THEN
         END IF
         %>)<% END IF
     IF blnShowCustomActions THEN
-    'TODO: Implement DB Command and URL buttons
+    'TODO: Implement DB Command and API Actions
     FOR nIndex = 0 TO dvActionsToolbar.UBound %>
         .addToolbarActionButton(
         {

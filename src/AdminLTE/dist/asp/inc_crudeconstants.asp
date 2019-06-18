@@ -539,7 +539,7 @@ SUB InitDataViewInlineActionButtonsJS (ByRef dvActionsInline)
             Response.Write "respite_crud.actionUrl(""" & Sanitizer.JSON(dvActionsInline(nIndex)("ActionExpression")) & """, " & LCase(dvActionsInline(nIndex)("OpenURLInNewWindow")) & ", params, r, undefined);"
             Case "db_command", "db_procedure"
             Response.Write "throw 'not yet implemented';"
-            ' TODO: api call action type
+            ' TODO: db command and api call action types
             Case Else
             Response.Write "throw 'Action Type " & dvActionsInline(nIndex)("ActionType") & " unrecognized';"
             End Select
